@@ -82,6 +82,12 @@ export const WorkspaceProvider = (props) => {
     return newPage;
   }, [workspace, updateWorkspace]);
 
+  const updatePage = useCallback(async function updatePage(page) {
+    const updatedWorkspaceDoc = await workspace.save([page]);
+    updateWorkspace(updatedWorkspaceDoc)
+    return page;
+  }, [workspace, updateWorkspace]);
+
   const deletePage = useCallback(async function deletePage(ref) {
     // Initialise the new Subject:
     workspace.removeSubject(ref);
@@ -92,7 +98,7 @@ export const WorkspaceProvider = (props) => {
   }, [workspace, updateWorkspace]);
 
   return (
-    <Provider {...props} value={{workspace, pages, addPage, deletePage}} />
+    <Provider {...props} value={{workspace, pages, addPage, updatePage, deletePage}} />
   )
 }
 
