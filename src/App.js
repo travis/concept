@@ -1,24 +1,27 @@
 import React from 'react';
+import CssBaseline from '@material-ui/core/CssBaseline';
+
 import logo from './logo.svg';
 import './App.css';
 import {AuthProvider} from './context/auth'
 import {WorkspaceProvider} from './context/workspace'
+import Header from './components/Header'
 
-import LogInLogOutButton from './components/LogInLogOutButton'
-import Pages from './components/Pages'
+import Pages from './components/Pages';
 
 function App() {
   return (
-    <AuthProvider>
-      <WorkspaceProvider>
-        <div className="App">
-          <header className="App-header">
-            <LogInLogOutButton/>
-          </header>
-          <Pages/>
-        </div>
-      </WorkspaceProvider>
-    </AuthProvider>
+    <>
+      <CssBaseline/>
+      <AuthProvider>
+        <WorkspaceProvider>
+          <div className="App">
+            <Header/>
+            <Pages/>
+          </div>
+        </WorkspaceProvider>
+      </AuthProvider>
+    </>
   );
 }
 

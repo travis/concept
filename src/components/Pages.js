@@ -1,6 +1,7 @@
-import React, {createRef, useContext, useCallback, useState} from 'react'
+import React, {createRef, useContext, useCallback, useState, useEffect} from 'react'
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
+import { makeStyles } from '@material-ui/core/styles';
 import {space, rdf, solid, schema} from 'rdf-namespaces';
 import { throttle, debounce } from 'throttle-debounce';
 
@@ -10,8 +11,9 @@ import 'tui-editor/dist/tui-editor-contents.min.css';
 import { Editor } from '@toast-ui/react-editor'
 
 import WorkspaceContext from "../context/workspace"
+import PageDrawer from './PageDrawer'
 
-function Page({page, updatePage, deletePage}){
+function Page({page, updatePage, deletePage, className}){
   const [saving, setSaving] = useState(false)
   const body = page.getString(schema.text)
   const editorRef = createRef();
@@ -25,7 +27,7 @@ function Page({page, updatePage, deletePage}){
     }
   }, [page, editorRef]);
   return (
-    <div>
+    <div className={className}>
       <h3>{page.getString(schema.name)}</h3>
       {saving && "Saving..."}
       <Editor
@@ -37,19 +39,32 @@ function Page({page, updatePage, deletePage}){
         useCommandShortcut={true}
         onChange={debounce(1000, onChange)}
       />
-      <Button onClick={() => deletePage(page.asRef())}>Delete</Button>
     </div>
   )
 }
 
+const useStyles = makeStyles(theme => ({
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    marginLeft: 240
+  },
+}));
+
+
 export default function Pages(){
-  const {pages, addPage, updatePage, deletePage} = useContext(WorkspaceContext)
+  const [selectedPageIndex, setSelectedPageIndex] = useState(0);
+  const {pages, addPage, updatePage, deletePage} = useContext(WorkspaceContext);
+  const page = pages && pages[selectedPageIndex];
+  const classes = useStyles()
+
   return (
-    <Box>
-      {pages && pages.map(page => (
-        <Page page={page} updatePage={updatePage} deletePage={deletePage} key={page.asRef()}/>
-      ))}
-      <Button onClick={() => addPage()}>Add Page</Button>
-    </Box>
+    <>
+      <PageDrawer pages={pages} setSelectedPageIndex={setSelectedPageIndex}
+                  addPage={addPage} deletePage={deletePage}/>
+      <Box className={classes.content}>
+        {page && <Page page={page} updatePage={updatePage} />}
+      </Box>
+    </>
   )
 }
