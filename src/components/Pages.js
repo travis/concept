@@ -1,4 +1,4 @@
-import React, {createRef, useContext, useCallback, useState, useEffect} from 'react'
+import React, {useRef, useContext, useCallback, useState, useEffect} from 'react'
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
@@ -14,16 +14,20 @@ import WorkspaceContext from "../context/workspace"
 import PageDrawer from './PageDrawer'
 
 function Page({page, updatePage, deletePage, className}){
-  const [saving, setSaving] = useState(false)
-  const body = page.getString(schema.text)
-  const editorRef = createRef();
+  const [saving, setSaving] = useState(false);
+  const editorRef = useRef();
   const onChange = useCallback(async function() {
-    const text = editorRef.current && editorRef.current.getInstance().getValue()
-    if (text && (text != body)) {
+    const text = editorRef.current && editorRef.current.getInstance().getValue();
+    if (text && (text != page.getString(schema.text))) {
       page.setLiteral(schema.text, text)
       setSaving(true)
       await updatePage(page)
       setSaving(false)
+    }
+  }, [page, editorRef, updatePage]);
+  useEffect(() => {
+    if (editorRef.current){
+      editorRef.current.getInstance().setMarkdown(page.getString(schema.text));
     }
   }, [page, editorRef]);
   return (
@@ -32,7 +36,7 @@ function Page({page, updatePage, deletePage, className}){
       {saving && "Saving..."}
       <Editor
         ref={editorRef}
-        initialValue={body}
+        initialValue={page.getString(schema.text)}
         previewStyle="tab"
         height="600px"
         initialEditType="markdown"
