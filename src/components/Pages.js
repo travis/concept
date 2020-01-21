@@ -12,7 +12,16 @@ import { Editor } from '@toast-ui/react-editor'
 import WorkspaceContext from "../context/workspace"
 import PageDrawer from './PageDrawer'
 
+const useStyles = makeStyles(theme => ({
+  saving: {
+    position: "fixed",
+    right: 0,
+    zIndex: 1000
+  }
+}));
+
 function Page({page, updatePage, deletePage, className}){
+  const classes = useStyles();
   const [saving, setSaving] = useState(false);
   const editorRef = useRef();
   const onChange = useCallback(async function() {
@@ -32,7 +41,7 @@ function Page({page, updatePage, deletePage, className}){
   return (
     <div className={className}>
       <h3>{page.getString(schema.name)}</h3>
-      {saving && "Saving..."}
+      <p className={classes.saving}>{saving && "Saving..."}</p>
       <Editor
         ref={editorRef}
         initialValue={page.getString(schema.text)}
@@ -46,7 +55,7 @@ function Page({page, updatePage, deletePage, className}){
   )
 }
 
-const useStyles = makeStyles(theme => ({
+const usePagesStyles = makeStyles(theme => ({
   content: {
     flexGrow: 1,
     marginLeft: 240
@@ -58,7 +67,7 @@ export default function Pages(){
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
   const {pages, addPage, updatePage, deletePage} = useContext(WorkspaceContext);
   const page = pages && pages[selectedPageIndex];
-  const classes = useStyles()
+  const classes = usePagesStyles()
 
   return (
     <>
