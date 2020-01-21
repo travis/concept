@@ -8,6 +8,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 
 import { schema } from 'rdf-namespaces';
 
+import LogInLogOutButton from './LogInLogOutButton';
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles(theme => ({
@@ -41,6 +43,7 @@ export default ({pages, setSelectedPageIndex, addPage, deletePage}) => {
         ))}
       </List>
       <Button onClick={() => addPage()}>Add Page</Button>
+      <LogInLogOutButton/>
     </Drawer>
 
   )

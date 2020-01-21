@@ -49,7 +49,6 @@ function Page({page, updatePage, deletePage, className}){
 const useStyles = makeStyles(theme => ({
   content: {
     flexGrow: 1,
-    padding: theme.spacing(3),
     marginLeft: 240
   },
 }));
