@@ -1,9 +1,8 @@
 import React, {useRef, useContext, useCallback, useState, useEffect} from 'react'
 import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
-import {space, rdf, solid, schema} from 'rdf-namespaces';
-import { throttle, debounce } from 'throttle-debounce';
+import { schema} from 'rdf-namespaces';
+import { debounce } from 'throttle-debounce';
 
 import 'codemirror/lib/codemirror.css';
 import 'tui-editor/dist/tui-editor.min.css';
@@ -18,7 +17,7 @@ function Page({page, updatePage, deletePage, className}){
   const editorRef = useRef();
   const onChange = useCallback(async function() {
     const text = editorRef.current && editorRef.current.getInstance().getValue();
-    if (text && (text != page.getString(schema.text))) {
+    if (text && (text !== page.getString(schema.text))) {
       page.setLiteral(schema.text, text)
       setSaving(true)
       await updatePage(page)

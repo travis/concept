@@ -1,7 +1,6 @@
 import React from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
-import logo from './logo.svg';
 import './App.css';
 import {AuthProvider} from './context/auth'
 import {WorkspaceProvider} from './context/workspace'
