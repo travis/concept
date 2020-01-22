@@ -12,9 +12,9 @@
     "react-dom": "^16.12.0",
     "react-scripts": "3.3.0",
     "solid-auth-client": "^2.4.1",
-    "throttle-debounce": "^2.1.0",
     "tripledoc": "^4.0.0",
-    "tui-editor": "^1.4.10"
+    "tui-editor": "^1.4.10",
+    "use-debounce": "^3.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
