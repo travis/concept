@@ -1,3 +1,13 @@
+# Concept
+
+All-in-one workspace built on [Solid](https://solidproject.org/).
+
+Use Concept:
+
+[useconcept.art](http://useconcept.art)
+
+# Development
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
