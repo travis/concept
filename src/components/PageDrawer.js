@@ -9,6 +9,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import { schema } from 'rdf-namespaces';
 
 import LogInLogOutButton from './LogInLogOutButton';
+import logo from '../logo.svg'
 
 const drawerWidth = 240;
 
@@ -21,6 +22,12 @@ const useStyles = makeStyles(theme => ({
     width: drawerWidth,
   },
   toolbar: theme.mixins.toolbar,
+  logo: {
+    height: "4em",
+    paddingTop: "0.5em",
+    float: "left",
+    paddingLeft: "0.5em"
+  }
 }));
 
 export default ({pages, setSelectedPageIndex, addPage, deletePage}) => {
@@ -33,7 +40,9 @@ export default ({pages, setSelectedPageIndex, addPage, deletePage}) => {
         paper: classes.drawerPaper,
       }}
     >
-      <div className={classes.toolbar} />
+      <div className={classes.toolbar}>
+        <img src={logo} className={classes.logo} alt="logo"/>
+      </div>
       <List>
         {pages && pages.map((page, index) => (
           <ListItem button key={index} onClick={() => setSelectedPageIndex(index)}>
