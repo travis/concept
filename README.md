@@ -1,6 +1,6 @@
 # Concept
 
-All-in-one workspace built on [Solid](https://solidproject.org/).
+All (well, some)-in-one workspace built on [Solid](https://solidproject.org/).
 
 Use Concept:
 
