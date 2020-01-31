@@ -30,7 +30,17 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default ({pages, setSelectedPageIndex, addPage, deletePage}) => {
+const PageListItem = ({pageRef, workspace, setSelectedPage, deletePage}) => {
+  const page = workspace.getSubject(pageRef)
+  return (
+    <ListItem button onClick={setSelectedPage}>
+      <ListItemText primary={page.getString(schema.name)} />
+      <Button onClick={deletePage}>Delete</Button>
+    </ListItem>
+  )
+}
+
+export default ({workspace, pages, setSelectedPageIndex, addPage, deletePage}) => {
   const classes = useStyles()
   return (
     <Drawer
@@ -44,11 +54,11 @@ export default ({pages, setSelectedPageIndex, addPage, deletePage}) => {
         <img src={logo} className={classes.logo} alt="logo"/>
       </div>
       <List>
-        {pages && pages.map((page, index) => (
-          <ListItem button key={index} onClick={() => setSelectedPageIndex(index)}>
-            <ListItemText primary={page.getString(schema.name)} />
-            <Button onClick={() => deletePage(page.asRef())}>Delete</Button>
-          </ListItem>
+        {pages && pages.map((pageRef, index) => (
+          <PageListItem key={index} pageRef={pageRef} workspace={workspace}
+                        setSelectedPage={() => setSelectedPageIndex(index)}
+                        deletePage={() => deletePage(pageRef)}
+          />
         ))}
       </List>
       <Button onClick={() => addPage()}>Add Page</Button>
