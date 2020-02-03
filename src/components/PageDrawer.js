@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import Button from '@material-ui/core/Button';
@@ -30,11 +30,12 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const PageListItem = ({pageRef, workspace, setSelectedPage, deletePage}) => {
-  const page = workspace.getSubject(pageRef)
+const PageListItem = ({page, setSelectedPage, deletePage}) => {
+  const [name, setName] = useState(null)
+  useEffect(() => {page.getName().then(n => setName(n))}, [page])
   return (
     <ListItem button onClick={setSelectedPage}>
-      <ListItemText primary={page.getString(schema.name)} />
+      <ListItemText primary={name} />
       <Button onClick={deletePage}>Delete</Button>
     </ListItem>
   )
@@ -54,10 +55,10 @@ export default ({workspace, pages, setSelectedPageIndex, addPage, deletePage}) =
         <img src={logo} className={classes.logo} alt="logo"/>
       </div>
       <List>
-        {pages && pages.map((pageRef, index) => (
-          <PageListItem key={index} pageRef={pageRef} workspace={workspace}
+        {pages && pages.map((page, index) => (
+          <PageListItem key={index} page={page} workspace={workspace}
                         setSelectedPage={() => setSelectedPageIndex(index)}
-                        deletePage={() => deletePage(pageRef)}
+                        deletePage={() => deletePage(page)}
           />
         ))}
       </List>

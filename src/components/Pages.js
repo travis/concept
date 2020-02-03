@@ -26,18 +26,33 @@ const useStyles = makeStyles(theme => ({
 function PageName({page, updatePage}){
   const {saveName} = useContext(WorkspaceContext);
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(page.getString(schema.name));
-  useEffect(() => setName(page.getString(schema.name)), [page])
-  const save = useCallback(async function(value) {
-    if (value && (value !== page.getString(schema.name))) {
-      await saveName(page.getDocument(), value);
-    }
-  }, [page, updatePage]);
-
+  const [name, setName] = useState(null);
+  const [savedName, setSavedName] = useState(null);
   const [debouncedName] = useDebounce(name, 1000);
   useEffect(() => {
-    save(debouncedName)
-  }, [save, debouncedName])
+    console.log("set name effect")
+    if (page) {
+      console.log("setting page name")
+      const loadName = async () => {
+        const n = await page.getName()
+        setName(n)
+        setSavedName(n)
+      }
+      loadName()
+    }
+  }, [page])
+
+  useEffect(() => {
+    console.log("save page name effect")
+    if ((savedName !== null) && (name === debouncedName) && (debouncedName !== savedName)) {
+      console.log("saving page name", savedName, name, debouncedName)
+      const save = async function() {
+        await page.setName(debouncedName);
+        setSavedName(debouncedName)
+      }
+      save(debouncedName)
+    }
+  }, [page, savedName, name, debouncedName, saveName])
 
   return editing ? (
     <TextField label="Page Name" variant="standard" autoFocus
@@ -49,54 +64,45 @@ function PageName({page, updatePage}){
   );
 }
 
-function Page({pageRef, updatePage, deletePage, className}){
-  const [page, setPage] = useState(null)
-  const [pageDoc, setPageDoc] = useState(null)
-  const [text, setText] = useState("");
-  const [savedText, setSavedText] = useState("");
+function Page({page, updatePage, deletePage, className}){
+  const [text, setText] = useState(null);
+  const [savedText, setSavedText] = useState(null);
   const [debouncedText] = useDebounce(text, 1000);
 
   useEffect(() => {
-    const loadPage = async () => {
-      const pageD = await fetchDocument(pageRef);
-      const p = pageD.getSubject(pageRef);
-      const t = p.getString(schema.text) || ""
+    const loadText = async () => {
+      console.log("loading text for page", page, await page.getText())
+      const t = (await page.getText());
       setText(t)
       setSavedText(t)
-      setPageDoc(pageD)
-      setPage(p);
     }
-    loadPage()
-  }, [pageRef])
+    loadText()
+  }, [page])
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const saveText = async () => {
-      page.setLiteral(schema.text, debouncedText)
       setSaving(true)
-      const newPageDoc = await pageDoc.save([page]);
+      await page.setText(debouncedText)
       setSavedText(debouncedText)
-      setPageDoc(newPageDoc);
-      setPage(newPageDoc.getSubject(pageRef))
       setSaving(false)
     }
-    if (page && pageDoc && (debouncedText === text) && (debouncedText !== savedText)) {
-      saveText(debouncedText)
+    if (page && (debouncedText === text) && (debouncedText !== savedText)) {
+      saveText()
     }
-  }, [savedText, page, pageDoc, pageRef, debouncedText])
+  }, [page, savedText, text, debouncedText])
 
   const editorRef = useRef();
   useEffect(() => {
-    if (page) {
-      const value = page.getString(schema.text);
-      setText(value)
-      editorRef.current.getInstance().setMarkdown(value);
+    if (savedText !== null) {
+      setText(savedText)
+      editorRef.current.getInstance().setMarkdown(savedText);
     }
-  }, [page, editorRef])
+  }, [editorRef, savedText])
   return page ? (
     <div className={className}>
-      <PageName page={page} updatePage={updatePage}/>
+      {<PageName page={page} updatePage={updatePage}/>}
       <p className={classes.saving}>{saving && "Saving..."}</p>
       <Editor
         ref={editorRef}
@@ -122,7 +128,7 @@ const usePagesStyles = makeStyles(theme => ({
 export default function Pages(){
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
   const {workspace, pages, addPage, updatePage, deletePage} = useContext(WorkspaceContext);
-  const pageRef = pages && pages[selectedPageIndex];
+  const page = pages && pages[selectedPageIndex];
   const classes = usePagesStyles()
 
   return (
@@ -130,7 +136,7 @@ export default function Pages(){
       <PageDrawer workspace={workspace} pages={pages} setSelectedPageIndex={setSelectedPageIndex}
                   addPage={addPage} deletePage={deletePage}/>
       <Box className={classes.content}>
-        {pageRef && <Page pageRef={pageRef} updatePage={updatePage} />}
+        {page && <Page page={page} updatePage={updatePage} />}
       </Box>
     </>
   )

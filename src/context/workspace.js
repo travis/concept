@@ -2,6 +2,7 @@ import React, {useEffect, useState, createContext, useContext, useCallback} from
 import {fetchDocument, createDocument, createDocumentInContainer} from 'tripledoc';
 import {space, rdf, solid, schema, ldp} from 'rdf-namespaces';
 import client from 'solid-auth-client';
+import {Page, Workspace} from '../model/page';
 
 import AuthContext from '../context/auth'
 
@@ -60,6 +61,8 @@ async function getWorkspace(profile) {
 
   /* 3. If it does exist, fetch that Document. */
   const workspaceRef = workspaceEntry.getRef(solid.instance);
+  const w = new Workspace(await fetchDocument(workspaceRef))
+  console.log(await w.getContainerDocument())
   return await fetchDocument(workspaceRef);
 }
 
@@ -71,21 +74,14 @@ export const WorkspaceProvider = (props) => {
 
   const updateWorkspace = useCallback(async function updateWorkspace(newWorkspace) {
     setWorkspace(newWorkspace)
-    console.log(newWorkspace.getSubject(newWorkspace.asRef()))
-    const containerRef = newWorkspace.getSubject(newWorkspace.asRef()).getRef(space.storage);
-    console.log("CONT", containerRef)
-    const containerDoc = await fetchDocument(containerRef)
-    const c = containerDoc.getSubject(containerDoc.asRef());
-    console.log("setting container", c)
-    setContainer(c)
-    setPages(c.getAllRefs(ldp.contains))
+    setPages(await newWorkspace.getPages())
   }, [])
 
   useEffect(() => {
     const loadPagesList = async () => {
-      console.log("loading..")
+      console.log("loading.!!!.")
       const workspaceDoc = await getWorkspace(currentUser)
-      await updateWorkspace(workspaceDoc)
+      updateWorkspace(new Workspace(workspaceDoc))
     }
     if (currentUser) loadPagesList()
   }, [currentUser, updateWorkspace])
