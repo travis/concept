@@ -5,7 +5,7 @@ import './App.css';
 import {AuthProvider} from './context/auth'
 import {WorkspaceProvider} from './context/workspace'
 
-import Pages from './components/Pages';
+import Workspace from './components/Workspace';
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
       <AuthProvider>
         <WorkspaceProvider>
           <div className="App">
-            <Pages/>
+            <Workspace/>
           </div>
         </WorkspaceProvider>
       </AuthProvider>

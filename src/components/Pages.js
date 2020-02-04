@@ -1,4 +1,4 @@
-import React, {useRef, useContext, useCallback, useState, useEffect} from 'react'
+import React, {useRef, useContext, useState, useEffect} from 'react'
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
@@ -12,6 +12,7 @@ import { Editor } from '@toast-ui/react-editor';
 
 import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
+import {useLDflex, useLDflexList} from "@solid/react";
 
 
 const useStyles = makeStyles(theme => ({
@@ -24,19 +25,20 @@ const useStyles = makeStyles(theme => ({
 
 function PageName({page, updatePage}){
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(page.getString(schema.name));
-  useEffect(() => setName(page.getString(schema.name)), [page])
-  const save = useCallback(async function(value) {
-    if (value && (value !== page.getString(schema.name))) {
-      page.setLiteral(schema.name, value);
-      await updatePage(page);
-    }
-  }, [page]);
+  const [savedNameNode, loading] = useLDflex(`[${page}][${schema.name}]`);
+  const savedName = savedNameNode && savedNameNode.toString();
+  const [name, setName] = useState(savedName);
+  useEffect(() => {
+    setName(`${savedName}`);
+  }, [savedName])
 
   const [debouncedName] = useDebounce(name, 1000);
+
   useEffect(() => {
-    save(debouncedName)
-  }, [debouncedName])
+    if (!loading && debouncedName && (debouncedName === name) && (debouncedName !== savedName)) {
+      updatePage(page, schema.name, debouncedName);
+    }
+  }, [loading, page, savedName, name, debouncedName, updatePage])
 
   return editing ? (
     <TextField label="Page Name" variant="standard" autoFocus
@@ -48,32 +50,30 @@ function PageName({page, updatePage}){
   );
 }
 
-function Page({page, updatePage, deletePage, className}){
+function Page({page, deletePage, className}){
+  const {updatePage} = useContext(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
-
-  const [text, setText] = useState(page.getString(schema.text));
-  const saveText = useCallback(async (value) => {
-    if (value !== page.getString(schema.text)) {
-      page.setLiteral(schema.text, value)
-      setSaving(true)
-      await updatePage(page)
-      setSaving(false)
-    }
-  }, [page])
-
+  const [savedTextNode, savedTextLoading] = useLDflex(`[${page}][${schema.text}]`);
+  const savedText = savedTextNode && savedTextNode.toString()
+  const [text, setText] = useState(savedText);
   const [debouncedText] = useDebounce(text, 1000);
   useEffect(() => {
-    saveText(debouncedText)
-  }, [debouncedText])
+    setText(savedText);
+  }, [savedText])
+
+  useEffect(() => {
+    if (!savedTextLoading && (debouncedText === text) && (debouncedText !== savedText)) {
+      setSaving(true)
+      updatePage(page, schema.text, debouncedText)
+      setSaving(false)
+    }
+  }, [page, savedTextLoading, savedText, text, debouncedText, updatePage])
 
   const editorRef = useRef();
   useEffect(() => {
-    const value = page.getString(schema.text);
-    setText(value)
-    editorRef.current.getInstance().setMarkdown(value);
-
-  }, [page, editorRef])
+    editorRef.current.getInstance().setMarkdown(`${savedText}`);
+  }, [editorRef, savedText])
   return (
     <div className={className}>
       <PageName page={page} updatePage={updatePage}/>
@@ -99,18 +99,17 @@ const usePagesStyles = makeStyles(theme => ({
 }));
 
 
-export default function Pages(){
+export default function Pages({workspace, addPage}){
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
-  const {pages, addPage, updatePage, deletePage} = useContext(WorkspaceContext);
+  const pages = useLDflexList(`[${workspace}][${schema.itemListElement}]`);
   const page = pages && pages[selectedPageIndex];
-  const classes = usePagesStyles()
 
+  const classes = usePagesStyles()
   return (
     <>
-      <PageDrawer pages={pages} setSelectedPageIndex={setSelectedPageIndex}
-                  addPage={addPage} deletePage={deletePage}/>
+      <PageDrawer pages={pages} addPage={addPage} setSelectedPageIndex={setSelectedPageIndex}/>
       <Box className={classes.content}>
-        {page && <Page page={page} updatePage={updatePage} />}
+        {page && <Page page={page} />}
       </Box>
     </>
   )
