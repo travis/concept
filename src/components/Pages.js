@@ -12,7 +12,7 @@ import { Editor } from '@toast-ui/react-editor';
 
 import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
-import {useLDflex, useLDflexList} from "@solid/react";
+import {useLDflex} from "@solid/react";
 
 
 const useStyles = makeStyles(theme => ({
@@ -100,16 +100,13 @@ const usePagesStyles = makeStyles(theme => ({
 
 
 export default function Pages({workspace, addPage}){
-  const [selectedPageIndex, setSelectedPageIndex] = useState(0);
-  const pages = useLDflexList(`[${workspace}][${schema.itemListElement}]`);
-  const page = pages && pages[selectedPageIndex];
-
+  const [selectedPage, setSelectedPage] = useState(null);
   const classes = usePagesStyles()
   return (
     <>
-      <PageDrawer pages={pages} addPage={addPage} setSelectedPageIndex={setSelectedPageIndex}/>
+      <PageDrawer {...{workspace, setSelectedPage, selectedPage}}/>
       <Box className={classes.content}>
-        {page && <Page page={page} />}
+        {selectedPage && (<Page page={selectedPage}/>)}
       </Box>
     </>
   )

@@ -12,11 +12,11 @@ function App() {
     <>
       <CssBaseline/>
       <AuthProvider>
-        <WorkspaceProvider>
-          <div className="App">
+        <div className="App">
+          <WorkspaceProvider>
             <Workspace/>
-          </div>
-        </WorkspaceProvider>
+          </WorkspaceProvider>
+        </div>
       </AuthProvider>
     </>
   );

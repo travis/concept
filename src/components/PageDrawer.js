@@ -1,11 +1,11 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import {useLDflexValue} from "@solid/react";
+import {useLDflexValue, useLDflexList} from "@solid/react";
 
 import { schema } from 'rdf-namespaces';
 
@@ -42,7 +42,23 @@ const PageListItem = ({page, deletePage, setSelectedPage}) => {
   )
 }
 
-export default ({pages, setSelectedPageIndex, deletePage}) => {
+const PageNameList = ({workspace, selectedPage, setSelectedPage}) => {
+  const pages = useLDflexList(`[${workspace}][${schema.itemListElement}]`);
+  useEffect(() => {
+    if (pages && (selectedPage == null)){
+      setSelectedPage(pages[0]);
+    }
+  }, [pages, selectedPage, setSelectedPage])
+  return (
+    <List>
+      {pages && pages.map((page, index) => (
+        <PageListItem page={page} key={index} setSelectedPage={() => setSelectedPage(page)}/>
+      ))}
+    </List>
+  )
+}
+
+export default ({workspace, selectedPage, setSelectedPage, deletePage}) => {
   const {addPage} = useContext(WorkspaceContext);
   const classes = useStyles()
   return (
@@ -56,11 +72,7 @@ export default ({pages, setSelectedPageIndex, deletePage}) => {
       <div className={classes.toolbar}>
         <img src={logo} className={classes.logo} alt="logo"/>
       </div>
-      <List>
-        {pages && pages.map((page, index) => (
-          <PageListItem page={page} key={index} setSelectedPage={() => setSelectedPageIndex(index)}/>
-        ))}
-      </List>
+      {workspace && <PageNameList {...{workspace, selectedPage, setSelectedPage}}/>}
       <Button onClick={() => addPage()}>Add Page</Button>
       <LogInLogOutButton/>
     </Drawer>
