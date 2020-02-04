@@ -17,15 +17,22 @@ export const WorkspaceProvider = (props) => {
   const addPage = async (name="Untitled") => {
     const id = "#" + uuid();
     await data[workspace][schema.itemListElement].add(namedNode(id))
-    await data[`${workspace}${id}`][schema.name].add(name)
+    await data[`${workspace}${id}`][schema.name].set(name)
+    await data[`${workspace}${id}`][schema.text].set("")
   }
 
   const updatePage = useCallback(async (page, predicate, value) => {
     await data[page][predicate].set(value)
   }, [])
 
+  const deletePage = useCallback(async (page) => {
+    await data[page][schema.name].delete()
+    await data[page][schema.text].delete()
+    await data[workspace][schema.itemListElement].delete(page)
+  }, [workspace])
+
   return (
-    <Provider {...props} value={{workspace, addPage, updatePage}} />
+    <Provider {...props} value={{workspace, addPage, updatePage, deletePage}} />
   )
 }
 

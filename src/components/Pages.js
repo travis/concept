@@ -50,7 +50,7 @@ function PageName({page, updatePage}){
   );
 }
 
-function Page({page, deletePage, className}){
+function Page({page, className}){
   const {updatePage} = useContext(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
