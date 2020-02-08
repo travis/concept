@@ -5,8 +5,7 @@ import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import {useLDflex, useLDflexValue, useLDflexList} from "@solid/react";
-
+import {useLDflexValue, useLDflexList} from '../hooks/ldflex';
 import { schema } from 'rdf-namespaces';
 
 import WorkspaceContext from "../context/workspace";
@@ -32,12 +31,12 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const PageListItem = ({page, setSelectedPage}) => {
+const PageListItem = ({workspace, page, setSelectedPage}) => {
   const {deletePage} = useContext(WorkspaceContext);
-  const [name, loading] = useLDflex(`[${page}][${schema.name}]`);
+  const name = useLDflexValue(`from('${workspace}')[${page}][${schema.name}]`);
   return (
     <ListItem button onClick={() => setSelectedPage()}>
-      <ListItemText primary={`${name}`} />
+      <ListItemText primary={`${name || ""}`} />
       <Button onClick={() => deletePage(page)}>Delete</Button>
     </ListItem>
   )
@@ -53,7 +52,7 @@ const PageNameList = ({workspace, selectedPage, setSelectedPage}) => {
   return (
     <List>
       {pages && pages.map((page, index) => (
-        <PageListItem page={page} key={index} setSelectedPage={() => setSelectedPage(page)}/>
+        <PageListItem workspace={workspace} page={page} key={index} setSelectedPage={() => setSelectedPage(page)}/>
       ))}
     </List>
   )
