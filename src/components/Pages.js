@@ -122,13 +122,15 @@ export default function Pages({workspace, addPage}){
   const classes = usePagesStyles()
   return (
     <>
-      {workspace && (
+      {workspace ? (
         <LiveUpdate subscribe={[workspace.toString()]}>
           <PageDrawer {...{workspace, setSelectedPage, selectedPage}}/>
         </LiveUpdate>
+      ) : (
+        <PageDrawer/>
       )}
       <Box className={classes.content}>
-        {selectedPage && (
+        {workspace && selectedPage && (
           <LiveUpdate subscribe={selectedPage.toString()}>
             <Page workspace={workspace} page={selectedPage}/>
           </LiveUpdate>

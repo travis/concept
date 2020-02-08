@@ -73,7 +73,7 @@ export default ({workspace, selectedPage, setSelectedPage, deletePage}) => {
         <img src={logo} className={classes.logo} alt="logo"/>
       </div>
       {workspace && <PageNameList {...{workspace, selectedPage, setSelectedPage}}/>}
-      <Button onClick={() => addPage()}>Add Page</Button>
+      {workspace && <Button onClick={() => addPage()}>Add Page</Button>}
       <LogInLogOutButton/>
     </Drawer>
 
