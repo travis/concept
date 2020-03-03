@@ -32,7 +32,11 @@ const useStyles = makeStyles(theme => ({
   },
   item: {
     "& a": {
-      width: "100%"
+      width: "100%",
+      textDecoration: "none",
+      "&:visited": {
+        color: theme.palette.text.primary
+      }
     },
     "&.selected": {
       background: theme.palette.grey[50]
