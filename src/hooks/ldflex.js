@@ -12,7 +12,7 @@ export function useLDflex(...args) {
   useEffect(() => {
     // clear cache when args change
     setCachedResult(undefined)
-  }, [...args])
+  }, [...args]) // eslint-disable-line
   useEffect(() => {
     if (!pending){
       setCachedResult(result);

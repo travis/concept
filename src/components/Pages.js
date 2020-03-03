@@ -4,7 +4,7 @@ import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
 import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
-import { Switch, Route, Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import 'codemirror/lib/codemirror.css';
 import 'tui-editor/dist/tui-editor.min.css';
@@ -54,7 +54,7 @@ function PageTextEditor({page}){
   const {updatePage} = useContext(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
-  const [pageTextNode, pageTextLoading] = useLDflex(`[${page}][${schema.text}]`);
+  const [pageTextNode] = useLDflex(`[${page}][${schema.text}]`);
   const pageText = pageTextNode && pageTextNode.value;
   const [editorText, setEditorText] = useState(null);
   const [debouncedText] = useDebounce(editorText, 1000);
