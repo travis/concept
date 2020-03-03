@@ -1,4 +1,5 @@
 import React, {useContext, useEffect} from 'react';
+import { useParams, Link } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import Button from '@material-ui/core/Button';
@@ -28,37 +29,49 @@ const useStyles = makeStyles(theme => ({
     paddingTop: "0.5em",
     float: "left",
     paddingLeft: "0.5em"
+  },
+  item: {
+    "& a": {
+      width: "100%"
+    },
+    "&.selected": {
+      background: theme.palette.grey[50]
+    },
+    "& button": {
+      position: "absolute",
+      right: 0
+    }
   }
 }));
 
-const PageListItem = ({workspace, page, setSelectedPage}) => {
+const PageListItem = ({workspace, page}) => {
   const {deletePage} = useContext(WorkspaceContext);
+  const { selectedPage } = useParams();
+  const classes = useStyles()
   const name = useLDflexValue(`from('${workspace}')[${page}][${schema.name}]`);
+  const encodedPage = encodeURIComponent(page)
   return (
-    <ListItem button onClick={() => setSelectedPage()}>
-      <ListItemText primary={`${name || ""}`} />
+    <ListItem className={`${(selectedPage === encodedPage) && 'selected'} ${classes.item}`}>
+      <Link to={`/page/${encodedPage}`}>
+        <ListItemText primary={`${name || ""}`} />
+      </Link>
       <Button onClick={() => deletePage(page)}>Delete</Button>
     </ListItem>
   )
 }
 
-const PageNameList = ({workspace, selectedPage, setSelectedPage}) => {
+const PageNameList = ({workspace}) => {
   const pages = useLDflexList(`[${workspace}][${schema.itemListElement}]`);
-  useEffect(() => {
-    if (pages && (selectedPage == null)){
-      setSelectedPage(pages[0]);
-    }
-  }, [pages, selectedPage, setSelectedPage])
   return (
     <List>
       {pages && pages.map((page, index) => (
-        <PageListItem workspace={workspace} page={page} key={index} setSelectedPage={() => setSelectedPage(page)}/>
+        <PageListItem workspace={workspace} page={page} key={index}/>
       ))}
     </List>
   )
 }
 
-export default ({workspace, selectedPage, setSelectedPage, deletePage}) => {
+export default ({workspace, deletePage}) => {
   const {addPage} = useContext(WorkspaceContext);
   const classes = useStyles()
   return (
@@ -72,7 +85,7 @@ export default ({workspace, selectedPage, setSelectedPage, deletePage}) => {
       <div className={classes.toolbar}>
         <img src={logo} className={classes.logo} alt="logo"/>
       </div>
-      {workspace && <PageNameList {...{workspace, selectedPage, setSelectedPage}}/>}
+      {workspace && <PageNameList {...{workspace}}/>}
       {workspace && <Button onClick={() => addPage()}>Add Page</Button>}
       <LogInLogOutButton/>
     </Drawer>

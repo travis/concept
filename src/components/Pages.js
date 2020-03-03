@@ -4,6 +4,7 @@ import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
 import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
+import { Switch, Route, Link, useParams } from "react-router-dom";
 
 import 'codemirror/lib/codemirror.css';
 import 'tui-editor/dist/tui-editor.min.css';
@@ -117,24 +118,31 @@ const usePagesStyles = makeStyles(theme => ({
 }));
 
 
+function CurrentPage({workspace}) {
+  const { selectedPage } = useParams();
+  const selectedPageURI = decodeURIComponent(selectedPage)
+  return selectedPage ? (
+    <LiveUpdate subscribe={selectedPageURI.toString()}>
+      <Page workspace={workspace} page={selectedPageURI}/>
+    </LiveUpdate>
+  ) : (
+    <p>Welcome to Concept! Add or select a page on the left to get started.</p>
+  )
+}
+
 export default function Pages({workspace, addPage}){
-  const [selectedPage, setSelectedPage] = useState(null);
   const classes = usePagesStyles()
   return (
     <>
       {workspace ? (
         <LiveUpdate subscribe={[workspace.toString()]}>
-          <PageDrawer {...{workspace, setSelectedPage, selectedPage}}/>
+          <PageDrawer {...{workspace}}/>
         </LiveUpdate>
       ) : (
         <PageDrawer/>
       )}
       <Box className={classes.content}>
-        {workspace && selectedPage && (
-          <LiveUpdate subscribe={selectedPage.toString()}>
-            <Page workspace={workspace} page={selectedPage}/>
-          </LiveUpdate>
-        )}
+        {workspace && <CurrentPage workspace={workspace}/>}
       </Box>
     </>
   )

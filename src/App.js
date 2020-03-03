@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 import './App.css';
@@ -12,11 +13,16 @@ function App() {
     <>
       <CssBaseline/>
       <AuthProvider>
-        <div className="App">
-          <WorkspaceProvider>
-            <Workspace/>
-          </WorkspaceProvider>
-        </div>
+        <Router>
+          <div className="App">
+            <WorkspaceProvider>
+              <Switch>
+                <Route exact path="/" component={Workspace}/>
+                <Route path="/page/:selectedPage" component={Workspace}/>
+              </Switch>
+            </WorkspaceProvider>
+          </div>
+        </Router>
       </AuthProvider>
     </>
   );
