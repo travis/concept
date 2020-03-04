@@ -62,6 +62,7 @@ function PageTextEditor({page}){
   const [pageTextNode] = useLDflex(`[${page}][${schema.text}]`);
   const pageText = pageTextNode && pageTextNode.value;
   const [editorValue, setEditorValue] = useState(undefined);
+  const [saveNeeded, setSaveNeeded] = useState(false);
   const [debouncedValue] = useDebounce(editorValue, 1000);
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
@@ -70,24 +71,31 @@ function PageTextEditor({page}){
 
   useEffect(() => {
     // once pageText loads, set editorValue
-    (pageText !== undefined) && (pageText !== null) && setEditorValue(JSON.parse(pageText));
+    if ((pageText !== undefined) && (pageText !== null)) {
+      setEditorValue(JSON.parse(pageText))
+    }
   }, [pageText]);
 
   useEffect(() => {
     const maybeSave = async () => {
-      if ((editorValue !== undefined) &&
-          (debouncedValue !== undefined) &&
-          (debouncedValue === editorValue)) {
-        const saveableText = JSON.stringify(debouncedValue);
-        if (saveableText !== pageText) {
-          setSaving(true);
-          await updatePage(page, schema.text, saveableText);
-          setSaving(false);
-        }
+      const saveableText = JSON.stringify(debouncedValue);
+      if (saveableText !== pageText) {
+        setSaving(true);
+        await updatePage(page, schema.text, saveableText);
+        setSaving(false);
       }
     }
-    maybeSave();
-  }, [page, pageText, editorValue, debouncedValue, updatePage])
+    if (saveNeeded) {
+      setSaveNeeded(false);
+      maybeSave();
+    }
+  }, [saveNeeded, page, pageText, debouncedValue, updatePage])
+
+  useEffect(() => {
+    if (debouncedValue !== undefined) {
+      setSaveNeeded(true);
+    }
+  }, [debouncedValue])
 
   const editor = useMemo(() => withReact(createEditor()), [])
   return (
