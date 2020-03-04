@@ -2,6 +2,8 @@ import React, { useContext, useState, useEffect, useMemo } from 'react'
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
+import SaveIcon from '@material-ui/icons/Save'
+
 import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
 import { useParams } from "react-router-dom";
@@ -16,8 +18,9 @@ import {useLDflex} from '../hooks/ldflex';
 
 const useStyles = makeStyles(theme => ({
   saving: {
-    position: "fixed",
-    right: 0,
+    position: "absolute",
+    left: theme.spacing(2),
+    top: 0,
     zIndex: 1000
   },
   editor: {
@@ -99,14 +102,16 @@ function PageTextEditor({page}){
 
   const editor = useMemo(() => withReact(createEditor()), [])
   return (
-    <div className={classes.editor}>
-      <p className={classes.saving}>{saving && "Saving..."}</p>
-      <Slate editor={editor}
-             value={(editorValue === undefined) ? [] : editorValue}
-             onChange={value => setEditorValue(value)}>
+    <>
+      {saving && <SaveIcon className={classes.saving}/>}
+      <div className={classes.editor}>
+        <Slate editor={editor}
+            value={(editorValue === undefined) ? [] : editorValue}
+            onChange={value => setEditorValue(value)}>
         <Editable autoFocus />
-      </Slate>
-    </div>
+        </Slate>
+      </div>
+    </>
   );
 }
 
@@ -126,7 +131,8 @@ function Page({workspace, page}){
 const usePagesStyles = makeStyles(theme => ({
   content: {
     flexGrow: 1,
-    marginLeft: 240
+    marginLeft: 240,
+    position: "relative",
   },
 }));
 
