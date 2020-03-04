@@ -26,14 +26,13 @@ const useStyles = makeStyles(theme => ({
   toolbar: theme.mixins.toolbar,
   logo: {
     height: "4em",
-    paddingTop: "0.5em",
-    float: "left",
-    paddingLeft: "0.5em"
+    paddingTop: theme.spacing(1),
   },
   item: {
     "& a": {
       width: "100%",
       textDecoration: "none",
+      color: theme.palette.text.primary,
       "&:visited": {
         color: theme.palette.text.primary
       }

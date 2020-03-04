@@ -1,8 +1,11 @@
 import React, { useContext, useState, useEffect, useMemo } from 'react'
+
+import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
-import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+
 import SaveIcon from '@material-ui/icons/Save'
 
 import { schema} from 'rdf-namespaces';
@@ -61,7 +64,7 @@ function PageName({workspace, page}){
                onBlur={() => saveAndStopEditing()}
                onChange={(e) => setName(e.target.value)}/>
   ) : (
-    <h3 onClick={() => setEditing(true)}>{name}</h3>
+    <Typography variant="h5" onClick={() => setEditing(true)}>{name}</Typography>
   );
 }
 
