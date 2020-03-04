@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useMemo } from 'react'
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
+import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
 import SaveIcon from '@material-ui/icons/Save'
 
@@ -9,7 +10,9 @@ import { useDebounce } from 'use-debounce';
 import { useParams } from "react-router-dom";
 
 import { createEditor } from 'slate';
-import { Slate, Editable, withReact } from 'slate-react';
+import { Slate, withReact } from 'slate-react';
+import Editable from "./Editable";
+import EditorToolbar from "./EditorToolbar";
 
 import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
@@ -29,6 +32,10 @@ const useStyles = makeStyles(theme => ({
     background: "white",
     position: "relative",
     height: "600em"
+  },
+  toolbar: {
+    minHeight: theme.spacing(1),
+    paddingLeft: 0
   }
 }));
 
@@ -104,13 +111,14 @@ function PageTextEditor({page}){
   return (
     <>
       {saving && <SaveIcon className={classes.saving}/>}
-      <div className={classes.editor}>
-        <Slate editor={editor}
-            value={(editorValue === undefined) ? [] : editorValue}
-            onChange={value => setEditorValue(value)}>
-        <Editable autoFocus />
-        </Slate>
-      </div>
+      <Slate editor={editor}
+             value={(editorValue === undefined) ? [] : editorValue}
+             onChange={value => setEditorValue(value)}>
+        <EditorToolbar className={classes.toolbar} />
+        <Paper className={classes.editor}>
+          <Editable autoFocus />
+        </Paper>
+      </Slate>
     </>
   );
 }
