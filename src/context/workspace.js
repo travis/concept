@@ -13,7 +13,7 @@ const {Provider} = WorkspaceContext;
 export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
-  const conceptContainer = `${storage}public/conceptv3/`;
+  const conceptContainer = `${storage}public/conceptv5/`;
   const workspaceFile = 'workspace.ttl';
   const workspace = storage && `${conceptContainer}${workspaceFile}`;
   const container = storage && `${conceptContainer}workspace/`;
@@ -32,7 +32,7 @@ export const WorkspaceProvider = (props) => {
     const pageRef = `${container}${id}`;
     await createNonExistentDocument(pageRef);
     await Promise.all([
-      data[pageRef][schema.text].set(""),
+      data[pageRef][schema.text].set("[]"),
       data.from(workspace)[pageRef][schema.name].set(name)
     ]);
     await data[workspace][schema.itemListElement].add(namedNode(pageRef));

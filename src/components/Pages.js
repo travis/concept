@@ -1,4 +1,4 @@
-import React, {useRef, useContext, useState, useEffect} from 'react'
+import React, { useContext, useState, useEffect, useMemo } from 'react'
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
@@ -6,10 +6,8 @@ import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
 import { useParams } from "react-router-dom";
 
-import 'codemirror/lib/codemirror.css';
-import 'tui-editor/dist/tui-editor.min.css';
-import 'tui-editor/dist/tui-editor-contents.min.css';
-import { Editor } from '@toast-ui/react-editor';
+import { createEditor } from 'slate';
+import { Slate, Editable, withReact } from 'slate-react';
 
 import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
@@ -21,6 +19,13 @@ const useStyles = makeStyles(theme => ({
     position: "fixed",
     right: 0,
     zIndex: 1000
+  },
+  editor: {
+    textAlign: "left",
+    padding: theme.spacing(2),
+    background: "white",
+    position: "relative",
+    height: "600em"
   }
 }));
 
@@ -56,44 +61,44 @@ function PageTextEditor({page}){
   const [saving, setSaving] = useState(false);
   const [pageTextNode] = useLDflex(`[${page}][${schema.text}]`);
   const pageText = pageTextNode && pageTextNode.value;
-  const [editorText, setEditorText] = useState(null);
-  const [debouncedText] = useDebounce(editorText, 1000);
+  const [editorValue, setEditorValue] = useState(undefined);
+  const [debouncedValue] = useDebounce(editorValue, 1000);
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
-    setEditorText(null);
+    setEditorValue(undefined);
   }, [page])
+
   useEffect(() => {
-    // once pageText loads, set editorText
-    (pageText !== undefined) && (pageText !== null) && setEditorText(pageText);
+    // once pageText loads, set editorValue
+    (pageText !== undefined) && (pageText !== null) && setEditorValue(JSON.parse(pageText));
   }, [pageText]);
 
   useEffect(() => {
     const maybeSave = async () => {
-      if ((editorText !== null) && (debouncedText !== null) && (debouncedText === editorText) && (debouncedText !== pageText)) {
-        setSaving(true);
-        await updatePage(page, schema.text, debouncedText);
-        setSaving(false);
+      if ((editorValue !== undefined) &&
+          (debouncedValue !== undefined) &&
+          (debouncedValue === editorValue)) {
+        const saveableText = JSON.stringify(debouncedValue);
+        if (saveableText !== pageText) {
+          setSaving(true);
+          await updatePage(page, schema.text, saveableText);
+          setSaving(false);
+        }
       }
     }
     maybeSave();
-  }, [page, pageText, editorText, debouncedText, updatePage])
-  const editorRef = useRef();
-  useEffect(() => {
-    editorRef.current.getInstance().setMarkdown(editorText || "");
-  }, [editorRef, editorText])
+  }, [page, pageText, editorValue, debouncedValue, updatePage])
+
+  const editor = useMemo(() => withReact(createEditor()), [])
   return (
-    <>
+    <div className={classes.editor}>
       <p className={classes.saving}>{saving && "Saving..."}</p>
-      <Editor
-        ref={editorRef}
-        initialValue={editorText || ""}
-        previewStyle="tab"
-        height="600px"
-        initialEditType="markdown"
-        useCommandShortcut={true}
-        onChange={() => editorRef.current && setEditorText(editorRef.current.getInstance().getValue())}
-      />
-    </>
+      <Slate editor={editor}
+             value={(editorValue === undefined) ? [] : editorValue}
+             onChange={value => setEditorValue(value)}>
+        <Editable autoFocus />
+      </Slate>
+    </div>
   );
 }
 
