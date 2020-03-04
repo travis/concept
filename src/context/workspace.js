@@ -10,6 +10,13 @@ const WorkspaceContext = createContext({});
 
 const {Provider} = WorkspaceContext;
 
+const initialPage = JSON.stringify([
+  {
+    type: 'paragraph',
+    children: [{text: ''}]
+  }
+])
+
 export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
@@ -32,7 +39,7 @@ export const WorkspaceProvider = (props) => {
     const pageRef = `${container}${id}`;
     await createNonExistentDocument(pageRef);
     await Promise.all([
-      data[pageRef][schema.text].set("[]"),
+      data[pageRef][schema.text].set(initialPage),
       data.from(workspace)[pageRef][schema.name].set(name)
     ]);
     await data[workspace][schema.itemListElement].add(namedNode(pageRef));

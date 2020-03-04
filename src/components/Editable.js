@@ -47,5 +47,6 @@ export default function Editable({...props}){
   return <SlateEditable
            renderLeaf={renderLeaf}
            renderElement={renderElement}
+           placeholder="What's your favorite concept..."
            {...props}/>
 }
