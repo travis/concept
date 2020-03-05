@@ -28,6 +28,10 @@ const useStyles = makeStyles(theme => ({
     height: "4em",
     paddingTop: theme.spacing(1),
   },
+  version: {
+    fontWeight: theme.typography.fontWeightBold,
+    display: "inline-block",
+  },
   item: {
     "& a": {
       width: "100%",
@@ -87,6 +91,7 @@ export default ({workspace, deletePage}) => {
     >
       <div className={classes.toolbar}>
         <img src={logo} className={classes.logo} alt="logo"/>
+        <p className={classes.version}>alpha</p>
       </div>
       {workspace && <PageNameList {...{workspace}}/>}
       {workspace && <Button onClick={() => addPage()}>Add Page</Button>}
