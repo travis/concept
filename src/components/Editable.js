@@ -1,6 +1,15 @@
 import React, { useCallback } from 'react';
 import { Editable as SlateEditable, useSlate, Editor } from 'slate-react';
+import isHotkey from 'is-hotkey';
 
+import { toggleMark } from '../utils/editor';
+
+const HOTKEYS = {
+  'mod+b': 'bold',
+  'mod+i': 'italic',
+  'mod+u': 'underline',
+  'mod+`': 'code',
+}
 
 const Leaf = ({ attributes, children, leaf }) => {
   if (leaf.bold) {
@@ -41,12 +50,22 @@ const Element = ({ attributes, children, element }) => {
   }
 }
 
-export default function Editable({...props}){
+export default function Editable({editor, ...props}){
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])
   const renderElement = useCallback(props => <Element {...props} />, [])
   return <SlateEditable
            renderLeaf={renderLeaf}
            renderElement={renderElement}
+           spellCheck
            placeholder="What's your favorite concept..."
+           onKeyDown={event => {
+             for (const hotkey in HOTKEYS) {
+               if (isHotkey(hotkey, event)) {
+                 event.preventDefault()
+                 const mark = HOTKEYS[hotkey]
+                 toggleMark(editor, mark)
+               }
+             }
+           }}
            {...props}/>
 }

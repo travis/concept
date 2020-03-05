@@ -119,7 +119,7 @@ function PageTextEditor({page}){
              onChange={value => setEditorValue(value)}>
         <EditorToolbar className={classes.toolbar} />
         <Paper className={classes.editor}>
-          <Editable autoFocus />
+          <Editable autoFocus editor={editor}/>
         </Paper>
       </Slate>
     </>
