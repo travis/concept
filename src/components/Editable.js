@@ -1,8 +1,22 @@
 import React, { useCallback } from 'react';
-import { Editable as SlateEditable, useSlate, Editor } from 'slate-react';
+import {
+  Editable as SlateEditable, useSlate, Editor, useSelected, useFocused
+} from 'slate-react';
 import isHotkey from 'is-hotkey';
+import { makeStyles } from '@material-ui/core/styles';
+
 
 import { toggleMark } from '../utils/editor';
+
+
+const useStyles = makeStyles(theme => ({
+  image: {
+    display: "block",
+    maxWidth: "100%",
+    maxHeight: theme.spacing(20),
+    boxShadow: ({selected, focused}) => selected && focused ? '0 0 0 3px #B4D5FF' : 'none'
+  }
+}))
 
 const HOTKEYS = {
   'mod+b': 'bold',
@@ -31,6 +45,23 @@ const Leaf = ({ attributes, children, leaf }) => {
   return <span {...attributes}>{children}</span>
 }
 
+const ImageElement = ({ attributes, children, element }) => {
+  const selected = useSelected()
+  const focused = useFocused()
+  const classes = useStyles({selected, focused})
+  return (
+    <div {...attributes}>
+      <div contentEditable={false}>
+        <img
+          src={element.url}
+          className={classes.image}
+        />
+      </div>
+      {children}
+    </div>
+  )
+}
+
 const Element = ({ attributes, children, element }) => {
   switch (element.type) {
   case 'block-quote':
@@ -45,6 +76,8 @@ const Element = ({ attributes, children, element }) => {
     return <li {...attributes}>{children}</li>
   case 'numbered-list':
     return <ol {...attributes}>{children}</ol>
+  case 'image':
+    return <ImageElement element={element} {...attributes}>{children}</ImageElement>
   default:
     return <p {...attributes}>{children}</p>
   }
