@@ -1,13 +1,12 @@
 import React, { useCallback } from 'react';
 import {
-  Editable as SlateEditable, useSlate, Editor, useSelected, useFocused
+  Editable as SlateEditable, useSelected, useFocused,
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
 import { makeStyles } from '@material-ui/core/styles';
 
-
 import { toggleMark } from '../utils/editor';
-
+import ChecklistItemElement from './ChecklistItemElement'
 
 const useStyles = makeStyles(theme => ({
   image: {
@@ -62,7 +61,9 @@ const ImageElement = ({ attributes, children, element }) => {
   )
 }
 
-const Element = ({ attributes, children, element }) => {
+
+const Element = (props) => {
+  const { attributes, children, element } = props;
   switch (element.type) {
   case 'block-quote':
     return <blockquote {...attributes}>{children}</blockquote>
@@ -77,13 +78,15 @@ const Element = ({ attributes, children, element }) => {
   case 'numbered-list':
     return <ol {...attributes}>{children}</ol>
   case 'image':
-    return <ImageElement element={element} {...attributes}>{children}</ImageElement>
+    return <ImageElement {...props} />
   case 'link':
     return (
       <a {...attributes} href={element.url}>
         {children}
       </a>
     )
+  case 'check-list-item':
+    return <ChecklistItemElement {...props} />
   default:
     return <p {...attributes}>{children}</p>
   }

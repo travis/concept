@@ -24,7 +24,7 @@ import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
 import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
-import { withImages, withLinks } from '../utils/editor';
+import { withImages, withLinks, withChecklists } from '../utils/editor';
 
 const useStyles = makeStyles(theme => ({
   saving: {
@@ -114,7 +114,7 @@ function PageTextEditor({page}){
     }
   }, [debouncedValue])
 
-  const editor = useMemo(() => withLinks(withImages(withReact(withHistory(createEditor())))), [])
+  const editor = useMemo(() => withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))), [])
   return (
     <>
       {saving && <SaveIcon className={classes.saving}/>}

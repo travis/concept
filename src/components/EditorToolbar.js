@@ -9,8 +9,9 @@ import Code from '@material-ui/icons/Code';
 import FormatQuote from '@material-ui/icons/FormatQuote';
 import FormatListBulleted from '@material-ui/icons/FormatListBulleted';
 import FormatListNumbered from '@material-ui/icons/FormatListNumbered';
-import ImageIcon from '@material-ui/icons/Image';
+import ImageIcon from '@material-ui/icons/ImageOutlined';
 import LinkIcon from '@material-ui/icons/Link';
+import CheckBox from '@material-ui/icons/CheckBoxOutlined';
 
 import IconButton from './IconButton';
 
@@ -100,6 +101,7 @@ export default function EditorToolbar(props){
       <BlockButton format="bulleted-list" icon={<FormatListBulleted/>} />
       <InsertImageButton />
       <LinkButton />
+      <BlockButton format="check-list-item" icon={<CheckBox/>} />
     </Toolbar>
   )
 }
