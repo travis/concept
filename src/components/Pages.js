@@ -14,6 +14,9 @@ import { useParams } from "react-router-dom";
 
 import { createEditor } from 'slate';
 import { Slate, withReact } from 'slate-react';
+import { withHistory } from 'slate-history'
+
+
 import Editable from "./Editable";
 import EditorToolbar from "./EditorToolbar";
 
@@ -110,7 +113,7 @@ function PageTextEditor({page}){
     }
   }, [debouncedValue])
 
-  const editor = useMemo(() => withReact(createEditor()), [])
+  const editor = useMemo(() => withReact(withHistory(createEditor())), [])
   return (
     <>
       {saving && <SaveIcon className={classes.saving}/>}

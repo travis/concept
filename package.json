@@ -19,6 +19,7 @@
     "react-scripts": "3.3.0",
     "react-slate": "^0.5.1",
     "slate": "^0.57.1",
+    "slate-history": "^0.57.1",
     "slate-react": "^0.57.1",
     "solid-auth-client": "^2.4.1",
     "use-debounce": "^3.3.0",
