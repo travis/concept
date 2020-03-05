@@ -23,6 +23,7 @@ const InsertImageButton = () => {
   const editor = useEditor()
   return (
     <IconButton
+      size="small"
       onMouseDown={event => {
         event.preventDefault()
         const url = window.prompt('Enter the URL of the image:')
@@ -39,6 +40,7 @@ const LinkButton = () => {
   const editor = useSlate()
   return (
     <IconButton
+      size="small"
       active={isLinkActive(editor)}
       onMouseDown={event => {
         event.preventDefault()
