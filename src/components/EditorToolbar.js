@@ -2,7 +2,6 @@ import React from 'react';
 import { useSlate, useEditor } from 'slate-react';
 
 import Toolbar from '@material-ui/core/Toolbar';
-import IconButton from '@material-ui/core/IconButton';
 import FormatBold from '@material-ui/icons/FormatBold';
 import FormatItalic from '@material-ui/icons/FormatItalic';
 import FormatUnderlined from '@material-ui/icons/FormatUnderlined';
@@ -11,8 +10,14 @@ import FormatQuote from '@material-ui/icons/FormatQuote';
 import FormatListBulleted from '@material-ui/icons/FormatListBulleted';
 import FormatListNumbered from '@material-ui/icons/FormatListNumbered';
 import ImageIcon from '@material-ui/icons/Image';
+import LinkIcon from '@material-ui/icons/Link';
 
-import { isMarkActive, toggleMark, isBlockActive, toggleBlock, insertImage } from '../utils/editor'
+import IconButton from './IconButton';
+
+import {
+  isMarkActive, toggleMark, isBlockActive, toggleBlock, insertImage,
+  isLinkActive, insertLink
+} from '../utils/editor'
 
 const InsertImageButton = () => {
   const editor = useEditor()
@@ -26,6 +31,23 @@ const InsertImageButton = () => {
       }}
     >
       <ImageIcon/>
+    </IconButton>
+  )
+}
+
+const LinkButton = () => {
+  const editor = useSlate()
+  return (
+    <IconButton
+      active={isLinkActive(editor)}
+      onMouseDown={event => {
+        event.preventDefault()
+        const url = window.prompt('Enter the URL of the link:')
+        if (!url) return
+        insertLink(editor, url)
+      }}
+    >
+      <LinkIcon/ >
     </IconButton>
   )
 }
@@ -75,6 +97,7 @@ export default function EditorToolbar(props){
       <BlockButton format="numbered-list" icon={<FormatListNumbered/>} />
       <BlockButton format="bulleted-list" icon={<FormatListBulleted/>} />
       <InsertImageButton />
+      <LinkButton />
     </Toolbar>
   )
 }

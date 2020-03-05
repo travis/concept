@@ -78,6 +78,12 @@ const Element = ({ attributes, children, element }) => {
     return <ol {...attributes}>{children}</ol>
   case 'image':
     return <ImageElement element={element} {...attributes}>{children}</ImageElement>
+  case 'link':
+    return (
+      <a {...attributes} href={element.url}>
+        {children}
+      </a>
+    )
   default:
     return <p {...attributes}>{children}</p>
   }
