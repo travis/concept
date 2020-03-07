@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect, useMemo } from 'react'
 
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
@@ -19,11 +20,13 @@ import { withHistory } from 'slate-history'
 
 import Editable from "./Editable";
 import EditorToolbar from "./EditorToolbar";
+import SharingModal from "./SharingModal";
 
 import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
 import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
+import { useAccessInfo } from '../hooks/acls';
 import { withImages, withLinks, withChecklists } from '../utils/editor';
 
 const useStyles = makeStyles(theme => ({
@@ -43,13 +46,16 @@ const useStyles = makeStyles(theme => ({
   toolbar: {
     minHeight: theme.spacing(1),
     paddingLeft: 0
+  },
+  shareButton: {
+    float: "right"
   }
 }));
 
 function PageName({workspace, page}){
   const {updatePage} = useContext(WorkspaceContext);
   const [editing, setEditing] = useState(false);
-  const [savedNameNode] = useLDflex(`from('${workspace}')[${page}][${schema.name}]`);
+  const [savedNameNode] = useLDflex(`[${page}][${schema.name}]`);
   const savedName = savedNameNode && savedNameNode.toString();
   const [name, setName] = useState(savedName);
   useEffect(() => {
@@ -72,7 +78,7 @@ function PageName({workspace, page}){
   );
 }
 
-function PageTextEditor({page}){
+function PageTextEditor({page, readOnly}){
   const {updatePage} = useContext(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
@@ -121,9 +127,9 @@ function PageTextEditor({page}){
       <Slate editor={editor}
              value={(editorValue === undefined) ? [] : editorValue}
              onChange={value => setEditorValue(value)}>
-        <EditorToolbar className={classes.toolbar} />
+        {!readOnly && <EditorToolbar className={classes.toolbar} />}
         <Paper className={classes.editor}>
-          <Editable autoFocus editor={editor}/>
+          <Editable autoFocus readOnly={readOnly} editor={editor}/>
         </Paper>
       </Slate>
     </>
@@ -131,14 +137,34 @@ function PageTextEditor({page}){
 }
 
 function Page({workspace, page}){
+  const classes = useStyles();
+  const [sharingModalOpen, setSharingModalOpen] = useState(false);
+  const pageUri = page.toString()
+  const { aclUri, allowed} = useAccessInfo(pageUri)
+  const readOnly = !(allowed && allowed.user.has("write"))
   return (
     <>
+      {
+        allowed && allowed.user.has("control") && (
+          <Button className={classes.shareButton}
+                  onClick={() => setSharingModalOpen(!sharingModalOpen)}>
+            Share
+          </Button>
+        )
+      }
       <LiveUpdate subscribe={[workspace.toString()]}>
         <PageName workspace={workspace} page={page} />
       </LiveUpdate>
-      <LiveUpdate subscribe={page.toString()}>
-        <PageTextEditor page={page.toString()}/>
-      </LiveUpdate>
+      {aclUri && (
+        <LiveUpdate subscribe={aclUri}>
+          {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)}/>)}
+        </LiveUpdate>
+      )}
+      {allowed && (
+        <LiveUpdate subscribe={page.toString()}>
+          <PageTextEditor page={page.toString()} readOnly={readOnly}/>
+        </LiveUpdate>
+      )}
     </>
   )
 }
