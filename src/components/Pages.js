@@ -78,6 +78,33 @@ function PageName({workspace, page}){
   );
 }
 
+class EditableErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // You can also log the error to an error reporting service
+    console.log("error rendering editable", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return <h1>Something went wrong.</h1>;
+    }
+
+    return this.props.children;
+  }
+}
+
+
 function PageTextEditor({page, readOnly}){
   const {updatePage} = useContext(WorkspaceContext);
   const classes = useStyles();
@@ -129,12 +156,15 @@ function PageTextEditor({page, readOnly}){
              onChange={value => setEditorValue(value)}>
         {!readOnly && <EditorToolbar className={classes.toolbar} />}
         <Paper className={classes.editor}>
-          <Editable autoFocus readOnly={readOnly} editor={editor}/>
+          <EditableErrorBoundary>
+            <Editable autoFocus readOnly={readOnly} editor={editor}/>
+          </EditableErrorBoundary>
         </Paper>
       </Slate>
     </>
   );
 }
+
 
 function Page({workspace, page}){
   const classes = useStyles();
