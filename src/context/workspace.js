@@ -37,7 +37,7 @@ export const WorkspaceProvider = (props) => {
 
   const addPage = async (name="Untitled") => {
     const id = uuid();
-    const pageRef = `${container}${id}`;
+    const pageRef = `${container}${id}.ttl`;
     await createNonExistentDocument(pageRef);
     await Promise.all([
       data[pageRef][schema.text].set(initialPage),
