@@ -157,7 +157,7 @@ function PageTextEditor({page, readOnly}){
         {!readOnly && <EditorToolbar className={classes.toolbar} />}
         <Paper className={classes.editor}>
           <EditableErrorBoundary>
-            <Editable autoFocus readOnly={readOnly} editor={editor}/>
+            <Editable autoFocus readOnly={readOnly || saving} editor={editor}/>
           </EditableErrorBoundary>
         </Paper>
       </Slate>
