@@ -1,4 +1,3 @@
-import { useWebId } from "@solid/react";
 import {useState, useEffect} from 'react';
 import { getAccessInfo } from "../utils/acl"
 
