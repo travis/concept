@@ -7,6 +7,7 @@ import {AuthProvider} from './context/auth'
 import {WorkspaceProvider} from './context/workspace'
 
 import Workspace from './components/Workspace';
+import Backups from './components/Backups';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
               <Switch>
                 <Route exact path="/" component={Workspace}/>
                 <Route path="/page/:selectedPage" component={Workspace}/>
+                <Route path="/page/:selectedPage/backups" component={Backups}/>
               </Switch>
             </WorkspaceProvider>
           </div>

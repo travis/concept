@@ -20,12 +20,14 @@ import { withHistory } from 'slate-history'
 import Editable from "./Editable";
 import EditorToolbar from "./EditorToolbar";
 import SharingModal from "./SharingModal";
+import BackupsModal from "./BackupsModal";
 
 import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
 import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
 import { useAccessInfo } from '../hooks/acls';
+import { useBackups } from '../hooks/backup';
 import { withImages, withLinks, withChecklists } from '../utils/editor';
 
 const useStyles = makeStyles(theme => ({
@@ -86,6 +88,7 @@ function PageTextEditor({page, readOnly}){
   const [editorValue, setEditorValue] = useState(undefined);
   const [saveNeeded, setSaveNeeded] = useState(false);
   const [debouncedValue] = useDebounce(editorValue, 1000);
+  useBackups(page, editorValue)
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
     setEditorValue(undefined);
@@ -164,6 +167,7 @@ class EditorErrorBoundary extends React.Component {
 function Page({workspace, page}){
   const classes = useStyles();
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
+  const [backupsModalOpen, setBackupsModalOpen] = useState(false);
   const pageUri = page.toString()
   const { aclUri, allowed} = useAccessInfo(pageUri)
   const readOnly = !(allowed && allowed.user.has("write"))
@@ -171,10 +175,15 @@ function Page({workspace, page}){
     <>
       {
         allowed && allowed.user.has("control") && (
-          <Button className={classes.shareButton}
-                  onClick={() => setSharingModalOpen(!sharingModalOpen)}>
-            Share
-          </Button>
+          <div>
+            <Button className={classes.shareButton}
+                    onClick={() => setSharingModalOpen(!sharingModalOpen)}>
+              Share
+            </Button>
+            <Button onClick={() => setBackupsModalOpen(!backupsModalOpen)}>
+              Backups
+            </Button>
+          </div>
         )
       }
       <LiveUpdate subscribe={[workspace.toString()]}>
@@ -185,6 +194,7 @@ function Page({workspace, page}){
           {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)}/>)}
         </LiveUpdate>
       )}
+      {backupsModalOpen && <BackupsModal page={page} open={backupsModalOpen} onClose={() => setBackupsModalOpen(false)}/>}
       {allowed && (
         <EditorErrorBoundary>
           <LiveUpdate subscribe={page.toString()}>
@@ -203,7 +213,6 @@ const usePagesStyles = makeStyles(theme => ({
     position: "relative",
   },
 }));
-
 
 function CurrentPage({workspace}) {
   const { selectedPage } = useParams();
