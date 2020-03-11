@@ -1,11 +1,16 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Editable as SlateEditable, useSelected, useFocused,
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { toggleMark } from '../utils/editor';
+import { createEditor } from 'slate';
+import { withReact } from 'slate-react';
+import { withHistory } from 'slate-history'
+
+import { withImages, withLinks, withChecklists, toggleMark } from '../utils/editor';
+
 import ChecklistItemElement from './ChecklistItemElement'
 
 const useStyles = makeStyles(theme => ({
@@ -52,6 +57,7 @@ const ImageElement = ({ attributes, children, element }) => {
     <div {...attributes}>
       <div contentEditable={false}>
         <img
+          alt=""
           src={element.url}
           className={classes.image}
         />
@@ -91,6 +97,8 @@ const Element = (props) => {
     return <p {...attributes}>{children}</p>
   }
 }
+
+export const useEditor = () => useMemo(() => withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))), [])
 
 export default function Editable({editor, ...props}){
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useMemo } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
@@ -13,14 +13,12 @@ import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
 import { useParams } from "react-router-dom";
 
-import { createEditor } from 'slate';
-import { Slate, withReact } from 'slate-react';
-import { withHistory } from 'slate-history'
+import { Slate } from 'slate-react';
 
-import Editable from "./Editable";
+import Editable, {useEditor} from "./Editable";
 import EditorToolbar from "./EditorToolbar";
 import SharingModal from "./SharingModal";
-import BackupsModal from "./BackupsModal";
+import BackupsDialog from "./BackupsDialog";
 
 import WorkspaceContext from "../context/workspace";
 import PageDrawer from './PageDrawer';
@@ -28,7 +26,6 @@ import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
 import { useAccessInfo } from '../hooks/acls';
 import { useBackups } from '../hooks/backup';
-import { withImages, withLinks, withChecklists } from '../utils/editor';
 
 const useStyles = makeStyles(theme => ({
   saving: {
@@ -122,7 +119,7 @@ function PageTextEditor({page, readOnly}){
     }
   }, [debouncedValue])
 
-  const editor = useMemo(() => withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))), [])
+  const editor = useEditor()
   return (
     <>
       {saving && <SaveIcon className={classes.saving}/>}
@@ -167,7 +164,7 @@ class EditorErrorBoundary extends React.Component {
 function Page({workspace, page}){
   const classes = useStyles();
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
-  const [backupsModalOpen, setBackupsModalOpen] = useState(false);
+  const [backupsDialogOpen, setBackupsDialogOpen] = useState(false);
   const pageUri = page.toString()
   const { aclUri, allowed} = useAccessInfo(pageUri)
   const readOnly = !(allowed && allowed.user.has("write"))
@@ -180,7 +177,7 @@ function Page({workspace, page}){
                     onClick={() => setSharingModalOpen(!sharingModalOpen)}>
               Share
             </Button>
-            <Button onClick={() => setBackupsModalOpen(!backupsModalOpen)}>
+            <Button onClick={() => setBackupsDialogOpen(!backupsDialogOpen)}>
               Backups
             </Button>
           </div>
@@ -194,7 +191,7 @@ function Page({workspace, page}){
           {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)}/>)}
         </LiveUpdate>
       )}
-      {backupsModalOpen && <BackupsModal page={page} open={backupsModalOpen} onClose={() => setBackupsModalOpen(false)}/>}
+      {backupsDialogOpen && <BackupsDialog page={page} open={backupsDialogOpen} handleClose={() => setBackupsDialogOpen(false)}/>}
       {allowed && (
         <EditorErrorBoundary>
           <LiveUpdate subscribe={page.toString()}>
