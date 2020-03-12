@@ -34,10 +34,11 @@ import {drawerWidth} from '../constants'
 
 const useStyles = makeStyles(theme => ({
   saving: {
-    position: "absolute",
-    left: theme.spacing(2),
-    top: 0,
-    zIndex: 1000
+    position: "fixed",
+    right: theme.spacing(0),
+    top: "78px",
+    zIndex: 1000,
+    color: theme.palette.primary.light
   },
   appBar: {
     width: `calc(100% - ${drawerWidth}px)`,
@@ -45,16 +46,21 @@ const useStyles = makeStyles(theme => ({
     background: "white"
   },
   editor: {
-    marginTop: "56px"
+    position: "relative",
+    height: "100%",
   },
   editable: {
-    top: "22px",
+    marginTop: "70px",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     textAlign: "left",
-    padding: theme.spacing(2),
-    paddingTop: theme.spacing(1),
+    padding: theme.spacing(1),
+    paddingTop: 0,
     background: "white",
-    position: "relative",
-    minHeight: "60em"
+    position: "absolute"
+
   },
   toolbar: {
     top: "48px",
@@ -153,9 +159,8 @@ function PageTextEditor({page, readOnly}){
              value={(editorValue === undefined) ? [] : editorValue}
              onChange={value => setEditorValue(value)}>
         {!readOnly && <EditorToolbar className={classes.toolbar} />}
-        <Paper className={classes.editable} elevation={0}>
-          <Editable autoFocus readOnly={readOnly || saving} editor={editor}/>
-        </Paper>
+          <Editable autoFocus readOnly={readOnly || saving} editor={editor}
+                    className={classes.editable}/>
       </Slate>
     </div>
   );
@@ -240,6 +245,7 @@ const usePagesStyles = makeStyles(theme => ({
     flexGrow: 1,
     marginLeft: 240,
     position: "relative",
+    height: "100%"
   },
 }));
 
