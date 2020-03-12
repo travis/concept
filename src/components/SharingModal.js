@@ -5,9 +5,14 @@ import data from '@solid/query-ldflex';
 import {namedNode} from '@rdfjs/data-model';
 
 import { makeStyles } from '@material-ui/core/styles';
-import Modal from '@material-ui/core/Modal';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import Close from '@material-ui/icons/Close';
@@ -26,6 +31,12 @@ const useStyles = makeStyles(theme => ({
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2, 4, 3),
   },
+  closeButton: {
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  }
 }));
 
 const Agent = ({agent, onRemove}) => {
@@ -87,21 +98,21 @@ export default function SharingModal({page, aclUri, open, onClose}) {
   const [name] = useLDflex(`[${page}][${schema.name}]`);
   const classes = useStyles();
   return (
-    <Modal
-      aria-labelledby="sharing-modal-title"
-      aria-describedby="sharing-modal-description"
-      open={open}
-      onClose={onClose}
-    >
-      <div className={classes.paper}>
-        <h2 id="sharing-modal-title">Sharing</h2>
-        <p id="sharing-modal-description">
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>
+        Sharing
+        <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>
           Set sharing for {name && name.toString()}
-        </p>
+        </DialogContentText>
         <PermissionsType aclUri={aclUri} type="Read"/>
         <PermissionsType aclUri={aclUri} type="ReadWrite"/>
-        <PermissionsType aclUri={aclUri} type="ReadWriteControl"/>
-      </div>
-    </Modal>
+        <PermissionsType aclUri={aclUri} type="ControlReadWrite"/>
+      </DialogContent>
+    </Dialog>
   )
 }
