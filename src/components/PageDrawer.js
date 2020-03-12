@@ -11,9 +11,8 @@ import { schema } from 'rdf-namespaces';
 
 import WorkspaceContext from "../context/workspace";
 import LogInLogOutButton from './LogInLogOutButton';
+import {drawerWidth} from '../constants'
 import logo from '../logo.svg'
-
-const drawerWidth = 240;
 
 const useStyles = makeStyles(theme => ({
   drawer: {
@@ -88,6 +87,7 @@ export default ({workspace, deletePage}) => {
       classes={{
         paper: classes.drawerPaper,
       }}
+      anchor="left"
     >
       <div className={classes.toolbar}>
         <img src={logo} className={classes.logo} alt="logo"/>

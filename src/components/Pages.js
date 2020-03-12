@@ -3,11 +3,17 @@ import React, { useContext, useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
 
 import SaveIcon from '@material-ui/icons/Save'
+import ShareIcon from '@material-ui/icons/Share'
+import BackupIcon from '@material-ui/icons/Backup'
+import MoreIcon from '@material-ui/icons/MoreVert';
 
 import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
@@ -26,6 +32,7 @@ import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
 import { useAccessInfo } from '../hooks/acls';
 import { useBackups } from '../hooks/backup';
+import {drawerWidth} from '../constants'
 
 const useStyles = makeStyles(theme => ({
   saving: {
@@ -34,20 +41,41 @@ const useStyles = makeStyles(theme => ({
     top: 0,
     zIndex: 1000
   },
+  appBar: {
+    width: `calc(100% - ${drawerWidth}px)`,
+    marginLeft: drawerWidth,
+    background: "white"
+  },
   editor: {
+    marginTop: "56px"
+  },
+  editable: {
+    top: "22px",
     textAlign: "left",
     padding: theme.spacing(2),
+    paddingTop: theme.spacing(1),
     background: "white",
     position: "relative",
-    height: "600em"
+    minHeight: "60em"
   },
   toolbar: {
+    top: "48px",
+    position: "fixed",
     minHeight: theme.spacing(1),
-    paddingLeft: 0
+    paddingLeft: 0,
+    width: "100%",
+    background: theme.palette.grey[50],
+    zIndex: 100
   },
   shareButton: {
     float: "right"
-  }
+  },
+  grow: {
+    flexGrow: 1,
+  },
+  sectionDesktop: {
+    display: 'flex',
+  },
 }));
 
 function PageName({workspace, page}){
@@ -56,6 +84,7 @@ function PageName({workspace, page}){
   const [savedNameNode] = useLDflex(`[${page}][${schema.name}]`);
   const savedName = savedNameNode && savedNameNode.toString();
   const [name, setName] = useState(savedName);
+  const classes = useStyles()
   useEffect(() => {
     savedName && setName(`${savedName}`);
   }, [savedName])
@@ -72,7 +101,7 @@ function PageName({workspace, page}){
                onBlur={() => saveAndStopEditing()}
                onChange={(e) => setName(e.target.value)}/>
   ) : (
-    <Typography variant="h5" onClick={() => setEditing(true)}>{name}</Typography>
+    <Typography variant="h5" onClick={() => setEditing(true)} noWrap>{name}</Typography>
   );
 }
 
@@ -121,17 +150,17 @@ function PageTextEditor({page, readOnly}){
 
   const editor = useEditor()
   return (
-    <>
+    <div className={classes.editor}>
       {saving && <SaveIcon className={classes.saving}/>}
       <Slate editor={editor}
              value={(editorValue === undefined) ? [] : editorValue}
              onChange={value => setEditorValue(value)}>
         {!readOnly && <EditorToolbar className={classes.toolbar} />}
-        <Paper className={classes.editor}>
+        <Paper className={classes.editable} elevation={0}>
           <Editable autoFocus readOnly={readOnly || saving} editor={editor}/>
         </Paper>
       </Slate>
-    </>
+    </div>
   );
 }
 
@@ -170,22 +199,28 @@ function Page({workspace, page}){
   const readOnly = !(allowed && allowed.user.has("write"))
   return (
     <>
-      {
-        allowed && allowed.user.has("control") && (
-          <div>
-            <Button className={classes.shareButton}
-                    onClick={() => setSharingModalOpen(!sharingModalOpen)}>
-              Share
-            </Button>
-            <Button onClick={() => setBackupsDialogOpen(!backupsDialogOpen)}>
-              Backups
-            </Button>
+      <AppBar position="fixed" className={classes.appBar} color="transparent" elevation={0}>
+        <Toolbar variant="dense">
+          <LiveUpdate subscribe={[workspace.toString()]}>
+            <PageName workspace={workspace} page={page} />
+          </LiveUpdate>
+          <div className={classes.grow} />
+          <div className={classes.sectionDesktop}>
+            {
+              allowed && allowed.user.has("control") && (
+              <>
+                <IconButton onClick={() => setSharingModalOpen(!sharingModalOpen)}>
+                  <ShareIcon/>
+                </IconButton>
+                <IconButton onClick={() => setBackupsDialogOpen(!backupsDialogOpen)}>
+                  <BackupIcon/>
+                </IconButton>
+              </>
+              )
+            }
           </div>
-        )
-      }
-      <LiveUpdate subscribe={[workspace.toString()]}>
-        <PageName workspace={workspace} page={page} />
-      </LiveUpdate>
+        </Toolbar>
+      </AppBar>
       {aclUri && (
         <LiveUpdate subscribe={aclUri}>
           {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)}/>)}
