@@ -151,19 +151,35 @@ function PageTextEditor({page, readOnly}){
     }
   }, [debouncedValue])
 
-  const editor = useEditor()
   return (
     <div className={classes.editor}>
       {saving && <SaveIcon className={classes.saving}/>}
-      <Slate editor={editor}
-             value={(editorValue === undefined) ? [] : editorValue}
-             onChange={value => setEditorValue(value)}>
-        {!readOnly && <EditorToolbar className={classes.toolbar} />}
-          <Editable autoFocus readOnly={readOnly || saving} editor={editor}
-                    className={classes.editable}/>
-      </Slate>
+      {editorValue === undefined ? (
+        <div>Loading...</div>
+      ) : (
+        <Editor value={editorValue === undefined ? [] : editorValue}
+                handleChange={newValue => setEditorValue(newValue)}
+                readOnly={readOnly} saving={saving}
+        />
+      )}
     </div>
   );
+}
+
+function Editor({value, handleChange, readOnly, saving}){
+  const editor = useEditor()
+  console.log(`val ${value}`)
+  useEffect(() => console.log("editor value changed", value), [value])
+  const classes = useStyles();
+  return (
+    <Slate editor={editor}
+           value={value}
+           onChange={handleChange}>
+      {!readOnly && <EditorToolbar className={classes.toolbar} />}
+      <Editable autoFocus readOnly={readOnly || saving} editor={editor}
+                className={classes.editable}/>
+    </Slate>
+  )
 }
 
 class EditorErrorBoundary extends React.Component {
