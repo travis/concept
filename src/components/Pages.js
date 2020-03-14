@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
-import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -116,7 +115,7 @@ function PageTextEditor({page, readOnly}){
   const pageText = pageTextNode && pageTextNode.value;
   const [editorValue, setEditorValue] = useState(undefined);
   const [saveNeeded, setSaveNeeded] = useState(false);
-  const [debouncedValue] = useDebounce(editorValue, 1000);
+  const [debouncedValue] = useDebounce(editorValue, 1500);
   useBackups(page, editorValue)
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
@@ -126,7 +125,13 @@ function PageTextEditor({page, readOnly}){
   useEffect(() => {
     // once pageText loads, set editorValue
     if ((pageText !== undefined) && (pageText !== null)) {
-      setEditorValue(JSON.parse(pageText))
+      setEditorValue(currentValue => {
+        if (JSON.stringify(currentValue) === pageText){
+          return currentValue
+        } else {
+          return JSON.parse(pageText)
+        }
+      })
     }
   }, [pageText]);
 
@@ -168,15 +173,13 @@ function PageTextEditor({page, readOnly}){
 
 function Editor({value, handleChange, readOnly, saving}){
   const editor = useEditor()
-  console.log(`val ${value}`)
-  useEffect(() => console.log("editor value changed", value), [value])
   const classes = useStyles();
   return (
     <Slate editor={editor}
            value={value}
            onChange={handleChange}>
       {!readOnly && <EditorToolbar className={classes.toolbar} />}
-      <Editable autoFocus readOnly={readOnly || saving} editor={editor}
+      <Editable autoFocus readOnly={readOnly} editor={editor}
                 className={classes.editable}/>
     </Slate>
   )
@@ -199,11 +202,7 @@ class EditorErrorBoundary extends React.Component {
   }
 
   render() {
-    if (this.state.hasError) {
-      // You can render any custom fallback UI
-      return <h1>Something went wrong.</h1>;
-    }
-
+    // just render the children - react will recreate from scratch
     return this.props.children;
   }
 }
