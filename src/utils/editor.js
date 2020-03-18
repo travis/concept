@@ -2,6 +2,12 @@ import { Editor, Transforms, Range, Point } from 'slate';
 
 import imageExtensions from 'image-extensions'
 import isUrl from 'is-url'
+import Automerge from 'automerge'
+import data from '@solid/query-ldflex';
+import { schema } from 'rdf-namespaces';
+import {
+  toJS
+} from '@slate-collaborative/bridge'
 
 
 const LIST_TYPES = ['numbered-list', 'bulleted-list']
@@ -189,5 +195,26 @@ export const withChecklists = editor => {
     deleteBackward(...args)
   }
 
+  return editor
+}
+
+async function loadPage(page, editor){
+  const text = await data[page][schema.text]
+  const syncDoc = Automerge.load(text)
+  editor.syncDoc = syncDoc
+  editor.children = syncDoc.document
+}
+
+export const withAutosave = page => editor => {
+  console.log("PAGE", page)
+  const { apply } = editor
+  editor.apply = (operation) => {
+    editor.syncDoc = Automerge.change(editor.syncDoc, "", doc => {
+      console.log("DOC", doc.document)
+      editor.children = doc.document
+      apply(operation)
+    })
+  }
+  loadPage(page, editor)
   return editor
 }

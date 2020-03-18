@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react'
 
+import Automerge from 'automerge'
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import IconButton from '@material-ui/core/IconButton';
@@ -17,7 +18,6 @@ import { useDebounce } from 'use-debounce';
 import { useParams } from "react-router-dom";
 
 import { Slate } from 'slate-react';
-
 import Editable, {useEditor} from "./Editable";
 import EditorToolbar from "./EditorToolbar";
 import SharingModal from "./SharingModal";
@@ -30,6 +30,12 @@ import { useLDflex } from '../hooks/ldflex';
 import { useAccessInfo } from '../hooks/acls';
 import { useBackups } from '../hooks/backup';
 import {drawerWidth} from '../constants'
+
+import {
+  applySlateOps,
+  toJS,
+  toSync
+} from '../utils/automerge'
 
 const useStyles = makeStyles(theme => ({
   saving: {
@@ -113,35 +119,37 @@ function PageTextEditor({page, readOnly}){
   const [saving, setSaving] = useState(false);
   const [pageTextNode] = useLDflex(`[${page}][${schema.text}]`);
   const pageText = pageTextNode && pageTextNode.value;
-  const [editorValue, setEditorValue] = useState(undefined);
+  const [automergeDoc, setAutomergeDoc] = useState(undefined)
+  const [editorValue, setEditorValue] = useState([]);
   const [saveNeeded, setSaveNeeded] = useState(false);
   const [debouncedValue] = useDebounce(editorValue, 1500);
-  useBackups(page, editorValue)
+  //useBackups(page, editorValue)
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
+    setAutomergeDoc(undefined)
     setEditorValue(undefined);
   }, [page])
 
   useEffect(() => {
     // once pageText loads, set editorValue
     if ((pageText !== undefined) && (pageText !== null)) {
-      setEditorValue(currentValue => {
-        if (JSON.stringify(currentValue) === pageText){
-          return currentValue
-        } else {
-          return JSON.parse(pageText)
-        }
-      })
+      const doc = Automerge.load(pageText)
+      setAutomergeDoc(doc)
+      console.log("starting doc", toJS(doc))
+      setEditorValue(toJS(doc).children)
     }
   }, [pageText]);
 
   useEffect(() => {
     const maybeSave = async () => {
-      const saveableText = JSON.stringify(debouncedValue);
-      if (saveableText !== pageText) {
-        setSaving(true);
-        await updatePage(page, schema.text, saveableText);
-        setSaving(false);
+      if (automergeDoc !== undefined){
+        const saveableText = Automerge.save(automergeDoc);
+        if (saveableText !== pageText) {
+          setSaving(true);
+          console.log("saving", saveableText)
+          //await updatePage(page, schema.text, saveableText);
+          setSaving(false);
+        }
       }
     }
     if (saveNeeded) {
@@ -162,8 +170,17 @@ function PageTextEditor({page, readOnly}){
       {editorValue === undefined ? (
         <div>Loading...</div>
       ) : (
-        <Editor value={editorValue === undefined ? [] : editorValue}
-                handleChange={newValue => setEditorValue(newValue)}
+        <Editor page={page}
+                value={editorValue}
+                handleChange={(value, editor) => {
+                  //console.log("ops", editor.operations)
+                  setAutomergeDoc(doc => {
+                    return Automerge.change(automergeDoc, "", doc => {
+                      applySlateOps(doc, editor.operations)
+                    })
+                  })
+                  setEditorValue(value)
+                }}
                 readOnly={readOnly} saving={saving}
         />
       )}
@@ -171,13 +188,13 @@ function PageTextEditor({page, readOnly}){
   );
 }
 
-function Editor({value, handleChange, readOnly, saving}){
-  const editor = useEditor()
+function Editor({page, value, handleChange, readOnly, saving}){
+  const editor = useEditor(page)
   const classes = useStyles();
   return (
     <Slate editor={editor}
            value={value}
-           onChange={handleChange}>
+           onChange={value => handleChange(value, editor)}>
       {!readOnly && <EditorToolbar className={classes.toolbar} />}
       <Editable autoFocus readOnly={readOnly} editor={editor}
                 className={classes.editable}/>
@@ -245,11 +262,11 @@ function Page({workspace, page}){
       )}
       {backupsDialogOpen && <BackupsDialog page={page} open={backupsDialogOpen} handleClose={() => setBackupsDialogOpen(false)}/>}
       {allowed && (
-        <EditorErrorBoundary>
+
           <LiveUpdate subscribe={page.toString()}>
             <PageTextEditor page={page.toString()} readOnly={readOnly}/>
           </LiveUpdate>
-        </EditorErrorBoundary>
+
       )}
     </>
   )

@@ -6,22 +6,25 @@ import {namedNode} from '@rdfjs/data-model';
 import uuid from 'uuid/v1';
 import { ACLFactory, AccessControlList } from '@inrupt/solid-react-components';
 import {createNonExistentDocument, deleteFile} from '../utils/ldflex-helper';
+import Automerge from 'automerge'
 
 const WorkspaceContext = createContext({});
 
 const {Provider} = WorkspaceContext;
 
-const initialPage = JSON.stringify([
+const initialPage = Automerge.save(Automerge.from({children: [
   {
     type: 'paragraph',
-    children: [{text: ''}]
+    children: [{text: 'ham and bacon are pretty great'}]
   }
-])
+]}))
+
+console.log("initial", initialPage)
 
 export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
-  const conceptContainer = `${storage}concept/v1/`;
+  const conceptContainer = `${storage}concept/am-test/`;
   const workspaceFile = 'workspace.ttl';
   const workspace = storage && `${conceptContainer}${workspaceFile}`;
   const container = storage && `${conceptContainer}workspace/`;

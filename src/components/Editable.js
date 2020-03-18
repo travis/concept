@@ -9,7 +9,7 @@ import { createEditor } from 'slate';
 import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history'
 
-import { withImages, withLinks, withChecklists, toggleMark } from '../utils/editor';
+import { withAutosave, withImages, withLinks, withChecklists, toggleMark } from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
 
@@ -98,7 +98,9 @@ const Element = (props) => {
   }
 }
 
-export const useEditor = () => useMemo(() => withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))), [])
+
+
+export const useEditor = (page) => useMemo(() => withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))), [])
 
 export default function Editable({editor, ...props}){
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])
