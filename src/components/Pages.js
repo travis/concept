@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react'
 
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
-import IconButton from '@material-ui/core/IconButton';
+import IconButton from './IconButton';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import AppBar from '@material-ui/core/AppBar';
@@ -226,10 +226,10 @@ function Page({workspace, page}){
             {
               allowed && allowed.user.has("control") && (
               <>
-                <IconButton onClick={() => setSharingModalOpen(!sharingModalOpen)}>
+                <IconButton title="Share" onClick={() => setSharingModalOpen(!sharingModalOpen)}>
                   <ShareIcon/>
                 </IconButton>
-                <IconButton onClick={() => setBackupsDialogOpen(!backupsDialogOpen)}>
+                <IconButton title="Backups" onClick={() => setBackupsDialogOpen(!backupsDialogOpen)}>
                   <BackupIcon/>
                 </IconButton>
               </>

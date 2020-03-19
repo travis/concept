@@ -24,6 +24,7 @@ const InsertImageButton = () => {
   const editor = useEditor()
   return (
     <IconButton
+      title="Insert Image"
       size="small"
       onMouseDown={event => {
         event.preventDefault()
@@ -41,6 +42,7 @@ const LinkButton = () => {
   const editor = useSlate()
   return (
     <IconButton
+      title="Insert Link"
       size="small"
       active={isLinkActive(editor)}
       onMouseDown={event => {
@@ -55,7 +57,7 @@ const LinkButton = () => {
   )
 }
 
-const MarkButton = ({ format, icon }) => {
+const MarkButton = ({ format, icon, ...props }) => {
   const editor = useSlate()
   return (
     <IconButton
@@ -65,13 +67,14 @@ const MarkButton = ({ format, icon }) => {
         event.preventDefault()
         toggleMark(editor, format)
       }}
+      {...props}
     >
       {icon}
     </IconButton>
   )
 }
 
-const BlockButton = ({ format, icon }) => {
+const BlockButton = ({ format, icon, ...props }) => {
   const editor = useSlate()
   return (
     <IconButton
@@ -81,6 +84,7 @@ const BlockButton = ({ format, icon }) => {
         event.preventDefault()
         toggleBlock(editor, format)
       }}
+      {...props}
     >
       {icon}
     </IconButton>
@@ -90,18 +94,18 @@ const BlockButton = ({ format, icon }) => {
 export default function EditorToolbar(props){
   return (
     <Toolbar {...props}>
-      <MarkButton format="bold" icon={<FormatBold/>} />
-      <MarkButton format="italic" icon={<FormatItalic/>} />
-      <MarkButton format="underline" icon={<FormatUnderlined/>} />
-      <MarkButton format="code" icon={<Code/>} />
-      <BlockButton format="heading-one" icon="H1" />
-      <BlockButton format="heading-two" icon="H2" />
-      <BlockButton format="block-quote" icon={<FormatQuote/>} />
-      <BlockButton format="numbered-list" icon={<FormatListNumbered/>} />
-      <BlockButton format="bulleted-list" icon={<FormatListBulleted/>} />
+      <MarkButton title="Bold" format="bold" icon={<FormatBold/>} />
+      <MarkButton title="Italic" format="italic" icon={<FormatItalic/>} />
+      <MarkButton title="Underline" format="underline" icon={<FormatUnderlined/>} />
+      <MarkButton title="Code" format="code" icon={<Code/>} />
+      <BlockButton title="Heading 1" format="heading-one" icon="H1" />
+      <BlockButton title="Heading 2" format="heading-two" icon="H2" />
+      <BlockButton title="Quote" format="block-quote" icon={<FormatQuote/>} />
+      <BlockButton title="Numbered List" format="numbered-list" icon={<FormatListNumbered/>} />
+      <BlockButton title="Bulleted List" format="bulleted-list" icon={<FormatListBulleted/>} />
       <InsertImageButton />
       <LinkButton />
-      <BlockButton format="check-list-item" icon={<CheckBox/>} />
+      <BlockButton title="Check List" format="check-list-item" icon={<CheckBox/>} />
     </Toolbar>
   )
 }

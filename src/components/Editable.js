@@ -19,6 +19,17 @@ const useStyles = makeStyles(theme => ({
     maxWidth: "100%",
     maxHeight: theme.spacing(20),
     boxShadow: ({selected, focused}) => selected && focused ? '0 0 0 3px #B4D5FF' : 'none'
+  },
+  blockquote: {
+    backgroundColor: theme.palette.grey[100],
+    marginLeft: theme.spacing(1),
+    marginTop: 0,
+    marginRight: theme.spacing(1),
+    marginBottom: 0,
+    paddingLeft: theme.spacing(1),
+    paddingTop: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+    paddingBottom: theme.spacing(1)
   }
 }))
 
@@ -70,9 +81,10 @@ const ImageElement = ({ attributes, children, element }) => {
 
 const Element = (props) => {
   const { attributes, children, element } = props;
+  const classes = useStyles()
   switch (element.type) {
   case 'block-quote':
-    return <blockquote {...attributes}>{children}</blockquote>
+    return <blockquote className={classes.blockquote} {...attributes}>{children}</blockquote>
   case 'bulleted-list':
     return <ul {...attributes}>{children}</ul>
   case 'heading-one':
