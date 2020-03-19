@@ -1,17 +1,25 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Link } from "react-router-dom";
 import {
-  Editable as SlateEditable, useSelected, useFocused,
+  Editable as SlateEditable, useSelected, useFocused, useEditor
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
-import { makeStyles } from '@material-ui/core/styles';
 
-import { createEditor } from 'slate';
+import { makeStyles } from '@material-ui/core/styles';
+import Portal from '@material-ui/core/Portal';
+import Paper from '@material-ui/core/Paper';
+import Popover from '@material-ui/core/Popover';
+import UnlinkIcon from '@material-ui/icons/LinkOff';
+
+import { createEditor, Node } from 'slate';
 import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history'
 
 import { withImages, withLinks, withChecklists, withLists, toggleMark } from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
+import IconButton from './IconButton';
+import { removeLink } from '../utils/editor'
 
 const useStyles = makeStyles(theme => ({
   image: {
@@ -36,6 +44,13 @@ const useStyles = makeStyles(theme => ({
   },
   unorderedList: {
     paddingLeft: theme.spacing(3)
+  },
+  aPopover: {
+    padding: theme.spacing(1)
+  },
+  unlinkButton: {
+    padding: 0,
+    marginLeft: theme.spacing(1)
   }
 }))
 
@@ -84,6 +99,39 @@ const ImageElement = ({ attributes, children, element }) => {
   )
 }
 
+const LinkElement = ({attributes, children, element}) => {
+  const editor = useEditor()
+  const selected = useSelected()
+  const classes = useStyles()
+  const aRef = useRef()
+  return (
+    <>
+      <a {...attributes} href={element.url} ref={aRef}>
+        {children}
+      </a>
+      {true && (
+        <Popover open={selected}
+                 anchorEl={aRef.current} disableAutoFocus disableEnforceFocus
+                 anchorOrigin={{
+                   vertical: 'bottom',
+                   horizontal: 'center',
+                 }}
+                 transformOrigin={{
+                   vertical: 'top',
+                   horizontal: 'center',
+                 }}
+                 PaperProps={{className: classes.aPopover}}>
+          <Link to={element.url}>{element.url}</Link>
+          <IconButton variant="small" onClick={() => removeLink(editor)}
+                      className={classes.unlinkButton}>
+            <UnlinkIcon></UnlinkIcon>
+          </IconButton>
+        </Popover>
+      )
+      }
+    </>
+  )
+}
 
 const Element = (props) => {
   const { attributes, children, element } = props;
@@ -104,11 +152,7 @@ const Element = (props) => {
   case 'image':
     return <ImageElement {...props} />
   case 'link':
-    return (
-      <a {...attributes} href={element.url}>
-        {children}
-      </a>
-    )
+    return <LinkElement {...props}/>
   case 'check-list-item':
     return <ChecklistItemElement {...props} />
   default:
@@ -116,7 +160,7 @@ const Element = (props) => {
   }
 }
 
-export const useEditor = () => useMemo(() => withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor())))))), [])
+export const useNewEditor = () => useMemo(() => withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor())))))), [])
 
 export default function Editable({editor, ...props}){
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])

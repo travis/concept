@@ -18,7 +18,7 @@ import { useParams } from "react-router-dom";
 
 import { Slate } from 'slate-react';
 
-import Editable, {useEditor} from "./Editable";
+import Editable, {useNewEditor} from "./Editable";
 import EditorToolbar from "./EditorToolbar";
 import SharingModal from "./SharingModal";
 import BackupsDialog from "./BackupsDialog";
@@ -172,7 +172,7 @@ function PageTextEditor({page, readOnly}){
 }
 
 function Editor({value, handleChange, readOnly, saving}){
-  const editor = useEditor()
+  const editor = useNewEditor()
   const classes = useStyles();
   return (
     <Slate editor={editor}

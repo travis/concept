@@ -160,6 +160,10 @@ export const insertLink = (editor, url) => {
   }
 }
 
+export const removeLink = (editor) => {
+  unwrapLink(editor)
+}
+
 export const withChecklists = editor => {
   const { deleteBackward } = editor
 

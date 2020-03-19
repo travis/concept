@@ -27,7 +27,7 @@ import { useLDflexList, useLDflexValue } from '../hooks/ldflex';
 import { backupFolderForPage } from '../utils/backups'
 import { createBackup } from '../hooks/backup'
 import concept from '../ontology'
-import Editable, {useEditor} from "./Editable";
+import Editable, {useNewEditor} from "./Editable";
 import Loader from "./Loader";
 
 const useStyles = makeStyles(theme => ({
@@ -102,7 +102,7 @@ function PreviewDialog({backup, date, open=true, handleClose}){
   const [showRestore, setShowRestore] = useState(false)
   const original = useLDflexValue(`[${backup}][${concept.backupOf}]`)
   const backupText = useLDflexValue(`[${backup}][${schema.text}]`)
-  const editor = useEditor()
+  const editor = useNewEditor()
   const classes = useStyles();
   const restore = useCallback(async () => {
     const currentText = data[original][schema.text]
