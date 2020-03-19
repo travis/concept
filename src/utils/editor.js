@@ -191,3 +191,38 @@ export const withChecklists = editor => {
 
   return editor
 }
+
+export const withLists = editor => {
+  const { deleteBackward } = editor
+
+  editor.deleteBackward = (...args) => {
+    const { selection } = editor
+
+    if (selection && Range.isCollapsed(selection)) {
+      const [match] = Editor.nodes(editor, {
+        match: n => n.type === 'list-item',
+      })
+      if (match) {
+        const [, path] = match
+        const start = Editor.start(editor, path)
+        if (Point.equals(selection.anchor, start)) {
+          Transforms.unwrapNodes(editor, {
+            match: n => LIST_TYPES.includes(n.type),
+            split: true,
+          })
+
+          Transforms.setNodes(
+            editor,
+            { type: 'paragraph' },
+            { match: n => n.type === 'list-item' }
+          )
+          return
+        }
+      }
+    }
+
+    deleteBackward(...args)
+  }
+
+  return editor
+}

@@ -9,7 +9,7 @@ import { createEditor } from 'slate';
 import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history'
 
-import { withImages, withLinks, withChecklists, toggleMark } from '../utils/editor';
+import { withImages, withLinks, withChecklists, withLists, toggleMark } from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
 
@@ -30,6 +30,12 @@ const useStyles = makeStyles(theme => ({
     paddingTop: theme.spacing(1),
     paddingRight: theme.spacing(1),
     paddingBottom: theme.spacing(1)
+  },
+  orderedList: {
+    paddingLeft: theme.spacing(3)
+  },
+  unorderedList: {
+    paddingLeft: theme.spacing(3)
   }
 }))
 
@@ -86,7 +92,7 @@ const Element = (props) => {
   case 'block-quote':
     return <blockquote className={classes.blockquote} {...attributes}>{children}</blockquote>
   case 'bulleted-list':
-    return <ul {...attributes}>{children}</ul>
+    return <ul className={classes.unorderedList} {...attributes}>{children}</ul>
   case 'heading-one':
     return <h1 {...attributes}>{children}</h1>
   case 'heading-two':
@@ -94,7 +100,7 @@ const Element = (props) => {
   case 'list-item':
     return <li {...attributes}>{children}</li>
   case 'numbered-list':
-    return <ol {...attributes}>{children}</ol>
+    return <ol className={classes.orderedList} {...attributes}>{children}</ol>
   case 'image':
     return <ImageElement {...props} />
   case 'link':
@@ -110,7 +116,7 @@ const Element = (props) => {
   }
 }
 
-export const useEditor = () => useMemo(() => withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))), [])
+export const useEditor = () => useMemo(() => withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor())))))), [])
 
 export default function Editable({editor, ...props}){
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])

@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
     }
   },
   checkbox: {
-    marginRight: "0.75em"
+    marginRight: theme.spacing(1)
   },
   text: {
     flex: 1,
