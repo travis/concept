@@ -6,12 +6,10 @@ import {
 import isHotkey from 'is-hotkey';
 
 import { makeStyles } from '@material-ui/core/styles';
-import Portal from '@material-ui/core/Portal';
-import Paper from '@material-ui/core/Paper';
 import Popover from '@material-ui/core/Popover';
 import UnlinkIcon from '@material-ui/icons/LinkOff';
 
-import { createEditor, Node } from 'slate';
+import { createEditor } from 'slate';
 import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history'
 

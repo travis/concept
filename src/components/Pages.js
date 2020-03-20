@@ -19,7 +19,7 @@ import { useParams } from "react-router-dom";
 import { Slate } from 'slate-react';
 
 import Editable, {useNewEditor} from "./Editable";
-import EditorToolbar from "./EditorToolbar";
+import EditorToolbar, {HoveringToolbar} from "./EditorToolbar";
 import SharingModal from "./SharingModal";
 import BackupsDialog from "./BackupsDialog";
 
@@ -178,7 +178,13 @@ function Editor({value, handleChange, readOnly, saving}){
     <Slate editor={editor}
            value={value}
            onChange={handleChange}>
-      {!readOnly && <EditorToolbar className={classes.toolbar} />}
+      {!readOnly && (
+        <>
+          <EditorToolbar className={classes.toolbar} />
+          <HoveringToolbar />
+        </>
+      )}
+
       <Editable autoFocus readOnly={readOnly} editor={editor}
                 className={classes.editable}/>
     </Slate>

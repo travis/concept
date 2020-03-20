@@ -1,5 +1,8 @@
 import React from 'react';
 import { useSlate, useEditor } from 'slate-react';
+import { Range } from 'slate'
+
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 
 import Toolbar from '@material-ui/core/Toolbar';
 import FormatBold from '@material-ui/icons/FormatBold';
@@ -12,6 +15,7 @@ import FormatListNumbered from '@material-ui/icons/FormatListNumbered';
 import ImageIcon from '@material-ui/icons/ImageOutlined';
 import LinkIcon from '@material-ui/icons/Link';
 import CheckBox from '@material-ui/icons/CheckBoxOutlined';
+import Popover from '@material-ui/core/Popover';
 
 import IconButton from './IconButton';
 
@@ -94,18 +98,63 @@ const BlockButton = ({ format, icon, ...props }) => {
 export default function EditorToolbar(props){
   return (
     <Toolbar {...props}>
-      <MarkButton title="Bold" format="bold" icon={<FormatBold/>} />
-      <MarkButton title="Italic" format="italic" icon={<FormatItalic/>} />
-      <MarkButton title="Underline" format="underline" icon={<FormatUnderlined/>} />
-      <MarkButton title="Code" format="code" icon={<Code/>} />
       <BlockButton title="Heading 1" format="heading-one" icon="H1" />
       <BlockButton title="Heading 2" format="heading-two" icon="H2" />
       <BlockButton title="Quote" format="block-quote" icon={<FormatQuote/>} />
       <BlockButton title="Numbered List" format="numbered-list" icon={<FormatListNumbered/>} />
       <BlockButton title="Bulleted List" format="bulleted-list" icon={<FormatListBulleted/>} />
       <InsertImageButton />
-      <LinkButton />
       <BlockButton title="Check List" format="check-list-item" icon={<CheckBox/>} />
     </Toolbar>
   )
+}
+
+const useStyles = makeStyles(theme => ({
+  toolbarRoot: {
+    pointerEvents: "none"
+  },
+  toolbar: {
+    pointerEvents: "auto"
+  }
+}))
+
+export function HoveringToolbar() {
+  const editor = useSlate()
+  const open = editor.selection && !Range.isCollapsed(editor.selection)
+  const theme = useTheme()
+  const classes = useStyles()
+  if (open) {
+
+    const domSelection = window.getSelection()
+    const domRange = domSelection.getRangeAt(0)
+    const rect = domRange.getBoundingClientRect()
+    return (
+      <Popover
+        disableAutoFocus disableEnforceFocus disableRestoreFocus hideBackdrop
+        classes={{
+          root: classes.toolbarRoot,
+          paper: classes.toolbar
+        }}
+        open={open}
+        anchorReference="anchorPosition"
+        anchorPosition={{top: rect.top - theme.spacing(1), left: rect.left}}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        >
+        <MarkButton title="Bold" format="bold" icon={<FormatBold/>} />
+        <MarkButton title="Italic" format="italic" icon={<FormatItalic/>} />
+        <MarkButton title="Underline" format="underline" icon={<FormatUnderlined/>} />
+        <MarkButton title="Code" format="code" icon={<Code/>} />
+        <LinkButton />
+      </Popover>
+    )
+  } else {
+    return <></>
+  }
 }
