@@ -175,6 +175,51 @@ const TurnIntoItem = forwardRef(({element, format, onClose, ...props}, ref) => {
   )
 })
 
+function TurnIntoMenu({element, onClose, ...props}){
+  const classes = useStyles()
+  return (
+    <Menu
+          className={classes.turnIntoMenu}
+          classes={{
+            paper: classes.turnIntoMenuPaper
+          }}
+          getContentAnchorEl={null}
+          anchorOrigin={{
+            vertical: 'center',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'center',
+            horizontal: 'left',
+          }}
+          {...props}>
+      <TurnIntoItem element={element} format="p" onClose={onClose}>
+        text
+        </TurnIntoItem>
+      <TurnIntoItem element={element} format="heading-one" onClose={onClose}>
+        heading 1
+      </TurnIntoItem>
+      <TurnIntoItem element={element} format="heading-two" onClose={onClose}>
+        heading 2
+        </TurnIntoItem>
+      <TurnIntoItem element={element} format="heading-three" onClose={onClose}>
+        heading 3
+      </TurnIntoItem>
+      <TurnIntoItem element={element} format="block-quote" onClose={onClose}>
+        quote
+      </TurnIntoItem>
+      <TurnIntoItem element={element} format="numbered-list" onClose={onClose}>
+        numbered list
+      </TurnIntoItem>
+      <TurnIntoItem element={element} format="bulleted-list" onClose={onClose}>
+        bulleted list
+      </TurnIntoItem>
+      <TurnIntoItem element={element} format="check-list-item" onClose={onClose}>
+        todo list
+        </TurnIntoItem>
+    </Menu>)
+}
+
 function BlockMenu({editor, element, onClose, ...props}) {
   const turnIntoRef = useRef()
   const [turnIntoMenuOpen, setTurnIntoMenuOpen] = useState(false)
@@ -206,46 +251,10 @@ function BlockMenu({editor, element, onClose, ...props}) {
         </MenuItem>
       </Menu>
       {turnIntoMenuOpen && (
-        <Menu anchorEl={turnIntoRef.current} open={turnIntoMenuOpen}
-              onMouseEnter={() => setTurnIntoMenuOpen(true)}
-              className={classes.turnIntoMenu}
-              classes={{
-                paper: classes.turnIntoMenuPaper
-              }}
-              getContentAnchorEl={null}
-              anchorOrigin={{
-                vertical: 'center',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'center',
-                horizontal: 'left',
-              }}>
-          <TurnIntoItem element={element} format="p" onClose={onClose}>
-            text
-          </TurnIntoItem>
-          <TurnIntoItem element={element} format="heading-one" onClose={onClose}>
-            heading 1
-          </TurnIntoItem>
-          <TurnIntoItem element={element} format="heading-two" onClose={onClose}>
-            heading 2
-          </TurnIntoItem>
-          <TurnIntoItem element={element} format="heading-three" onClose={onClose}>
-            heading 3
-          </TurnIntoItem>
-          <TurnIntoItem element={element} format="block-quote" onClose={onClose}>
-            quote
-          </TurnIntoItem>
-          <TurnIntoItem element={element} format="numbered-list" onClose={onClose}>
-            numbered list
-          </TurnIntoItem>
-          <TurnIntoItem element={element} format="bulleted-list" onClose={onClose}>
-            bulleted list
-          </TurnIntoItem>
-          <TurnIntoItem element={element} format="check-list-item" onClose={onClose}>
-            todo list
-          </TurnIntoItem>
-        </Menu>
+        <TurnIntoMenu element={element}
+                      onMouseEnter={() => setTurnIntoMenuOpen(true)}
+                      anchorEl={turnIntoRef.current}
+                      open={turnIntoMenuOpen} onClose={onClose}/>
       )}
     </>
   )
