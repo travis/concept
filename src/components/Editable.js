@@ -259,7 +259,6 @@ const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
 })
 
 function InsertMenu({element, onClose, ...props}){
-  const editor = useSlate()
   const classes = useStyles()
   return (
     <Menu className={classes.insertMenu}
@@ -311,7 +310,6 @@ function BlockMenu({element, onClose, ...props}) {
   const editor = useSlate()
   const turnIntoRef = useRef()
   const [turnIntoMenuOpen, setTurnIntoMenuOpen] = useState(false)
-  const classes = useStyles()
   return (
     <>
       <Menu

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react'
+import React, { useContext, useState, useEffect, useCallback, useRef } from 'react'
 
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
@@ -109,24 +109,37 @@ function PageTextEditor({page, readOnly}){
   const [editorValue, setEditorValue] = useState(undefined);
   const [saveNeeded, setSaveNeeded] = useState(false);
   const [debouncedValue] = useDebounce(editorValue, 1500);
+  const savedVersionsRef = useRef([])
+  const setSavedVersions = useCallback(
+    (mutate) => {
+      savedVersionsRef.current = mutate(savedVersionsRef.current)
+    },
+    [savedVersionsRef]
+  )
   useBackups(page, editorValue)
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
     setEditorValue(undefined);
   }, [page])
 
+  const previouslySaved = useCallback(
+    (text) => savedVersionsRef.current.some(previousVersion => previousVersion === text),
+    [savedVersionsRef]
+  )
+
   useEffect(() => {
     // once pageText loads, set editorValue
     if ((pageText !== undefined) && (pageText !== null)) {
       setEditorValue(currentValue => {
-        if (JSON.stringify(currentValue) === pageText){
+        if ((JSON.stringify(currentValue) === pageText) ||
+            previouslySaved(pageText)){
           return currentValue
         } else {
           return JSON.parse(pageText)
         }
       })
     }
-  }, [pageText]);
+  }, [pageText, previouslySaved, savedVersionsRef]);
 
   useEffect(() => {
     const maybeSave = async () => {
@@ -134,6 +147,7 @@ function PageTextEditor({page, readOnly}){
       if (saveableText !== pageText) {
         setSaving(true);
         await updatePage(page, schema.text, saveableText);
+        setSavedVersions(currentSavedVersions => [saveableText, ...currentSavedVersions].slice(0, 100))
         setSaving(false);
       }
     }
@@ -141,7 +155,7 @@ function PageTextEditor({page, readOnly}){
       setSaveNeeded(false);
       maybeSave();
     }
-  }, [saveNeeded, page, pageText, debouncedValue, updatePage])
+  }, [saveNeeded, page, pageText, debouncedValue, updatePage, setSavedVersions])
 
   useEffect(() => {
     if (debouncedValue !== undefined) {
@@ -149,38 +163,28 @@ function PageTextEditor({page, readOnly}){
     }
   }, [debouncedValue])
 
+  const editor = useNewEditor()
   return (
     <div className={classes.editor}>
       {saving && <SaveIcon className={classes.saving}/>}
       {editorValue === undefined ? (
         <div>Loading...</div>
       ) : (
-        <Editor value={editorValue === undefined ? [] : editorValue}
-                handleChange={newValue => setEditorValue(newValue)}
-                readOnly={readOnly} saving={saving}
-        />
+        <Slate editor={editor}
+               value={editorValue === undefined ? [] : editorValue}
+               onChange={newValue => setEditorValue(newValue)}>
+          {!readOnly && (
+            <>
+              <HoveringToolbar />
+            </>
+          )}
+
+          <Editable autoFocus readOnly={readOnly} editor={editor}
+                    className={classes.editable}/>
+        </Slate>
       )}
     </div>
   );
-}
-
-function Editor({value, handleChange, readOnly, saving}){
-  const editor = useNewEditor()
-  const classes = useStyles();
-  return (
-    <Slate editor={editor}
-           value={value}
-           onChange={handleChange}>
-      {!readOnly && (
-        <>
-          <HoveringToolbar />
-        </>
-      )}
-
-      <Editable autoFocus readOnly={readOnly} editor={editor}
-                className={classes.editable}/>
-    </Slate>
-  )
 }
 
 class EditorErrorBoundary extends React.Component {
