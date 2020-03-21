@@ -345,7 +345,10 @@ function BlockMenu({element, onClose, ...props}) {
         <TurnIntoMenu element={element}
                       onMouseEnter={() => setTurnIntoMenuOpen(true)}
                       anchorEl={turnIntoRef.current}
-                      open={turnIntoMenuOpen} onClose={onClose}/>
+                      open={turnIntoMenuOpen} onClose={() => {
+                        setTurnIntoMenuOpen(false)
+                        onClose()
+                      }}/>
       )}
     </>
   )
