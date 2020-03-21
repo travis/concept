@@ -21,30 +21,51 @@ export const toggleMark = (editor, format) => {
 }
 
 
-export const isBlockActive = (editor, format) => {
+export const isBlockActive = (editor, format, at=editor.selection) => {
   const [match] = Editor.nodes(editor, {
+    at,
     match: n => n.type === format,
   })
 
   return !!match
 }
 
-export const toggleBlock = (editor, format) => {
-  const isActive = isBlockActive(editor, format)
+export const toggleBlock = (editor, format, at=editor.selection) => {
+  const isActive = isBlockActive(editor, format, at)
   const isList = LIST_TYPES.includes(format)
 
   Transforms.unwrapNodes(editor, {
+    at,
     match: n => LIST_TYPES.includes(n.type),
     split: true,
   })
 
   Transforms.setNodes(editor, {
     type: isActive ? 'paragraph' : isList ? 'list-item' : format,
-  })
+  }, { at })
 
   if (!isActive && isList) {
     const block = { type: format, children: [] }
-    Transforms.wrapNodes(editor, block)
+    Transforms.wrapNodes(editor, block, { at })
+  }
+}
+
+export const makeBlock = (editor, format, at=editor.selection) => {
+  const isList = LIST_TYPES.includes(format)
+
+  Transforms.unwrapNodes(editor, {
+    at,
+    match: n => LIST_TYPES.includes(n.type),
+    split: true,
+  })
+
+  Transforms.setNodes(editor, {
+    type: isList ? 'list-item' : format,
+  }, { at })
+
+  if (isList) {
+    const block = { type: format, children: [] }
+    Transforms.wrapNodes(editor, block, { at })
   }
 }
 

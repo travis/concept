@@ -56,6 +56,8 @@ const useStyles = makeStyles(theme => ({
     bottom: 0,
     textAlign: "left",
     padding: theme.spacing(1),
+    paddingLeft: theme.spacing(8),
+    paddingRight: theme.spacing(8),
     paddingTop: 0,
     background: "white",
     position: "absolute"
