@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import MUIIconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 
@@ -13,11 +13,12 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-export default function IconButton({active, title, ariaLabel,...props}){
+const IconButton = forwardRef(({active, title, ariaLabel,...props}, ref) => {
   const classes = useStyles();
   const button = (
     <MUIIconButton className={active ? classes.active : classes.inactive}
                    aria-label={ariaLabel || title}
+                   ref={ref}
                    {...props}/>
   )
   return title ? (
@@ -25,4 +26,6 @@ export default function IconButton({active, title, ariaLabel,...props}){
       {button}
     </Tooltip>
   ) : button
-}
+})
+
+export default IconButton

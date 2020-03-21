@@ -69,6 +69,20 @@ export const makeBlock = (editor, format, at=editor.selection) => {
   }
 }
 
+export const insertBlock = (editor, format, at=editor.selection) => {
+  const isList = LIST_TYPES.includes(format)
+
+  if (isList) {
+    Transforms.insertNodes(editor,
+                           { type: format, children: [ { type: "list-item", children: []}] },
+                           { at })
+  } else {
+    Transforms.insertNodes(editor,
+                           { type: format, children: [] },
+                           { at })
+  }
+}
+
 const isImageUrl = url => {
   if (!url) return false
   if (!isUrl(url)) return false
@@ -111,10 +125,10 @@ export const withImages = editor => {
   return editor
 }
 
-export const insertImage = (editor, url) => {
+export const insertImage = (editor, url, at=editor.selection) => {
   const text = { text: '' }
   const image = { type: 'image', url, children: [text] }
-  Transforms.insertNodes(editor, image)
+  Transforms.insertNodes(editor, image, {at})
 }
 
 export const isLinkActive = editor => {

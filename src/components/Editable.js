@@ -18,7 +18,7 @@ import DragIcon from '@material-ui/icons/DragIndicator';
 import { createEditor, Transforms } from 'slate';
 import { withHistory } from 'slate-history'
 
-import { withImages, withLinks, withChecklists, withLists, toggleMark, makeBlock } from '../utils/editor';
+import { withImages, withLinks, withChecklists, withLists, toggleMark, makeBlock, insertBlock, insertImage } from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
 import IconButton from './IconButton';
@@ -178,8 +178,7 @@ const TurnIntoItem = forwardRef(({element, format, onClose, ...props}, ref) => {
 function TurnIntoMenu({element, onClose, ...props}){
   const classes = useStyles()
   return (
-    <Menu
-          className={classes.turnIntoMenu}
+    <Menu className={classes.turnIntoMenu}
           classes={{
             paper: classes.turnIntoMenuPaper
           }}
@@ -192,6 +191,7 @@ function TurnIntoMenu({element, onClose, ...props}){
             vertical: 'center',
             horizontal: 'left',
           }}
+          onClose={onClose}
           {...props}>
       <TurnIntoItem element={element} format="p" onClose={onClose}>
         text
@@ -220,7 +220,95 @@ function TurnIntoMenu({element, onClose, ...props}){
     </Menu>)
 }
 
-function BlockMenu({editor, element, onClose, ...props}) {
+const insertionPoint = (editor, element) => {
+  const [first, ...rest] = ReactEditor.findPath(editor, element)
+  return (
+    [first + 1, ...rest]
+  )
+}
+
+const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
+  const editor = useSlate()
+  const onClick = useCallback(() => {
+    const insertAt = insertionPoint(editor, element)
+    insertBlock(editor, format, insertAt)
+    Transforms.select(editor, insertAt)
+    onClose()
+  }, [editor, format, element, onClose])
+  return (
+    <MenuItem onClick={onClick} ref={ref} {...props}/>
+  )
+})
+
+const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
+  const editor = useSlate()
+  return (
+    <MenuItem
+      onClick={event => {
+        event.preventDefault()
+        const url = window.prompt('Enter the URL of the image:')
+        if (!url) return
+        const insertAt = insertionPoint(editor, element)
+        insertImage(editor, url, insertAt)
+        Transforms.select(editor, insertAt)
+        onClose()
+      }}
+    {...props}
+    />
+  )
+})
+
+function InsertMenu({element, onClose, ...props}){
+  const editor = useSlate()
+  const classes = useStyles()
+  return (
+    <Menu className={classes.insertMenu}
+          classes={{
+            paper: classes.insertMenuPaper
+          }}
+          getContentAnchorEl={null}
+          anchorOrigin={{
+            vertical: 'center',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'center',
+            horizontal: 'left',
+          }}
+          onClose={onClose}
+          {...props}>
+      <InsertItem element={element} format="p" onClose={onClose}>
+        text
+      </InsertItem>
+      <InsertItem element={element} format="heading-one" onClose={onClose}>
+        heading 1
+      </InsertItem>
+      <InsertItem element={element} format="heading-two" onClose={onClose}>
+        heading 2
+        </InsertItem>
+      <InsertItem element={element} format="heading-three" onClose={onClose}>
+        heading 3
+      </InsertItem>
+      <InsertItem element={element} format="block-quote" onClose={onClose}>
+        quote
+      </InsertItem>
+      <InsertItem element={element} format="numbered-list" onClose={onClose}>
+        numbered list
+      </InsertItem>
+      <InsertItem element={element} format="bulleted-list" onClose={onClose}>
+        bulleted list
+      </InsertItem>
+      <InsertItem element={element} format="check-list-item" onClose={onClose}>
+        todo list
+      </InsertItem>
+      <InsertImageItem element={element} onClose={onClose}>
+        image
+      </InsertImageItem>
+    </Menu>)
+}
+
+function BlockMenu({element, onClose, ...props}) {
+  const editor = useSlate()
   const turnIntoRef = useRef()
   const [turnIntoMenuOpen, setTurnIntoMenuOpen] = useState(false)
   const classes = useStyles()
@@ -236,7 +324,10 @@ function BlockMenu({editor, element, onClose, ...props}) {
           vertical: 'center',
           horizontal: 'right',
         }}
-        onClose={onClose}
+        onClose={() => {
+          setTurnIntoMenuOpen(false)
+          onClose()
+        }}
         {...props}>
         <MenuItem onClick={() => {Transforms.removeNodes(editor, {
           at: ReactEditor.findPath(editor, element)
@@ -261,22 +352,32 @@ function BlockMenu({editor, element, onClose, ...props}) {
 }
 
 function Block({children, element}) {
-  const editor = useEditor()
+  const editor = useSlate()
   const buttonsRef = useRef()
   const [menuOpen, setMenuOpen] = useState(false)
+  const insertRef = useRef()
+  const [insertMenuOpen, setInsertMenuOpen] = useState(false)
   const classes = useStyles({menuOpen})
   return (
     <Box className={classes.block}>
-      {menuOpen && (<BlockMenu editor={editor} element={element}
-                               open={menuOpen}
-                               onClose={() => setMenuOpen(false)}
-                               anchorEl={buttonsRef.current}/>
-      )}
+      <BlockMenu element={element} anchorEl={buttonsRef.current}
+                 open={menuOpen}
+                 onClose={() => setMenuOpen(false)}/>
+      <InsertMenu element={element} anchorEl={insertRef.current}
+                  open={insertMenuOpen}
+                  onClose={() => {
+                    setInsertMenuOpen(false)
+                  }}
+                  onExiting={() => {
+                    ReactEditor.focus(editor)
+                  }}/>
       <Box contentEditable={false} className={classes.blockButtons} ref={buttonsRef}>
-        <IconButton variant="small">
+        <IconButton variant="small" onClick={() => setInsertMenuOpen(!insertMenuOpen)} ref={insertRef}
+                    title="Insert">
           <AddIcon></AddIcon>
         </IconButton>
-        <IconButton variant="small" onClick={() => setMenuOpen(!menuOpen)}>
+        <IconButton variant="small" onClick={() => setMenuOpen(!menuOpen)}
+                    title="">
           <DragIcon></DragIcon>
         </IconButton>
       </Box>
