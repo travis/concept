@@ -7,6 +7,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
+import Paper from '@material-ui/core/Paper';
 
 import SaveIcon from '@material-ui/icons/Save'
 import ShareIcon from '@material-ui/icons/Share'
@@ -47,6 +48,7 @@ const useStyles = makeStyles(theme => ({
   editor: {
     position: "relative",
     height: "100%",
+    overflow: "scroll"
   },
   editable: {
     marginTop: "48px",
@@ -165,7 +167,7 @@ function PageTextEditor({page, readOnly}){
 
   const editor = useNewEditor()
   return (
-    <div className={classes.editor}>
+    <Paper className={classes.editor}>
       {saving && <SaveIcon className={classes.saving}/>}
       {editorValue === undefined ? (
         <div>Loading...</div>
@@ -183,7 +185,7 @@ function PageTextEditor({page, readOnly}){
                     className={classes.editable}/>
         </Slate>
       )}
-    </div>
+    </Paper>
   );
 }
 
