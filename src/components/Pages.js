@@ -19,7 +19,7 @@ import { useParams } from "react-router-dom";
 import { Slate } from 'slate-react';
 
 import Editable, {useNewEditor} from "./Editable";
-import EditorToolbar, {HoveringToolbar} from "./EditorToolbar";
+import {HoveringToolbar} from "./EditorToolbar";
 import SharingModal from "./SharingModal";
 import BackupsDialog from "./BackupsDialog";
 
@@ -49,26 +49,19 @@ const useStyles = makeStyles(theme => ({
     height: "100%",
   },
   editable: {
-    marginTop: "70px",
+    marginTop: "48px",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     textAlign: "left",
     padding: theme.spacing(1),
+    paddingLeft: theme.spacing(8),
+    paddingRight: theme.spacing(8),
     paddingTop: 0,
     background: "white",
     position: "absolute"
 
-  },
-  toolbar: {
-    top: "48px",
-    position: "fixed",
-    minHeight: theme.spacing(1),
-    paddingLeft: 0,
-    width: "100%",
-    background: theme.palette.grey[50],
-    zIndex: 100
   },
   shareButton: {
     float: "right"
@@ -97,7 +90,7 @@ function PageName({workspace, page}){
   }
 
   return editing ? (
-    <TextField label="Page Name" variant="standard" autoFocus
+    <TextField variant="standard" autoFocus
                value={name}
                onKeyDown={(e) => (e.key === 'Enter') && saveAndStopEditing()}
                onBlur={() => saveAndStopEditing()}
@@ -180,7 +173,6 @@ function Editor({value, handleChange, readOnly, saving}){
            onChange={handleChange}>
       {!readOnly && (
         <>
-          <EditorToolbar className={classes.toolbar} />
           <HoveringToolbar />
         </>
       )}

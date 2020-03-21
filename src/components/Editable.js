@@ -1,19 +1,24 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState, forwardRef } from 'react';
 import { Link } from "react-router-dom";
 import {
-  Editable as SlateEditable, useSelected, useFocused, useEditor
+  Editable as SlateEditable, useSelected, useFocused, useEditor, withReact, useSlate,
+  ReactEditor
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Popover from '@material-ui/core/Popover';
+import Box from '@material-ui/core/Box';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import UnlinkIcon from '@material-ui/icons/LinkOff';
+import AddIcon from '@material-ui/icons/Add';
+import DragIcon from '@material-ui/icons/DragIndicator';
 
-import { createEditor } from 'slate';
-import { withReact } from 'slate-react';
+import { createEditor, Transforms } from 'slate';
 import { withHistory } from 'slate-history'
 
-import { withImages, withLinks, withChecklists, withLists, toggleMark } from '../utils/editor';
+import { withImages, withLinks, withChecklists, withLists, toggleMark, makeBlock } from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
 import IconButton from './IconButton';
@@ -49,6 +54,35 @@ const useStyles = makeStyles(theme => ({
   unlinkButton: {
     padding: 0,
     marginLeft: theme.spacing(1)
+  },
+  block: {
+    position: "relative",
+    "&:hover $blockButtons": {
+      visibility: "visible"
+    },
+    left: -theme.spacing(7),
+    paddingLeft: theme.spacing(7)
+  },
+  blockButtons: {
+    visibility: ({menuOpen}) => menuOpen ? "visible" : "hidden",
+    position: "absolute",
+    left: -theme.spacing(0),
+    opacity: 0.5,
+    "& button": {
+      padding: 0
+    }
+  },
+  paragraph: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word"
+  },
+  turnIntoMenu: {
+    pointerEvents: "none"
+  },
+  turnIntoMenuPaper: {
+    pointerEvents: "auto"
   }
 }))
 
@@ -125,9 +159,120 @@ const LinkElement = ({attributes, children, element}) => {
             <UnlinkIcon></UnlinkIcon>
           </IconButton>
         </Popover>
-      )
-      }
+      )}
     </>
+  )
+}
+
+const TurnIntoItem = forwardRef(({element, format, onClose, ...props}, ref) => {
+  const editor = useSlate()
+  const onClick = useCallback(() => {
+    makeBlock(editor, format, ReactEditor.findPath(editor, element))
+    onClose()
+  }, [editor, format, element, onClose])
+  return (
+    <MenuItem onClick={onClick} ref={ref} {...props}/>
+  )
+})
+
+function BlockMenu({editor, element, onClose, ...props}) {
+  const turnIntoRef = useRef()
+  const [turnIntoMenuOpen, setTurnIntoMenuOpen] = useState(false)
+  const classes = useStyles()
+  return (
+    <>
+      <Menu
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: 'center',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'center',
+          horizontal: 'right',
+        }}
+        onClose={onClose}
+        {...props}>
+        <MenuItem onClick={() => {Transforms.removeNodes(editor, {
+          at: ReactEditor.findPath(editor, element)
+        })}}>
+          delete
+        </MenuItem>
+        <MenuItem ref={turnIntoRef}
+                  onMouseEnter={() => setTurnIntoMenuOpen(true)}
+                  onMouseLeave={() => setTurnIntoMenuOpen(false)}
+        >
+          turn into ⩺
+        </MenuItem>
+      </Menu>
+      {turnIntoMenuOpen && (
+        <Menu anchorEl={turnIntoRef.current} open={turnIntoMenuOpen}
+              onMouseEnter={() => setTurnIntoMenuOpen(true)}
+              className={classes.turnIntoMenu}
+              classes={{
+                paper: classes.turnIntoMenuPaper
+              }}
+              getContentAnchorEl={null}
+              anchorOrigin={{
+                vertical: 'center',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'center',
+                horizontal: 'left',
+              }}>
+          <TurnIntoItem element={element} format="p" onClose={onClose}>
+            text
+          </TurnIntoItem>
+          <TurnIntoItem element={element} format="heading-one" onClose={onClose}>
+            heading 1
+          </TurnIntoItem>
+          <TurnIntoItem element={element} format="heading-two" onClose={onClose}>
+            heading 2
+          </TurnIntoItem>
+          <TurnIntoItem element={element} format="heading-three" onClose={onClose}>
+            heading 3
+          </TurnIntoItem>
+          <TurnIntoItem element={element} format="block-quote" onClose={onClose}>
+            quote
+          </TurnIntoItem>
+          <TurnIntoItem element={element} format="numbered-list" onClose={onClose}>
+            numbered list
+          </TurnIntoItem>
+          <TurnIntoItem element={element} format="bulleted-list" onClose={onClose}>
+            bulleted list
+          </TurnIntoItem>
+          <TurnIntoItem element={element} format="check-list-item" onClose={onClose}>
+            todo list
+          </TurnIntoItem>
+        </Menu>
+      )}
+    </>
+  )
+}
+
+function Block({children, element}) {
+  const editor = useEditor()
+  const buttonsRef = useRef()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const classes = useStyles({menuOpen})
+  return (
+    <Box className={classes.block}>
+      {menuOpen && (<BlockMenu editor={editor} element={element}
+                               open={menuOpen}
+                               onClose={() => setMenuOpen(false)}
+                               anchorEl={buttonsRef.current}/>
+      )}
+      <Box contentEditable={false} className={classes.blockButtons} ref={buttonsRef}>
+        <IconButton variant="small">
+          <AddIcon></AddIcon>
+        </IconButton>
+        <IconButton variant="small" onClick={() => setMenuOpen(!menuOpen)}>
+          <DragIcon></DragIcon>
+        </IconButton>
+      </Box>
+      {children}
+    </Box>
   )
 }
 
@@ -136,25 +281,27 @@ const Element = (props) => {
   const classes = useStyles()
   switch (element.type) {
   case 'block-quote':
-    return <blockquote className={classes.blockquote} {...attributes}>{children}</blockquote>
-  case 'bulleted-list':
-    return <ul className={classes.unorderedList} {...attributes}>{children}</ul>
+    return <Block element={element}><blockquote className={classes.blockquote} {...attributes}>{children}</blockquote></Block>
   case 'heading-one':
-    return <h1 {...attributes}>{children}</h1>
+    return <Block element={element}><h1 {...attributes}>{children}</h1></Block>
   case 'heading-two':
-    return <h2 {...attributes}>{children}</h2>
+    return <Block element={element}><h2 {...attributes}>{children}</h2></Block>
+  case 'heading-three':
+    return <Block element={element}><h3 {...attributes}>{children}</h3></Block>
+  case 'bulleted-list':
+    return <Block element={element}><ul className={classes.unorderedList} {...attributes}>{children}</ul></Block>
+  case 'numbered-list':
+    return <Block element={element}><ol className={classes.orderedList} {...attributes}>{children}</ol></Block>
   case 'list-item':
     return <li {...attributes}>{children}</li>
-  case 'numbered-list':
-    return <ol className={classes.orderedList} {...attributes}>{children}</ol>
   case 'image':
-    return <ImageElement {...props} />
+    return <Block element={element}><ImageElement {...props} /></Block>
   case 'link':
     return <LinkElement {...props}/>
   case 'check-list-item':
-    return <ChecklistItemElement {...props} />
+    return <Block element={element}><ChecklistItemElement {...props} /></Block>
   default:
-    return <p {...attributes}>{children}</p>
+    return <Block element={element}><p {...attributes} className={classes.paragraph}>{children}</p></Block>
   }
 }
 
