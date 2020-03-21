@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState, forwardRef } from 'react';
 import { Link } from "react-router-dom";
 import {
-  Editable as SlateEditable, useSelected, useFocused, useEditor, withReact, useSlate,
+  Editable as SlateEditable, useSelected, useFocused, useEditor, withReact,
   ReactEditor
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
@@ -165,7 +165,7 @@ const LinkElement = ({attributes, children, element}) => {
 }
 
 const TurnIntoItem = forwardRef(({element, format, onClose, ...props}, ref) => {
-  const editor = useSlate()
+  const editor = useEditor()
   const onClick = useCallback(() => {
     makeBlock(editor, format, ReactEditor.findPath(editor, element))
     onClose()
@@ -228,7 +228,7 @@ const insertionPoint = (editor, element) => {
 }
 
 const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
-  const editor = useSlate()
+  const editor = useEditor()
   const onClick = useCallback(() => {
     const insertAt = insertionPoint(editor, element)
     insertBlock(editor, format, insertAt)
@@ -241,7 +241,7 @@ const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
 })
 
 const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
-  const editor = useSlate()
+  const editor = useEditor()
   return (
     <MenuItem
       onClick={event => {
@@ -307,7 +307,7 @@ function InsertMenu({element, onClose, ...props}){
 }
 
 function BlockMenu({element, onClose, ...props}) {
-  const editor = useSlate()
+  const editor = useEditor()
   const turnIntoRef = useRef()
   const [turnIntoMenuOpen, setTurnIntoMenuOpen] = useState(false)
   return (
@@ -353,7 +353,7 @@ function BlockMenu({element, onClose, ...props}) {
 }
 
 function Block({children, element}) {
-  const editor = useSlate()
+  const editor = useEditor()
   const buttonsRef = useRef()
   const [menuOpen, setMenuOpen] = useState(false)
   const insertRef = useRef()
