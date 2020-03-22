@@ -4,6 +4,7 @@ import {
   useEditor, useReadOnly, ReactEditor
 } from 'slate-react';
 import { Transforms } from 'slate';
+import Checkbox from '@material-ui/core/Checkbox';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -16,7 +17,8 @@ const useStyles = makeStyles(theme => ({
     }
   },
   checkbox: {
-    marginRight: theme.spacing(1)
+    padding: theme.spacing(0.5),
+    marginRight: theme.spacing(0.5)
   },
   text: {
     flex: 1,
@@ -38,23 +40,21 @@ export default function CheckListItemElement({ attributes, children, element }) 
       {...attributes}
       className={classes.container}
     >
-      <span
+      <Checkbox
         contentEditable={false}
-        className={classes.checkbox}
-      >
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={event => {
-            const path = ReactEditor.findPath(editor, element)
-            Transforms.setNodes(
-              editor,
-              { checked: event.target.checked },
-              { at: path }
-            )
-          }}
-        />
-      </span>
+        checked={!!checked}
+        color="default"
+        size="small"
+        classes={{root: classes.checkbox}}
+        onChange={event => {
+          const path = ReactEditor.findPath(editor, element)
+          Transforms.setNodes(
+            editor,
+            { checked: event.target.checked },
+            { at: path }
+          )
+        }}
+      />
       <span
         contentEditable={!readOnly}
         suppressContentEditableWarning
