@@ -9,16 +9,25 @@ import isHotkey from 'is-hotkey';
 import { makeStyles } from '@material-ui/core/styles';
 import Popover from '@material-ui/core/Popover';
 import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import UnlinkIcon from '@material-ui/icons/LinkOff';
 import AddIcon from '@material-ui/icons/Add';
 import DragIcon from '@material-ui/icons/DragIndicator';
+import ArrowRight from '@material-ui/icons/ArrowRight';
+import ArrowDown from '@material-ui/icons/ArrowDropDown';
+import ArrowLeft from '@material-ui/icons/ArrowLeft';
+import ArrowUp from '@material-ui/icons/ArrowDropUp';
 
 import { createEditor, Transforms } from 'slate';
 import { withHistory } from 'slate-history'
 
-import { withImages, withLinks, withChecklists, withLists, toggleMark, makeBlock, insertBlock, insertImage } from '../utils/editor';
+import {
+  withImages, withLinks, withChecklists, withLists, toggleMark,
+  makeBlock, insertBlock, insertImage, withTables,
+  insertRow, insertColumn, removeRow, removeColumn
+} from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
 import IconButton from './IconButton';
@@ -57,17 +66,19 @@ const useStyles = makeStyles(theme => ({
   },
   block: {
     position: "relative",
-    "&:hover $blockButtons": {
+    "&:hover $blockHoverButtons": {
       visibility: "visible"
     },
     left: -theme.spacing(7),
     paddingLeft: theme.spacing(7)
   },
-  blockButtons: {
+  blockHoverButtons: {
     visibility: ({menuOpen}) => menuOpen ? "visible" : "hidden",
+    opacity: 0.5,
+  },
+  blockButtons: {
     position: "absolute",
     left: -theme.spacing(0),
-    opacity: 0.5,
     "& button": {
       padding: 0
     }
@@ -83,6 +94,24 @@ const useStyles = makeStyles(theme => ({
   },
   turnIntoMenuPaper: {
     pointerEvents: "auto"
+  },
+  table: {
+    border: "1px solid black",
+    borderCollapse: "collapse"
+  },
+  tr: {
+  },
+  td: {
+    border: `2px solid ${theme.palette.grey[300]}`,
+    padding: theme.spacing(1)
+  },
+  columnButtons: {
+    display: "flex",
+    flexDirection: "column",
+    verticalAlign: "top"
+  },
+  rowButtons: {
+    display: "flex"
   }
 }))
 
@@ -154,7 +183,7 @@ const LinkElement = ({attributes, children, element}) => {
                  }}
                  PaperProps={{className: classes.aPopover}}>
           <Link to={element.url}>{element.url}</Link>
-          <IconButton variant="small" onClick={() => removeLink(editor)}
+          <IconButton size="small" onClick={() => removeLink(editor)}
                       className={classes.unlinkButton}>
             <UnlinkIcon></UnlinkIcon>
           </IconButton>
@@ -221,9 +250,9 @@ function TurnIntoMenu({element, onClose, ...props}){
 }
 
 const insertionPoint = (editor, element) => {
-  const [first, ...rest] = ReactEditor.findPath(editor, element)
+  const path = ReactEditor.findPath(editor, element)
   return (
-    [first + 1, ...rest]
+    [...path.slice(0, -1), path.slice(-1)[0] + 1]
   )
 }
 
@@ -303,6 +332,9 @@ function InsertMenu({element, onClose, ...props}){
       <InsertImageItem element={element} onClose={onClose}>
         image
       </InsertImageItem>
+      <InsertItem element={element} format="table" onClose={onClose}>
+        table
+      </InsertItem>
     </Menu>)
 }
 
@@ -372,18 +404,53 @@ function Block({children, element}) {
                   onExiting={() => {
                     ReactEditor.focus(editor)
                   }}/>
-      <Box contentEditable={false} className={classes.blockButtons} ref={buttonsRef}>
-        <IconButton variant="small" onClick={() => setInsertMenuOpen(!insertMenuOpen)} ref={insertRef}
-                    title="Insert">
+      <Box contentEditable={false} className={`${classes.blockButtons} ${classes.blockHoverButtons}`} ref={buttonsRef}>
+        <IconButton size="small" onClick={() => setInsertMenuOpen(!insertMenuOpen)} ref={insertRef}
+                    title="insert">
           <AddIcon></AddIcon>
         </IconButton>
-        <IconButton variant="small" onClick={() => setMenuOpen(!menuOpen)}
+        <IconButton size="small" onClick={() => setMenuOpen(!menuOpen)}
                     title="">
           <DragIcon></DragIcon>
         </IconButton>
       </Box>
       {children}
     </Box>
+  )
+}
+
+const Table = ({attributes, children, element}) => {
+  const editor = useEditor()
+  const classes = useStyles()
+  return (
+    <>
+      <Box display="flex">
+        <table className={classes.table}>
+          <tbody {...attributes}>{children}</tbody>
+        </table>
+        <Box className={`${classes.columnButtons} ${classes.blockHoverButtons}`}
+             contentEditable={false}>
+          <IconButton title="add column" size="small"
+                      onClick={() => insertColumn(editor, element)}>
+            <ArrowRight/>
+          </IconButton>
+          <IconButton title="remove column" size="small"
+                      onClick={() => removeColumn(editor, element)}>
+            <ArrowLeft/>
+          </IconButton>
+        </Box>
+      </Box>
+      <Box className={`${classes.rowButtons} ${classes.blockHoverButtons}`} contentEditable={false}>
+        <IconButton title="add row" size="small"
+                    onClick={() => insertRow(editor, element)}>
+          <ArrowDown/>
+        </IconButton>
+        <IconButton title="remove row" size="small"
+                    onClick={() => removeRow(editor, element)}>
+          <ArrowUp/>
+        </IconButton>
+      </Box>
+    </>
   )
 }
 
@@ -411,12 +478,22 @@ const Element = (props) => {
     return <LinkElement {...props}/>
   case 'check-list-item':
     return <Block element={element}><ChecklistItemElement {...props} /></Block>
+  case 'table':
+    return (
+      <Block element={element}>
+        <Table {...props}/>
+      </Block>
+    )
+  case 'table-row':
+    return <tr {...attributes}>{children}</tr>
+  case 'table-cell':
+    return <td className={classes.td} {...attributes}>{children}</td>
   default:
     return <Block element={element}><p {...attributes} className={classes.paragraph}>{children}</p></Block>
   }
 }
 
-export const useNewEditor = () => useMemo(() => withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor())))))), [])
+export const useNewEditor = () => useMemo(() => withTables(withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))))), [])
 
 export default function Editable({editor, ...props}){
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])

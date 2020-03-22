@@ -1,4 +1,5 @@
 import { Editor, Transforms, Range, Point } from 'slate';
+import { ReactEditor} from 'slate-react';
 
 import imageExtensions from 'image-extensions'
 import isUrl from 'is-url'
@@ -71,15 +72,59 @@ export const makeBlock = (editor, format, at=editor.selection) => {
 
 export const insertBlock = (editor, format, at=editor.selection) => {
   const isList = LIST_TYPES.includes(format)
-
-  if (isList) {
-    Transforms.insertNodes(editor,
-                           { type: format, children: [ { type: "list-item", children: []}] },
-                           { at })
+  if (format === "table") {
+    Transforms.insertNodes(editor, {
+      type: "table",
+      children: [{
+        type: "table-row",
+        children: [{
+          type: "table-cell",
+          children: [{text: ""}]
+        }]
+      }]
+    }, { at })
+  } else if (isList) {
+    Transforms.insertNodes(editor, {
+      type: format, children: [ { type: "list-item", children: []}]
+    }, { at })
   } else {
     Transforms.insertNodes(editor,
                            { type: format, children: [] },
                            { at })
+  }
+}
+
+export const insertRow = (editor, table) => {
+  const path = ReactEditor.findPath(editor, table)
+  Transforms.insertNodes(editor, {
+    type: "table-row", children: Array(table.children[0].children.length).fill().map(
+      () => ({ type: "table-cell", children: [{text: ""}]})
+    )
+  }, { at: [...path, table.children.length] })
+}
+
+export const removeRow = (editor, table) => {
+  const path = ReactEditor.findPath(editor, table)
+  Transforms.removeNodes(editor, { at: [...path, table.children.length - 1] })
+}
+
+export const insertColumn = (editor, table) => {
+  const firstRow = table.children[0]
+  const firstRowPath = ReactEditor.findPath(editor, firstRow)
+  for (let i = 0; i < table.children.length; i++){
+    Transforms.insertNodes(editor, {
+      type: "table-cell", children: [{text: ""}]
+    }, { at: [...firstRowPath.slice(0, -1), i, firstRow.children.length] })
+  }
+}
+
+export const removeColumn = (editor, table) => {
+  const firstRow = table.children[0]
+  const firstRowPath = ReactEditor.findPath(editor, firstRow)
+  for (let i = 0; i < table.children.length; i++){
+    Transforms.removeNodes(editor, {
+      at: [...firstRowPath.slice(0, -1), i, firstRow.children.length - 1]
+    })
   }
 }
 
@@ -261,6 +306,68 @@ export const withLists = editor => {
     }
 
     deleteBackward(...args)
+  }
+
+  return editor
+}
+
+export const withTables = editor => {
+  const { deleteBackward, deleteForward, insertBreak } = editor
+
+  editor.deleteBackward = unit => {
+    const { selection } = editor
+
+    if (selection && Range.isCollapsed(selection)) {
+      const [cell] = Editor.nodes(editor, {
+        match: n => n.type === 'table-cell',
+      })
+
+      if (cell) {
+        const [, cellPath] = cell
+        const start = Editor.start(editor, cellPath)
+
+        if (Point.equals(selection.anchor, start)) {
+          return
+        }
+      }
+    }
+
+    deleteBackward(unit)
+  }
+
+  editor.deleteForward = unit => {
+    const { selection } = editor
+
+    if (selection && Range.isCollapsed(selection)) {
+      const [cell] = Editor.nodes(editor, {
+        match: n => n.type === 'table-cell',
+      })
+
+      if (cell) {
+        const [, cellPath] = cell
+        const end = Editor.end(editor, cellPath)
+
+        if (Point.equals(selection.anchor, end)) {
+          return
+        }
+      }
+    }
+
+    deleteForward(unit)
+  }
+
+  editor.insertBreak = () => {
+    const { selection } = editor
+
+    if (selection) {
+      const [table] = Editor.nodes(editor, { match: n => n.type === 'table' })
+
+      if (table) {
+        return
+      }
+    }
+
+    insertBreak()
   }
 
   return editor
