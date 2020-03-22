@@ -5,6 +5,7 @@ import {
   ReactEditor
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
+import { useDrag, useDrop } from 'react-dnd'
 
 import { makeStyles } from '@material-ui/core/styles';
 import Popover from '@material-ui/core/Popover';
@@ -70,7 +71,15 @@ const useStyles = makeStyles(theme => ({
       visibility: "visible"
     },
     left: -theme.spacing(7),
-    paddingLeft: theme.spacing(7)
+    paddingLeft: theme.spacing(7),
+    borderBottomWidth: theme.spacing(0.5),
+    borderBottomStyle: "solid",
+    borderBottomColor: "white"
+  },
+  blockContent: {
+    borderBottomWidth: theme.spacing(0.5),
+    borderBottomStyle: "solid",
+    borderBottomColor: ({isOver}) => isOver ? theme.palette.info.light : theme.palette.background.paper
   },
   blockHoverButtons: {
     visibility: ({menuOpen}) => menuOpen ? "visible" : "hidden",
@@ -112,6 +121,9 @@ const useStyles = makeStyles(theme => ({
   },
   rowButtons: {
     display: "flex"
+  },
+  dragButton: {
+    cursor: ({isDragging}) => isDragging ? "move" : "grab"
   }
 }))
 
@@ -390,9 +402,35 @@ function Block({children, element}) {
   const [menuOpen, setMenuOpen] = useState(false)
   const insertRef = useRef()
   const [insertMenuOpen, setInsertMenuOpen] = useState(false)
-  const classes = useStyles({menuOpen})
+  const [{isDragging}, drag, preview] = useDrag({
+    item: { type: "block", element },
+    collect: monitor => ({
+      isDragging: !!monitor.isDragging(),
+    })
+  })
+  const [{ isOver }, drop] = useDrop({
+    accept: "block",
+    drop: (item) => {
+      const sourcePath = ReactEditor.findPath(editor, item.element)
+      const sourceIndex = sourcePath[sourcePath.length - 1]
+      const targetPath = ReactEditor.findPath(editor, element)
+      const targetIndex = targetPath[targetPath.length - 1]
+      if (sourceIndex !== targetIndex) {
+        const insertIndex = sourceIndex > targetIndex ? targetIndex + 1 : targetIndex
+        Transforms.moveNodes(editor, {
+          at: sourcePath,
+          to: [...targetPath.slice(0, -1), insertIndex]
+        })
+      }
+    },
+    collect: monitor => ({
+      isOver: !!monitor.isOver(),
+    }),
+  })
+
+  const classes = useStyles({menuOpen, isDragging, isOver})
   return (
-    <Box className={classes.block}>
+    <Box className={classes.block} ref={drop}>
       <BlockMenu element={element} anchorEl={buttonsRef.current}
                  open={menuOpen}
                  onClose={() => setMenuOpen(false)}/>
@@ -405,16 +443,20 @@ function Block({children, element}) {
                     ReactEditor.focus(editor)
                   }}/>
       <Box contentEditable={false} className={`${classes.blockButtons} ${classes.blockHoverButtons}`} ref={buttonsRef}>
-        <IconButton size="small" onClick={() => setInsertMenuOpen(!insertMenuOpen)} ref={insertRef}
+        <IconButton ref={insertRef}
+                    size="small" onClick={() => setInsertMenuOpen(!insertMenuOpen)}
                     title="insert">
           <AddIcon></AddIcon>
         </IconButton>
-        <IconButton size="small" onClick={() => setMenuOpen(!menuOpen)}
+        <IconButton ref={drag}
+                    size="small" onClick={() => setMenuOpen(!menuOpen)} className={classes.dragButton}
                     title="">
           <DragIcon></DragIcon>
         </IconButton>
       </Box>
-      {children}
+      <Box ref={preview} className={classes.blockContent}>
+        {children}
+      </Box>
     </Box>
   )
 }
