@@ -377,3 +377,10 @@ export const withTables = editor => {
 
   return editor
 }
+
+export const insertionPoint = (editor, element) => {
+  const path = ReactEditor.findPath(editor, element)
+  return (
+    [...path.slice(0, -1), path.slice(-1)[0] + 1]
+  )
+}

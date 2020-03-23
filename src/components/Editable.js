@@ -1,12 +1,11 @@
-import React, { useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
+import React, {useEffect, useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
+import { createEditor, Transforms } from 'slate';
 import {
   Editable as SlateEditable, useSelected, useFocused, useEditor, withReact,
   ReactEditor
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
 import { useDrag, useDrop } from 'react-dnd'
-
-import { Uploader } from "@inrupt/solid-react-components"
 
 import { makeStyles } from '@material-ui/core/styles';
 import Link from '@material-ui/core/Link';
@@ -27,7 +26,6 @@ import CopyIcon from '@material-ui/icons/FileCopy';
 import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 
-import { createEditor, Transforms } from 'slate';
 import { withHistory } from 'slate-history';
 import copy from 'copy-to-clipboard';
 
@@ -35,13 +33,14 @@ import {
   withImages, withLinks, withChecklists, withLists, toggleMark,
   makeBlock, insertBlock, insertImage, withTables,
   insertRow, insertColumn, removeRow, removeColumn,
-  setLinkUrl
+  setLinkUrl, insertionPoint
 } from '../utils/editor';
 
 import PageContext from '../context/page'
 
 import ChecklistItemElement from './ChecklistItemElement'
 import IconButton from './IconButton';
+import ImageUploader from './ImageUploader';
 import { removeLink } from '../utils/editor'
 
 const useStyles = makeStyles(theme => ({
@@ -134,6 +133,10 @@ const useStyles = makeStyles(theme => ({
   },
   dragButton: {
     cursor: ({isDragging}) => isDragging ? "move" : "grab"
+  },
+  imageUploadPopover: {
+    minWidth: theme.spacing(30),
+    minHeight: theme.spacing(20)
   }
 }))
 
@@ -319,13 +322,6 @@ function TurnIntoMenu({element, onClose, ...props}){
     </Menu>)
 }
 
-const insertionPoint = (editor, element) => {
-  const path = ReactEditor.findPath(editor, element)
-  return (
-    [...path.slice(0, -1), path.slice(-1)[0] + 1]
-  )
-}
-
 const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
   const editor = useEditor()
   const onClick = useCallback(() => {
@@ -339,7 +335,10 @@ const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
   )
 })
 
+
+
 const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
+  const classes = useStyles()
   const menuRef = useRef()
   const page = useContext(PageContext)
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
@@ -350,35 +349,20 @@ const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
       <MenuItem ref={menuRef}
                 onClick={() => setImagePickerOpen(true)}
                 {...props}/>
-      <Popover open={imagePickerOpen}
-               anchorEl={menuRef.current}
-               onClose={onClose}>
-        <Uploader
-          {...{
-            fileBase: `${page.split(".").slice(0, -1).join(".")}/images`,
-            limitFiles: 1,
-            limitSize: limit,
-            accept: 'png,jpeg,jpg',
-            onError: error => {
-              if (error && error.statusText) {
-                console.log(error.statusText, 'Error');
-              }
-            },
-            onComplete: uploadedFiles => {
-              const insertAt = insertionPoint(editor, element)
-              insertImage(editor, uploadedFiles[uploadedFiles.length - 1].uri, insertAt);
-              Transforms.select(editor, insertAt)
-              onClose()
-            },
-            render: ({onClickFile}) => (
-              <Button variant="contained"
-                      size="large"
-                      color="primary"
-                      onClick={onClickFile}>
-                Upload
-                </Button>
-            )}}/>
-      </Popover>
+      <ImageUploader element={element}
+                     onClose={onClose}
+                     open={imagePickerOpen}
+                     anchorEl={menuRef.current}
+                     anchorOrigin={{
+                       vertical: 'bottom',
+                       horizontal: 'center',
+                     }}
+                     transformOrigin={{
+                       vertical: 'bottom',
+                       horizontal: 'center',
+                     }}
+                     uploadDirectory={`${page.split(".").slice(0, -1).join(".")}/images/`}
+                     classes={{paper: classes.imageUploadPopover}}/>
     </>
   )
 })
