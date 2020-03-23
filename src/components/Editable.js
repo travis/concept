@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState, forwardRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
 import {
   Editable as SlateEditable, useSelected, useFocused, useEditor, withReact,
   ReactEditor
@@ -6,11 +6,14 @@ import {
 import isHotkey from 'is-hotkey';
 import { useDrag, useDrop } from 'react-dnd'
 
+import { Uploader } from "@inrupt/solid-react-components"
+
 import { makeStyles } from '@material-ui/core/styles';
 import Link from '@material-ui/core/Link';
 import TextField from '@material-ui/core/TextField';
 import Popover from '@material-ui/core/Popover';
 import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import UnlinkIcon from '@material-ui/icons/LinkOff';
@@ -34,6 +37,8 @@ import {
   insertRow, insertColumn, removeRow, removeColumn,
   setLinkUrl
 } from '../utils/editor';
+
+import PageContext from '../context/page'
 
 import ChecklistItemElement from './ChecklistItemElement'
 import IconButton from './IconButton';
@@ -335,20 +340,46 @@ const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
 })
 
 const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
+  const menuRef = useRef()
+  const page = useContext(PageContext)
+  const [imagePickerOpen, setImagePickerOpen] = useState(false)
   const editor = useEditor()
+  const limit = 2100000;
   return (
-    <MenuItem
-      onClick={event => {
-        event.preventDefault()
-        const url = window.prompt('Enter the URL of the image:')
-        if (!url) return
-        const insertAt = insertionPoint(editor, element)
-        insertImage(editor, url, insertAt)
-        Transforms.select(editor, insertAt)
-        onClose()
-      }}
-    {...props}
-    />
+    <>
+      <MenuItem ref={menuRef}
+                onClick={() => setImagePickerOpen(true)}
+                {...props}/>
+      <Popover open={imagePickerOpen}
+               anchorEl={menuRef.current}
+               onClose={onClose}>
+        <Uploader
+          {...{
+            fileBase: `${page.split(".").slice(0, -1).join(".")}/images`,
+            limitFiles: 1,
+            limitSize: limit,
+            accept: 'png,jpeg,jpg',
+            onError: error => {
+              if (error && error.statusText) {
+                console.log(error.statusText, 'Error');
+              }
+            },
+            onComplete: uploadedFiles => {
+              const insertAt = insertionPoint(editor, element)
+              insertImage(editor, uploadedFiles[uploadedFiles.length - 1].uri, insertAt);
+              Transforms.select(editor, insertAt)
+              onClose()
+            },
+            render: ({onClickFile}) => (
+              <Button variant="contained"
+                      size="large"
+                      color="primary"
+                      onClick={onClickFile}>
+                Upload
+                </Button>
+            )}}/>
+      </Popover>
+    </>
   )
 })
 

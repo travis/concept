@@ -25,6 +25,8 @@ import SharingModal from "./SharingModal";
 import BackupsDialog from "./BackupsDialog";
 
 import WorkspaceContext from "../context/workspace";
+import PageContext from '../context/page'
+
 import PageDrawer from './PageDrawer';
 import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
@@ -219,7 +221,7 @@ function Page({workspace, page}){
   const { aclUri, allowed} = useAccessInfo(pageUri)
   const readOnly = !(allowed && allowed.user.has("write"))
   return (
-    <>
+    <PageContext.Provider value={page}>
       <AppBar position="fixed" className={classes.appBar} color="transparent" elevation={0}>
         <Toolbar variant="dense">
           <LiveUpdate subscribe={[workspace.toString()]}>
@@ -255,7 +257,7 @@ function Page({workspace, page}){
           </LiveUpdate>
         </EditorErrorBoundary>
       )}
-    </>
+    </PageContext.Provider>
   )
 }
 
