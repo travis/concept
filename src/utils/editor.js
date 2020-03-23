@@ -244,6 +244,11 @@ export const removeLink = (editor) => {
   unwrapLink(editor)
 }
 
+export const setLinkUrl = (editor, link, url) => {
+  const path = ReactEditor.findPath(editor, link)
+  Transforms.setNodes(editor, {url}, {at: path})
+}
+
 export const withChecklists = editor => {
   const { deleteBackward } = editor
 

@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useRef, useState, forwardRef } from 'react';
-import { Link } from "react-router-dom";
 import {
   Editable as SlateEditable, useSelected, useFocused, useEditor, withReact,
   ReactEditor
@@ -8,9 +7,10 @@ import isHotkey from 'is-hotkey';
 import { useDrag, useDrop } from 'react-dnd'
 
 import { makeStyles } from '@material-ui/core/styles';
+import Link from '@material-ui/core/Link';
+import TextField from '@material-ui/core/TextField';
 import Popover from '@material-ui/core/Popover';
 import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import UnlinkIcon from '@material-ui/icons/LinkOff';
@@ -20,14 +20,19 @@ import ArrowRight from '@material-ui/icons/ArrowRight';
 import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import ArrowLeft from '@material-ui/icons/ArrowLeft';
 import ArrowUp from '@material-ui/icons/ArrowDropUp';
+import CopyIcon from '@material-ui/icons/FileCopy';
+import EditIcon from '@material-ui/icons/Edit';
+import SaveIcon from '@material-ui/icons/Save';
 
 import { createEditor, Transforms } from 'slate';
-import { withHistory } from 'slate-history'
+import { withHistory } from 'slate-history';
+import copy from 'copy-to-clipboard';
 
 import {
   withImages, withLinks, withChecklists, withLists, toggleMark,
   makeBlock, insertBlock, insertImage, withTables,
-  insertRow, insertColumn, removeRow, removeColumn
+  insertRow, insertColumn, removeRow, removeColumn,
+  setLinkUrl
 } from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
@@ -61,7 +66,7 @@ const useStyles = makeStyles(theme => ({
   aPopover: {
     padding: theme.spacing(1)
   },
-  unlinkButton: {
+  linkPopupButton: {
     padding: 0,
     marginLeft: theme.spacing(1)
   },
@@ -172,35 +177,83 @@ const ImageElement = ({ attributes, children, element }) => {
   )
 }
 
-const LinkElement = ({attributes, children, element}) => {
+const LinkPopover = ({element, editing, setEditing, onClose, ...props}) => {
   const editor = useEditor()
-  const selected = useSelected()
+  const [selection, setSelection] = useState()
+  const [editValue, setEditValue] = useState(element.url)
   const classes = useStyles()
+  const editLink = () => {
+    setSelection(editor.selection)
+    setEditing(true)
+  }
+  const saveLink = () => {
+    setLinkUrl(editor, element, editValue)
+    onClose()
+    setEditing(false)
+    Transforms.select(editor, selection)
+  }
+  return (
+    <Popover disableAutoFocus disableEnforceFocus
+             anchorOrigin={{
+               vertical: 'bottom',
+               horizontal: 'center',
+             }}
+             transformOrigin={{
+               vertical: 'top',
+               horizontal: 'center',
+             }}
+             PaperProps={{className: classes.aPopover}}
+             onClose={onClose}
+             {...props}>
+      {editing ? (
+        <TextField autoFocus value={editValue} onChange={e => setEditValue(e.target.value)}
+                   onKeyDown={event => {
+                     if (event.keyCode === 13){
+                       event.preventDefault()
+                       saveLink()
+                     }
+                   } }/>
+      ) : (
+        <Link href={element.url} target="_blank">{element.url}</Link>
+      )}
+      {editing ? (
+        <IconButton size="small" className={classes.linkPopupButton} title="edit link"
+                    onClick={saveLink}>
+          <SaveIcon></SaveIcon>
+        </IconButton>
+      ) : (
+        <IconButton size="small" className={classes.linkPopupButton} title="edit link"
+                    onClick={editLink}>
+          <EditIcon></EditIcon>
+        </IconButton>
+      )}
+      <IconButton size="small" className={classes.linkPopupButton} title="unlink"
+                  onClick={() => removeLink(editor)}>
+        <UnlinkIcon></UnlinkIcon>
+      </IconButton>
+      <IconButton size="small" className={classes.linkPopupButton} title="copy link"
+                  onClick={() => copy(element.url)}>
+        <CopyIcon></CopyIcon>
+      </IconButton>
+    </Popover>
+  )
+}
+
+const LinkElement = ({attributes, children, element}) => {
   const aRef = useRef()
+  const [editingLink, setEditingLink] = useState(false)
+  const selected = useSelected()
+  const open = (editingLink || selected)
   return (
     <>
-      <a {...attributes} href={element.url} ref={aRef}>
+      <Link {...attributes} href={element.url} ref={aRef}>
         {children}
-      </a>
-      {true && (
-        <Popover open={selected}
-                 anchorEl={aRef.current} disableAutoFocus disableEnforceFocus
-                 anchorOrigin={{
-                   vertical: 'bottom',
-                   horizontal: 'center',
-                 }}
-                 transformOrigin={{
-                   vertical: 'top',
-                   horizontal: 'center',
-                 }}
-                 PaperProps={{className: classes.aPopover}}>
-          <Link to={element.url}>{element.url}</Link>
-          <IconButton size="small" onClick={() => removeLink(editor)}
-                      className={classes.unlinkButton}>
-            <UnlinkIcon></UnlinkIcon>
-          </IconButton>
-        </Popover>
-      )}
+      </Link>
+      <LinkPopover element={element} open={open} anchorEl={aRef.current}
+                   onClose={() => {
+                     setEditingLink(false)
+                   }}
+                   editing={editingLink} setEditing={setEditingLink} />
     </>
   )
 }
