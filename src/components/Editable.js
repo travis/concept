@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
+import React, {useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
 import { createEditor, Transforms } from 'slate';
 import {
   Editable as SlateEditable, useSelected, useFocused, useEditor, withReact,
@@ -12,7 +12,6 @@ import Link from '@material-ui/core/Link';
 import TextField from '@material-ui/core/TextField';
 import Popover from '@material-ui/core/Popover';
 import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import UnlinkIcon from '@material-ui/icons/LinkOff';
@@ -339,28 +338,15 @@ const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
 
 const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
   const classes = useStyles()
-  const menuRef = useRef()
   const page = useContext(PageContext)
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
-  const editor = useEditor()
-  const limit = 2100000;
   return (
     <>
-      <MenuItem ref={menuRef}
-                onClick={() => setImagePickerOpen(true)}
+      <MenuItem onClick={() => setImagePickerOpen(true)}
                 {...props}/>
       <ImageUploader element={element}
                      onClose={onClose}
                      open={imagePickerOpen}
-                     anchorEl={menuRef.current}
-                     anchorOrigin={{
-                       vertical: 'bottom',
-                       horizontal: 'center',
-                     }}
-                     transformOrigin={{
-                       vertical: 'bottom',
-                       horizontal: 'center',
-                     }}
                      uploadDirectory={`${page.split(".").slice(0, -1).join(".")}/images/`}
                      classes={{paper: classes.imageUploadPopover}}/>
     </>

@@ -3,11 +3,8 @@ import { Transforms } from 'slate';
 import { useEditor } from 'slate-react';
 import { insertionPoint, insertImage } from '../utils/editor';
 import Button from '@material-ui/core/Button';
-import Box from '@material-ui/core/Box';
 import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogActions from '@material-ui/core/DialogActions';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
@@ -118,9 +115,6 @@ export default ({element, onClose, uploadDirectory, ...props}) => {
       }
       onClose()
     }, file.type, 1)
-  }
-
-  const onUploadComplete = uploadedFiles => {
   }
 
   useEffect(() => {
