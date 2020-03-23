@@ -31,7 +31,7 @@ import copy from 'copy-to-clipboard';
 
 import {
   withImages, withLinks, withChecklists, withLists, toggleMark,
-  makeBlock, insertBlock, insertImage, withTables,
+  makeBlock, insertBlock, withTables,
   insertRow, insertColumn, removeRow, removeColumn,
   setLinkUrl, insertionPoint
 } from '../utils/editor';
@@ -175,7 +175,7 @@ const ImageElement = ({ attributes, children, element }) => {
     <div {...attributes}>
       <div contentEditable={false}>
         <img
-          alt=""
+          alt={element.alt || ""}
           src={element.url}
           className={classes.image}
         />

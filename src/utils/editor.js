@@ -154,14 +154,14 @@ export const withImages = editor => {
         if (mime === 'image') {
           reader.addEventListener('load', () => {
             const url = reader.result
-            insertImage(editor, url)
+            insertImage(editor, {url})
           })
 
           reader.readAsDataURL(file)
         }
       }
     } else if (isImageUrl(text)) {
-      insertImage(editor, text)
+      insertImage(editor, {url: text})
     } else {
       insertData(data)
     }
@@ -170,9 +170,9 @@ export const withImages = editor => {
   return editor
 }
 
-export const insertImage = (editor, url, at=editor.selection) => {
+export const insertImage = (editor, {url, alt}, at=editor.selection) => {
   const text = { text: '' }
-  const image = { type: 'image', url, children: [text] }
+  const image = { type: 'image', url, alt, children: [text] }
   Transforms.insertNodes(editor, image, {at})
 }
 

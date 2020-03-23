@@ -9,6 +9,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogActions from '@material-ui/core/DialogActions';
+import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
 import Cropper from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
@@ -27,6 +28,10 @@ const useStyles = makeStyles(theme => ({
     width: "auto",
     marginLeft: "auto",
     marginRight: "auto",
+  },
+  altTextField: {
+    width: "100%",
+    marginTop: theme.spacing(2),
   }
 }))
 
@@ -88,6 +93,7 @@ export default ({element, onClose, uploadDirectory, ...props}) => {
   const editor = useEditor()
   const [file, setFile] = useState()
   const [previewSrc, setPreviewSrc] = useState()
+  const [altText, setAltText] = useState("")
   const [croppedCanvas, setCroppedCanvas] = useState()
   const [editing, setEditing] = useState(false)
 
@@ -105,7 +111,7 @@ export default ({element, onClose, uploadDirectory, ...props}) => {
       });
       if (response.ok){
         const insertAt = insertionPoint(editor, element)
-        insertImage(editor, destinationUri, insertAt);
+        insertImage(editor, {url: destinationUri, alt: altText}, insertAt);
         Transforms.select(editor, insertAt)
       } else {
         console.log("image upload failed: ", response)
@@ -141,7 +147,14 @@ export default ({element, onClose, uploadDirectory, ...props}) => {
   return (
     <Dialog className={classes.uploader} {...props}>
       <DialogContent>
-        {previewSrc && (<img src={previewSrc} className={classes.previewImage}/>)}
+        {previewSrc && (
+          <>
+            <img src={previewSrc} className={classes.previewImage} alt={altText}/>
+            <TextField value={altText} label="alt text" variant="filled" size="small"
+                       className={classes.altTextField}
+                       onChange={(e) => setAltText(e.target.value)}/>
+          </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={() => inputRef.current.click()}>
