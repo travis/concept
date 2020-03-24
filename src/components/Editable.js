@@ -45,8 +45,8 @@ import { removeLink } from '../utils/editor'
 const useStyles = makeStyles(theme => ({
   image: {
     display: "block",
-    maxWidth: "100%",
-    maxHeight: theme.spacing(20),
+    width: ({width}) => width || theme.spacing(20),
+    height: "auto",
     boxShadow: ({selected, focused}) => selected && focused ? '0 0 0 3px #B4D5FF' : 'none'
   },
   blockquote: {
@@ -136,6 +136,14 @@ const useStyles = makeStyles(theme => ({
   imageUploadPopover: {
     minWidth: theme.spacing(30),
     minHeight: theme.spacing(20)
+  },
+  imageWidthDragHandle: {
+    width: theme.spacing(3),
+    cursor: "ew-resize",
+    background: "transparent",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center"
   }
 }))
 
@@ -167,18 +175,41 @@ const Leaf = ({ attributes, children, leaf }) => {
 }
 
 const ImageElement = ({ attributes, children, element }) => {
+  const editor = useEditor()
+  const image = useRef()
+  const [dragStart, setDragStart] = useState()
+  const [dragStartImageWidth, setDragStartImageWidth] = useState()
   const selected = useSelected()
   const focused = useFocused()
-  const classes = useStyles({selected, focused})
+  const width = element.width;
+  const classes = useStyles({selected, focused, width})
+  const path = ReactEditor.findPath(editor, element)
   return (
     <div {...attributes}>
-      <div contentEditable={false}>
-        <img
-          alt={element.alt || ""}
-          src={element.url}
-          className={classes.image}
+      <Box contentEditable={false} display="flex">
+        <img ref={image}
+             alt={element.alt || ""}
+             src={element.url}
+             className={classes.image}
         />
-      </div>
+        <Box className={`${classes.imageWidthDragHandle} ${classes.blockHoverButtons}`}
+             draggable={true}
+             flexShrink={0}
+             onDragStart={e => {
+               setDragStartImageWidth(image.current.clientWidth)
+               setDragStart(e.clientX)
+             }}
+             onDrag={e => {
+               if (dragStartImageWidth && dragStart){
+                 const newWidth = dragStartImageWidth + (e.clientX - dragStart)
+                 if (width !== newWidth){
+                   Transforms.setNodes(editor, {width: newWidth}, {at: path})
+                 }
+               }
+             }}>
+          <ArrowRight/>
+        </Box>
+      </Box>
       {children}
     </div>
   )
