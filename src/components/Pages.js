@@ -17,7 +17,6 @@ import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
 import { useParams } from "react-router-dom";
 
-import { Transforms } from 'slate';
 import { Slate } from 'slate-react';
 
 import Editable, {useNewEditor} from "./Editable";
@@ -123,13 +122,14 @@ function PageTextEditor({page, readOnly}){
   )
   const editor = useNewEditor()
 
-  useBackups(page, editorValue)
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
+    editor.children = undefined
     setEditorValue(undefined);
     savedVersionsRef.current = []
-    Transforms.deselect(editor)
-  }, [page])
+  }, [editor, page])
+
+  useBackups(page, editorValue)
 
   const previouslySaved = useCallback(
     (text) => savedVersionsRef.current.some(previousVersion => previousVersion === text),

@@ -43,9 +43,11 @@ export async function createBackup(page, backupFile, value){
   await data.from(metaFile)[backup][dct.modified].set(literal(new Date().toISOString(), ns.xsd("dateTime")))
 }
 
-async function createBackupInterval(bodyRef, file, backupFile, interval){
+function createBackupInterval(bodyRef, file, backupFile, interval){
   return setInterval(async () => {
-    await createBackup(file, backupFile, JSON.stringify(bodyRef.current))
+    if (bodyRef.current !== undefined){
+      await createBackup(file, backupFile, JSON.stringify(bodyRef.current))
+    }
   }, interval)
 }
 
