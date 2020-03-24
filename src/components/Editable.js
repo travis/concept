@@ -39,7 +39,7 @@ import PageContext from '../context/page'
 
 import ChecklistItemElement from './ChecklistItemElement'
 import IconButton from './IconButton';
-import ImageUploader from './ImageUploader';
+import ImageUploader, { ImageEditor } from './ImageUploader';
 import { removeLink } from '../utils/editor'
 
 const useStyles = makeStyles(theme => ({
@@ -144,6 +144,9 @@ const useStyles = makeStyles(theme => ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "center"
+  },
+  editImageIcon: {
+    cursor: "pointer"
   }
 }))
 
@@ -177,6 +180,7 @@ const Leaf = ({ attributes, children, leaf }) => {
 const ImageElement = ({ attributes, children, element }) => {
   const editor = useEditor()
   const image = useRef()
+  const [editing, setEditing] = useState(false)
   const [dragStart, setDragStart] = useState()
   const [dragStartImageWidth, setDragStartImageWidth] = useState()
   const selected = useSelected()
@@ -192,25 +196,41 @@ const ImageElement = ({ attributes, children, element }) => {
              src={element.url}
              className={classes.image}
         />
-        <Box className={`${classes.imageWidthDragHandle} ${classes.blockHoverButtons}`}
-             draggable={true}
-             flexShrink={0}
-             onDragStart={e => {
-               setDragStartImageWidth(image.current.clientWidth)
-               setDragStart(e.clientX)
-             }}
-             onDrag={e => {
-               if (dragStartImageWidth && dragStart){
-                 const newWidth = dragStartImageWidth + (e.clientX - dragStart)
-                 if (width !== newWidth){
-                   Transforms.setNodes(editor, {width: newWidth}, {at: path})
+        <Box flexShrink={0}
+             display="flex"
+             flexDirection="column"
+             className={classes.blockHoverButtons}>
+          <EditIcon fontSize="small"
+                    className={classes.editImageIcon}
+                    onClick={() => setEditing(true)}/>
+          <Box className={classes.imageWidthDragHandle}
+               flexGrow={1}
+               draggable={true}
+               onDragStart={e => {
+                 setDragStartImageWidth(image.current.clientWidth)
+                 setDragStart(e.clientX)
+               }}
+               onDrag={e => {
+                 if (dragStartImageWidth && dragStart){
+                   const newWidth = dragStartImageWidth + (e.clientX - dragStart)
+                   if (width !== newWidth){
+                     Transforms.setNodes(editor, {width: newWidth}, {at: path})
+                   }
                  }
-               }
-             }}>
-          <ArrowRight/>
+               }}>
+            <ArrowRight/>
+          </Box>
         </Box>
       </Box>
       {children}
+      <ImageEditor open={editing} element={element}
+                   onClose={() => setEditing(false)}
+                   onSave={(savedUrl) => {
+                     const u = new URL(savedUrl)
+                     u.searchParams.append("updated", Date.now())
+                     Transforms.setNodes(editor, {url: u.toString()}, {at: path})
+                     setEditing(false)
+                   }}/>
     </div>
   )
 }

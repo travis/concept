@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Transforms } from 'slate';
 import { useEditor } from 'slate-react';
-import { insertionPoint, insertImage } from '../utils/editor';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -12,6 +11,9 @@ import Cropper from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import uuid from 'uuid/v1';
 import auth from 'solid-auth-client';
+
+import { insertionPoint, insertImage } from '../utils/editor';
+import Loader from './Loader';
 
 const useStyles = makeStyles(theme => ({
   uploader: {
@@ -32,20 +34,23 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const ImageEditingModal = ({src, onSave, onCancel, ...props}) => {
+const ImageEditingModal = ({src, onSave, onClose, ...props}) => {
+  const [saving, setSaving] = useState()
   const classes = useStyles()
   const cropper = useRef()
-  const save = () => {
-    onSave(cropper.current.getCroppedCanvas())
+  const save = async () => {
+    setSaving(true)
+    await onSave(cropper.current.getCroppedCanvas())
+    setSaving(false)
   }
   return (
-    <Dialog {...props}>
+    <Dialog onClose={onClose} {...props}>
       <DialogContent>
         <Cropper
           ref={cropper}
           className={classes.cropper}
           src={src}
-          rotatable
+          crossOrigin="use-credentials"
         />
         <Button onClick={() => {
           cropper.current.rotate(90)
@@ -54,12 +59,18 @@ const ImageEditingModal = ({src, onSave, onCancel, ...props}) => {
         </Button>
       </DialogContent>
       <DialogActions>
-        <Button onClick={save}>
-          save
-        </Button>
-        <Button onClick={onCancel}>
-          cancel
-        </Button>
+        {saving ? (
+          <Loader/>
+        ) : (
+          <>
+            <Button onClick={save}>
+              save
+            </Button>
+            <Button onClick={onClose}>
+              cancel
+            </Button>
+          </>
+        )}
       </DialogActions>
     </Dialog>
   )
@@ -84,43 +95,93 @@ const extForFile = file => {
 
 const nameForFile = file => `${uuid()}.${extForFile(file)}`
 
+const uploadFromCanvas = (canvas, uri, type) => new Promise((resolve, reject) => {
+  canvas.toBlob(async (blob) => {
+    const response = await auth.fetch(uri, {
+      method: 'PUT',
+      force: true,
+      headers: {
+        'content-type': type,
+        credentials: 'include'
+      },
+      body: blob
+    });
+    if (response.ok){
+      resolve(response)
+    } else {
+      reject(response)
+      console.log("image upload failed: ", response)
+    }
+  }, type, 1)
+
+})
+
+const uploadFromFile = (file, uri) => new Promise((resolve, reject) => {
+  const reader = new FileReader()
+  reader.onload = async f => {
+    const response = await auth.fetch(uri, {
+      method: 'PUT',
+      force: true,
+      headers: {
+        'content-type': file.type,
+        credentials: 'include'
+      },
+      body: f.target.result
+    });
+    if (response.ok){
+      resolve(response)
+    } else {
+      reject(response)
+    }
+  }
+  reader.readAsArrayBuffer(file);
+})
+
+const uriForOriginal = (editedUri) => {
+  const parts = editedUri.split(".")
+  return [...parts.slice(0, -1), "original", ...parts.slice(-1)].join(".")
+}
+
+export function ImageEditor({element, onClose, onSave, ...props}) {
+
+  const {url, originalUrl, mime} = element
+  return (
+    <ImageEditingModal src={originalUrl || url}
+                       onClose={onClose}
+                       onSave={async (canvas) => {
+                         await uploadFromCanvas(canvas, url, mime)
+                         onSave(url)
+                       }} {...props}/>
+  )
+}
+
 export default ({element, onClose, uploadDirectory, ...props}) => {
   const classes = useStyles()
   const inputRef = useRef()
   const editor = useEditor()
   const [file, setFile] = useState()
+  const [originalSrc, setOriginalSrc] = useState()
   const [previewSrc, setPreviewSrc] = useState()
   const [altText, setAltText] = useState("")
   const [croppedCanvas, setCroppedCanvas] = useState()
   const [editing, setEditing] = useState(false)
 
-  const insert = () => {
-    const destinationUri = `${uploadDirectory}${nameForFile(file)}`
-    croppedCanvas.toBlob(async (blob) => {
-      const response = await auth.fetch(destinationUri, {
-        method: 'PUT',
-        force: true,
-        headers: {
-          'content-type': file.type,
-          credentials: 'include'
-        },
-        body: blob
-      });
-      if (response.ok){
-        const insertAt = insertionPoint(editor, element)
-        insertImage(editor, {url: destinationUri, alt: altText}, insertAt);
-        Transforms.select(editor, insertAt)
-      } else {
-        console.log("image upload failed: ", response)
-      }
-      onClose()
-    }, file.type, 1)
+  const insert = async () => {
+    const editedUri = `${uploadDirectory}${nameForFile(file)}`
+    const originalUri = uriForOriginal(editedUri)
+    uploadFromFile(file, originalUri)
+    await uploadFromCanvas(croppedCanvas, editedUri, file.type)
+    const insertAt = insertionPoint(editor, element)
+    insertImage(editor, {url: editedUri, originalUrl: originalUri, alt: altText, mime: file.type}, insertAt);
+    Transforms.select(editor, insertAt)
+    onClose()
   }
 
   useEffect(() => {
     let newSrc;
     if (file){
       newSrc = URL.createObjectURL(file)
+      setOriginalSrc(newSrc)
       setPreviewSrc(newSrc)
       setEditing(true)
     }
@@ -139,7 +200,7 @@ export default ({element, onClose, uploadDirectory, ...props}) => {
   }
 
   return (
-    <Dialog className={classes.uploader} {...props}>
+    <Dialog className={classes.uploader} onClose={onClose} {...props}>
       <DialogContent>
         {previewSrc && (
           <>
@@ -175,11 +236,13 @@ export default ({element, onClose, uploadDirectory, ...props}) => {
         type="file"
         onChange={onFileChanged}
       />
-      <ImageEditingModal open={editing} src={previewSrc} onSave={(canvas) => {
-        setPreviewSrc(canvas.toDataURL(file.type))
-        setCroppedCanvas(canvas)
-        setEditing(false)
-      }}/>
+      <ImageEditingModal open={editing} src={originalSrc}
+                         onClose={onClose}
+                         onSave={async (canvas) => {
+                           setPreviewSrc(canvas.toDataURL(file.type))
+                           setCroppedCanvas(canvas)
+                           setEditing(false)
+                         }}/>
     </Dialog>
   )
 }
