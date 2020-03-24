@@ -17,6 +17,7 @@ import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
 import { useParams } from "react-router-dom";
 
+import { Transforms } from 'slate';
 import { Slate } from 'slate-react';
 
 import Editable, {useNewEditor} from "./Editable";
@@ -120,10 +121,14 @@ function PageTextEditor({page, readOnly}){
     },
     [savedVersionsRef]
   )
+  const editor = useNewEditor()
+
   useBackups(page, editorValue)
   useEffect(() => {
     // set editor text to null when the page changes so we won't save page text from another page to the current page
     setEditorValue(undefined);
+    savedVersionsRef.current = []
+    Transforms.deselect(editor)
   }, [page])
 
   const previouslySaved = useCallback(
@@ -167,7 +172,6 @@ function PageTextEditor({page, readOnly}){
     }
   }, [debouncedValue])
 
-  const editor = useNewEditor()
   return (
     <Paper className={classes.editor}>
       {saving && <SaveIcon className={classes.saving}/>}
