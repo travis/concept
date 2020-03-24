@@ -207,6 +207,7 @@ const ImageElement = ({ attributes, children, element }) => {
                flexGrow={1}
                draggable={true}
                onDragStart={e => {
+                 Transforms.select(editor, path)
                  setDragStartImageWidth(image.current.clientWidth)
                  setDragStart(e.clientX)
                }}
