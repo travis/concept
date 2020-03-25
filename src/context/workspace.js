@@ -69,8 +69,10 @@ export const WorkspaceProvider = (props) => {
 
   const updatePage = useCallback(async (page, predicate, value) => {
     if (predicate === schema.name) {
-      await data.from(workspace)[page][predicate].set(value);
-      await data[page][predicate].set(value);
+      await Promise.all([
+        data[page][predicate].set(value),
+        data.from(workspace)[page][predicate].set(value)
+      ])
     } else if (predicate === schema.text) {
       await data[page][predicate].set(value)
     }
