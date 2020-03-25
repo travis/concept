@@ -40,9 +40,6 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.text.primary
       }
     },
-    "&.selected": {
-      background: theme.palette.grey[50]
-    },
     "& button": {
       position: "absolute",
       right: 0
@@ -57,7 +54,7 @@ const PageListItem = ({workspace, page}) => {
   const name = useLDflexValue(`from('${workspace}')[${page}][${schema.name}]`);
   const encodedPage = encodeURIComponent(page)
   return (
-    <ListItem className={`${(selectedPage === encodedPage) && 'selected'} ${classes.item}`}>
+    <ListItem dense={true} selected={selectedPage === encodedPage} className={classes.item}>
       <Link to={`/page/${encodedPage}`}>
         <ListItemText primary={`${name || ""}`} />
       </Link>
