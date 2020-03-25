@@ -35,16 +35,17 @@ export const WorkspaceProvider = (props) => {
     }
   }, [workspace])
 
-  const addPage = async (name="Untitled") => {
+  const addPage = async ({name="Untitled", parent=workspace}) => {
     const id = uuid();
     const pageRef = `${container}${id}.ttl`;
     await createNonExistentDocument(pageRef);
     await Promise.all([
       data[pageRef][schema.text].set(initialPage),
-      data.from(workspace)[pageRef][schema.name].set(name),
       data[pageRef][schema.name].set(name),
+      data.from(parent)[pageRef][schema.name].set(name),
+      data[parent][schema.itemListElement].add(namedNode(pageRef)),
+      (workspace !== parent) && data.from(workspace)[parent][schema.itemListElement].add(namedNode(pageRef))
     ]);
-    await data[workspace][schema.itemListElement].add(namedNode(pageRef));
     const acls = await ACLFactory.createNewAcl(webId, pageRef)
     await acls.createACL([{
       agents: webId,

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useParams, Link } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
@@ -6,6 +6,10 @@ import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import Tooltip from '@material-ui/core/Tooltip';
+import ArrowRight from '@material-ui/icons/ArrowRight';
+import ArrowDown from '@material-ui/icons/ArrowDropDown';
+import AddIcon from '@material-ui/icons/Add';
 import {useLDflexValue, useLDflexList} from '../hooks/ldflex';
 import { schema } from 'rdf-namespaces';
 
@@ -43,22 +47,60 @@ const useStyles = makeStyles(theme => ({
     "& button": {
       position: "absolute",
       right: 0
+    },
+    "&:hover $itemHoverButton": {
+      visibility: "visible"
     }
+  },
+  itemHoverButton: {
+    cursor: "pointer",
+    visibility: "hidden",
+    opacity: 0.5
   }
 }));
 
-const PageListItem = ({workspace, page}) => {
-  const {deletePage} = useContext(WorkspaceContext);
+function SubPageListItems({workspace, page}){
+  const pages = useLDflexList(`from('${workspace}')[${page}][${schema.itemListElement}]`);
+  return (
+    <>
+      {pages && pages.map((page, index) => (
+        <PageListItem workspace={workspace} page={page} key={index}/>
+      ))}
+    </>
+  )
+}
+
+function PageListItem({workspace, page}) {
+  const {deletePage, addPage} = useContext(WorkspaceContext);
+  const [showSubpages, setShowSubpages] = useState(false)
   const { selectedPage } = useParams();
   const classes = useStyles()
   const name = useLDflexValue(`from('${workspace}')[${page}][${schema.name}]`);
   const encodedPage = encodeURIComponent(page)
   return (
-    <ListItem dense={true} selected={selectedPage === encodedPage} className={classes.item}>
-      <Link to={`/page/${encodedPage}`}>
-        <ListItemText primary={`${name || ""}`} />
-      </Link>
-    </ListItem>
+    <>
+      <ListItem dense={true} selected={selectedPage === encodedPage} className={classes.item}>
+        {showSubpages ? (
+          <Tooltip title="hide subpages" aria-label="hide subpages">
+            <ArrowDown fontSize="small" className={classes.itemHoverButton}
+                        onClick={() => setShowSubpages(false)}/>
+          </Tooltip>
+        ) : (
+          <Tooltip title="show subpages" aria-label="show subpages">
+            <ArrowRight fontSize="small" className={classes.itemHoverButton}
+                        onClick={() => setShowSubpages(true)}/>
+          </Tooltip>
+        )}
+        <Link to={`/page/${encodedPage}`}>
+          <ListItemText primary={`${name || ""}`} />
+        </Link>
+        <Tooltip title="add a page inside" aria-label="add a page inside">
+          <AddIcon fontSize="small" className={classes.itemHoverButton}
+                   onClick={() => addPage({parent: page})}/>
+        </Tooltip>
+      </ListItem>
+      {showSubpages && <SubPageListItems workspace={workspace} page={page}/>}
+    </>
   )
 }
 
