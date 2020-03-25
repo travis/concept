@@ -228,7 +228,7 @@ const ImageElement = ({ attributes, children, element }) => {
                    onClose={() => setEditing(false)}
                    onSave={(savedUrl) => {
                      const u = new URL(savedUrl)
-                     u.searchParams.append("updated", Date.now())
+                     u.searchParams.set("updated", Date.now())
                      Transforms.setNodes(editor, {url: u.toString()}, {at: path})
                      setEditing(false)
                    }}/>
