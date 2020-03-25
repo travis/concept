@@ -8,14 +8,22 @@ import Typography from '@material-ui/core/Typography';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Paper from '@material-ui/core/Paper';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+import Button from '@material-ui/core/Button';
 
 import SaveIcon from '@material-ui/icons/Save'
 import ShareIcon from '@material-ui/icons/Share'
 import BackupIcon from '@material-ui/icons/Backup'
+import MenuIcon from '@material-ui/icons/Menu'
 
 import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 
 import { Slate } from 'slate-react';
 
@@ -217,10 +225,44 @@ class EditorErrorBoundary extends React.Component {
   }
 }
 
+function AppBarMenu({page, onClose, onDelete, ...props}){
+  const history = useHistory();
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
+  const {deletePage} = useContext(WorkspaceContext);
+  const close = () => {
+    setDeleteConfirmationOpen(false)
+    onClose()
+  }
+  return (
+    <>
+      <Menu onClose={onClose} {...props}>
+        <MenuItem onClick={() => setDeleteConfirmationOpen(true)}>Delete</MenuItem>
+      </Menu>
+      <Dialog open={deleteConfirmationOpen} onClose={onClose}>
+        <DialogTitle>Are you sure you want to delete this page?</DialogTitle>
+        <DialogActions>
+          <Button  color="primary" onClick={() => {
+            deletePage(page)
+            close()
+            history.replace("/")
+          }}>
+            yes
+          </Button>
+          <Button color="primary" autoFocus onClick={close}>
+            no
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  )
+}
+
 function Page({workspace, page}){
+  const menuButton = useRef();
   const classes = useStyles();
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
   const [backupsDialogOpen, setBackupsDialogOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false)
   const pageUri = page.toString()
   const { aclUri, allowed} = useAccessInfo(pageUri)
   const readOnly = !(allowed && allowed.user.has("write"))
@@ -236,11 +278,17 @@ function Page({workspace, page}){
             {
               allowed && allowed.user.has("control") && (
               <>
-                <IconButton title="Share" onClick={() => setSharingModalOpen(!sharingModalOpen)}>
+                <IconButton title="share"
+                            onClick={() => setSharingModalOpen(!sharingModalOpen)}>
                   <ShareIcon/>
                 </IconButton>
-                <IconButton title="Backups" onClick={() => setBackupsDialogOpen(!backupsDialogOpen)}>
+                <IconButton title="backups"
+                            onClick={() => setBackupsDialogOpen(!backupsDialogOpen)}>
                   <BackupIcon/>
+                </IconButton>
+                <IconButton ref={menuButton} title="menu"
+                            onClick={() => setMenuOpen(!menuOpen)} >
+                  <MenuIcon />
                 </IconButton>
               </>
               )
@@ -248,6 +296,18 @@ function Page({workspace, page}){
           </div>
         </Toolbar>
       </AppBar>
+      <AppBarMenu page={page}
+                  open={menuOpen} anchorEl={menuButton.current}
+                  onClose={() => setMenuOpen(false)}
+                  keepMounted
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}/>
       {aclUri && (
         <LiveUpdate subscribe={aclUri}>
           {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)}/>)}

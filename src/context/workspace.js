@@ -78,12 +78,13 @@ export const WorkspaceProvider = (props) => {
     }
   }, [workspace])
 
-  const deletePage = useCallback(async (page) => {
+  const deletePage = useCallback(async (pageUriOrNode) => {
+    const page = namedNode(pageUriOrNode.toString())
     await Promise.all([
       data[workspace][schema.itemListElement].delete(page),
-      data.from(workspace)[page][schema.name].delete(),
-      deleteFile(page)
-    ]);
+      data.from(workspace)[page.value][schema.name].delete(),
+      deleteFile(page.value)
+    ])
   }, [workspace])
 
   return (

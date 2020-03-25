@@ -61,7 +61,6 @@ const PageListItem = ({workspace, page}) => {
       <Link to={`/page/${encodedPage}`}>
         <ListItemText primary={`${name || ""}`} />
       </Link>
-      <Button onClick={() => deletePage(page)}>Delete</Button>
     </ListItem>
   )
 }
