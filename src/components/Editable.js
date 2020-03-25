@@ -192,7 +192,6 @@ const ImageElement = ({ attributes, children, element }) => {
     <div {...attributes}>
       <Box contentEditable={false} display="flex">
         <img ref={image}
-             crossOrigin="use-credentials"
              alt={element.alt || ""}
              src={element.url}
              className={classes.image}
