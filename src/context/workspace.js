@@ -6,6 +6,7 @@ import {namedNode} from '@rdfjs/data-model';
 import uuid from 'uuid/v1';
 import { ACLFactory, AccessControlList } from '@inrupt/solid-react-components';
 import {createNonExistentDocument, deleteFile} from '../utils/ldflex-helper';
+import concept from '../ontology'
 
 const WorkspaceContext = createContext({});
 
@@ -21,10 +22,9 @@ const initialPage = JSON.stringify([
 export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
-  const conceptContainer = `${storage}concept/v1/`;
+  const conceptContainer = `${storage}concept/v1.1/`;
   const workspaceFile = 'workspace.ttl';
   const workspace = storage && `${conceptContainer}${workspaceFile}`;
-  const container = storage && `${conceptContainer}workspace/`;
 
   useEffect(() => {
     if (workspace) {
@@ -35,16 +35,17 @@ export const WorkspaceProvider = (props) => {
     }
   }, [workspace])
 
-  const addPage = async ({name="Untitled", parent=workspace}) => {
+  const addPage = async ({name="Untitled", parent=workspace}={}) => {
     const id = uuid();
-    const pageRef = `${container}${id}.ttl`;
+    const pageContainer = `${parent.toString().split(".").slice(0, -1).join(".")}/pages/`
+    const pageRef = `${pageContainer}${id}.ttl`;
     await createNonExistentDocument(pageRef);
     await Promise.all([
       data[pageRef][schema.text].set(initialPage),
       data[pageRef][schema.name].set(name),
+      data[pageRef][concept.parent].set(namedNode(parent.toString())),
       data.from(parent)[pageRef][schema.name].set(name),
       data[parent][schema.itemListElement].add(namedNode(pageRef)),
-      (workspace !== parent) && data.from(workspace)[parent][schema.itemListElement].add(namedNode(pageRef))
     ]);
     const acls = await ACLFactory.createNewAcl(webId, pageRef)
     await acls.createACL([{
@@ -70,23 +71,25 @@ export const WorkspaceProvider = (props) => {
 
   const updatePage = useCallback(async (page, predicate, value) => {
     if (predicate === schema.name) {
+      const parent = await data[page][concept.parent]
       await Promise.all([
         data[page][predicate].set(value),
-        data.from(workspace)[page][predicate].set(value)
+        data.from(parent)[page][predicate].set(value)
       ])
     } else if (predicate === schema.text) {
       await data[page][predicate].set(value)
     }
-  }, [workspace])
+  }, [])
 
   const deletePage = useCallback(async (pageUriOrNode) => {
+    const parent = await data[pageUriOrNode][concept.parent]
     const page = namedNode(pageUriOrNode.toString())
     await Promise.all([
-      data[workspace][schema.itemListElement].delete(page),
-      data.from(workspace)[page.value][schema.name].delete(),
+      data[parent][schema.itemListElement].delete(page),
+      data.from(parent)[page.value][schema.name].delete(),
       deleteFile(page.value)
     ])
-  }, [workspace])
+  }, [])
 
   return (
     <Provider {...props} value={{workspace, addPage, updatePage, deletePage}} />

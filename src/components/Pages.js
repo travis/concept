@@ -12,9 +12,9 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
+import Link from '@material-ui/core/Link';
 
 import SaveIcon from '@material-ui/icons/Save'
 import ShareIcon from '@material-ui/icons/Share'
@@ -86,7 +86,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function PageName({workspace, page}){
+function PageName({page}){
   const {updatePage} = useContext(WorkspaceContext);
   const [editing, setEditing] = useState(false);
   const [savedNameNode] = useLDflex(`[${page}][${schema.name}]`);
@@ -236,6 +236,11 @@ function AppBarMenu({page, onClose, onDelete, ...props}){
   return (
     <>
       <Menu onClose={onClose} {...props}>
+        <MenuItem>
+          <Link href={page} target="_blank" rel="noopener noreferrer" color="inherit">
+            Source
+          </Link>
+        </MenuItem>
         <MenuItem onClick={() => setDeleteConfirmationOpen(true)}>Delete</MenuItem>
       </Menu>
       <Dialog open={deleteConfirmationOpen} onClose={onClose}>
@@ -257,7 +262,7 @@ function AppBarMenu({page, onClose, onDelete, ...props}){
   )
 }
 
-function Page({workspace, page}){
+function Page({page}){
   const menuButton = useRef();
   const classes = useStyles();
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
@@ -270,9 +275,7 @@ function Page({workspace, page}){
     <PageContext.Provider value={page}>
       <AppBar position="fixed" className={classes.appBar} color="transparent" elevation={0}>
         <Toolbar variant="dense">
-          <LiveUpdate subscribe={[workspace.toString()]}>
-            <PageName workspace={workspace} page={page} />
-          </LiveUpdate>
+          <PageName page={page} />
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
             {
@@ -334,12 +337,12 @@ const usePagesStyles = makeStyles(theme => ({
   },
 }));
 
-function CurrentPage({workspace}) {
+function CurrentPage() {
   const { selectedPage } = useParams();
   const selectedPageURI = decodeURIComponent(selectedPage)
   return selectedPage ? (
     <LiveUpdate subscribe={selectedPageURI.toString()}>
-      <Page workspace={workspace} page={selectedPageURI}/>
+      <Page page={selectedPageURI}/>
     </LiveUpdate>
   ) : (
     <p>Welcome to Concept! Add or select a page on the left to get started.</p>
@@ -352,13 +355,13 @@ export default function Pages({workspace, addPage}){
     <>
       {workspace ? (
         <LiveUpdate subscribe={[workspace.toString()]}>
-          <PageDrawer {...{workspace}}/>
+          <PageDrawer workspace={workspace}/>
         </LiveUpdate>
       ) : (
         <PageDrawer/>
       )}
       <Box className={classes.content}>
-        {workspace && <CurrentPage workspace={workspace}/>}
+        {workspace && <CurrentPage />}
       </Box>
     </>
   )

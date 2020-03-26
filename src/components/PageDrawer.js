@@ -12,7 +12,9 @@ import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import AddIcon from '@material-ui/icons/Add';
 import {useLDflexValue, useLDflexList} from '../hooks/ldflex';
 import { schema } from 'rdf-namespaces';
+import { LiveUpdate } from "@solid/react";
 
+import IconButton from './IconButton';
 import WorkspaceContext from "../context/workspace";
 import LogInLogOutButton from './LogInLogOutButton';
 import {drawerWidth} from '../constants'
@@ -36,6 +38,8 @@ const useStyles = makeStyles(theme => ({
     display: "inline-block",
   },
   item: {
+    paddingLeft: ({level}) => theme.spacing(1 + (level * 2)),
+    paddingRight: theme.spacing(1),
     "& a": {
       width: "100%",
       textDecoration: "none",
@@ -44,10 +48,6 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.text.primary
       }
     },
-    "& button": {
-      position: "absolute",
-      right: 0
-    },
     "&:hover $itemHoverButton": {
       visibility: "visible"
     }
@@ -55,51 +55,54 @@ const useStyles = makeStyles(theme => ({
   itemHoverButton: {
     cursor: "pointer",
     visibility: "hidden",
-    opacity: 0.5
+    opacity: 0.5,
+    padding: 0
   }
 }));
 
-function SubPageListItems({workspace, page}){
-  const pages = useLDflexList(`from('${workspace}')[${page}][${schema.itemListElement}]`);
+function SubPageListItems({page, level}){
+  const subPages = useLDflexList(`[${page}][${schema.itemListElement}]`);
   return (
     <>
-      {pages && pages.map((page, index) => (
-        <PageListItem workspace={workspace} page={page} key={index}/>
+      {subPages && subPages.map((subPage, index) => (
+        <PageListItem parent={page} page={subPage} key={index} level={level}/>
       ))}
     </>
   )
 }
 
-function PageListItem({workspace, page}) {
-  const {deletePage, addPage} = useContext(WorkspaceContext);
+function PageListItem({parent, page, level=0}) {
+  const {addPage} = useContext(WorkspaceContext);
   const [showSubpages, setShowSubpages] = useState(false)
   const { selectedPage } = useParams();
-  const classes = useStyles()
-  const name = useLDflexValue(`from('${workspace}')[${page}][${schema.name}]`);
+  const classes = useStyles({level})
+  const name = useLDflexValue(`from('${parent}')[${page}][${schema.name}]`);
   const encodedPage = encodeURIComponent(page)
   return (
     <>
       <ListItem dense={true} selected={selectedPage === encodedPage} className={classes.item}>
         {showSubpages ? (
-          <Tooltip title="hide subpages" aria-label="hide subpages">
-            <ArrowDown fontSize="small" className={classes.itemHoverButton}
-                        onClick={() => setShowSubpages(false)}/>
-          </Tooltip>
+          <IconButton title="hide subpages" className={classes.itemHoverButton}
+                      onClick={() => setShowSubpages(false)}>
+            <ArrowDown fontSize="small"/>
+          </IconButton>
         ) : (
-          <Tooltip title="show subpages" aria-label="show subpages">
-            <ArrowRight fontSize="small" className={classes.itemHoverButton}
-                        onClick={() => setShowSubpages(true)}/>
-          </Tooltip>
+          <IconButton title="show subpages" className={classes.itemHoverButton}
+                      onClick={() => setShowSubpages(true)}>
+            <ArrowRight fontSize="small"/>
+          </IconButton>
         )}
         <Link to={`/page/${encodedPage}`}>
           <ListItemText primary={`${name || ""}`} />
         </Link>
-        <Tooltip title="add a page inside" aria-label="add a page inside">
-          <AddIcon fontSize="small" className={classes.itemHoverButton}
-                   onClick={() => addPage({parent: page})}/>
-        </Tooltip>
+        <IconButton title="add a page inside" className={classes.itemHoverButton}
+                    onClick={() => addPage({parent: page})}>
+          <AddIcon fontSize="small"/>
+        </IconButton>
       </ListItem>
-      {showSubpages && <SubPageListItems workspace={workspace} page={page}/>}
+      <LiveUpdate subscribe={[page.toString()]}>
+        {showSubpages && <SubPageListItems page={page} level={level + 1}/>}
+      </LiveUpdate>
     </>
   )
 }
@@ -109,7 +112,7 @@ const PageNameList = ({workspace}) => {
   return (
     <List>
       {pages && pages.map((page, index) => (
-        <PageListItem workspace={workspace} page={page} key={index}/>
+        <PageListItem parent={workspace} page={page} key={index}/>
       ))}
     </List>
   )
