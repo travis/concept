@@ -6,7 +6,6 @@ import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import Tooltip from '@material-ui/core/Tooltip';
 import ArrowRight from '@material-ui/icons/ArrowRight';
 import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import AddIcon from '@material-ui/icons/Add';

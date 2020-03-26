@@ -23,7 +23,7 @@ import MenuIcon from '@material-ui/icons/Menu'
 
 import { schema} from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
-import { useParams, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import { Slate } from 'slate-react';
 
@@ -40,6 +40,7 @@ import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
 import { useAccessInfo } from '../hooks/acls';
 import { useBackups } from '../hooks/backup';
+import { useCurrentPage } from '../hooks/pages';
 import {drawerWidth} from '../constants'
 
 const useStyles = makeStyles(theme => ({
@@ -338,11 +339,10 @@ const usePagesStyles = makeStyles(theme => ({
 }));
 
 function CurrentPage() {
-  const { selectedPage } = useParams();
-  const selectedPageURI = decodeURIComponent(selectedPage)
-  return selectedPage ? (
-    <LiveUpdate subscribe={selectedPageURI.toString()}>
-      <Page page={selectedPageURI}/>
+  const currentPage = useCurrentPage()
+  return currentPage ? (
+    <LiveUpdate subscribe={currentPage}>
+      <Page page={currentPage}/>
     </LiveUpdate>
   ) : (
     <p>Welcome to Concept! Add or select a page on the left to get started.</p>
