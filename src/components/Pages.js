@@ -270,8 +270,9 @@ function Page({page}){
   const [backupsDialogOpen, setBackupsDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false)
   const pageUri = page.toString()
-  const { aclUri, allowed} = useAccessInfo(pageUri)
+  const { aclUri, allowed } = useAccessInfo(pageUri)
   const readOnly = !(allowed && allowed.user.has("write"))
+
   return (
     <PageContext.Provider value={page}>
       <AppBar position="fixed" className={classes.appBar} color="transparent" elevation={0}>

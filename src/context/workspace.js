@@ -4,8 +4,8 @@ import {useWebId, useLDflexValue} from '@solid/react';
 import data from '@solid/query-ldflex';
 import {namedNode} from '@rdfjs/data-model';
 import uuid from 'uuid/v1';
-import { ACLFactory, AccessControlList } from '@inrupt/solid-react-components';
-import {createNonExistentDocument, deleteFile} from '../utils/ldflex-helper';
+import { createNonExistentDocument, deleteFile } from '../utils/ldflex-helper';
+import { createDefaultAcl } from '../utils/acl';
 import concept from '../ontology'
 
 const WorkspaceContext = createContext({});
@@ -22,8 +22,8 @@ const initialPage = JSON.stringify([
 export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
-  const conceptContainer = `${storage}concept/v1.1/`;
-  const workspaceFile = 'workspace.ttl';
+  const conceptContainer = `${storage}concept/v2.0/`;
+  const workspaceFile = 'workspace/index.ttl';
   const workspace = storage && `${conceptContainer}${workspaceFile}`;
 
   useEffect(() => {
@@ -37,8 +37,8 @@ export const WorkspaceProvider = (props) => {
 
   const addPage = async ({name="Untitled", parent=workspace}={}) => {
     const id = uuid();
-    const pageContainer = `${parent.toString().split(".").slice(0, -1).join(".")}/pages/`
-    const pageRef = `${pageContainer}${id}.ttl`;
+    const pageContainer = `${parent.toString().split("/").slice(0, -1).join("/")}/pages/${id}/`
+    const pageRef = `${pageContainer}index.ttl`;
     await createNonExistentDocument(pageRef);
     await Promise.all([
       data[pageRef][schema.text].set(initialPage),
@@ -47,26 +47,9 @@ export const WorkspaceProvider = (props) => {
       data.from(parent)[pageRef][schema.name].set(name),
       data[parent][schema.itemListElement].add(namedNode(pageRef)),
     ]);
-    const acls = await ACLFactory.createNewAcl(webId, pageRef)
-    await acls.createACL([{
-      agents: webId,
-      modes: [
-        AccessControlList.MODES.READ,
-        AccessControlList.MODES.WRITE,
-        AccessControlList.MODES.CONTROL
-      ]
-    }, {
-      agents: [],
-      modes: [
-        AccessControlList.MODES.READ,
-        AccessControlList.MODES.WRITE
-      ]
-    }, {
-      agents: [],
-      modes: [
-        AccessControlList.MODES.READ,
-      ]
-    }])
+    if (parent === workspace){
+      await createDefaultAcl(webId, pageContainer)
+    }
   }
 
   const updatePage = useCallback(async (page, predicate, value) => {

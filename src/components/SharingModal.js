@@ -5,6 +5,7 @@ import data from '@solid/query-ldflex';
 import {namedNode} from '@rdfjs/data-model';
 
 import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
@@ -17,10 +18,12 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import Close from '@material-ui/icons/Close';
 import Add from '@material-ui/icons/Add';
-
+import Loader from './Loader';
 import { schema, foaf, acl } from 'rdf-namespaces';
 
-import { useLDflex, useLDflexList } from '../hooks/ldflex';
+import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
+import { useAclExists, useParentAcl } from '../hooks/acls';
+import { createDefaultAcl } from '../utils/acl';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -50,18 +53,18 @@ const Agent = ({agent, onRemove}) => {
 }
 
 const ModeDescription = ({type}) => {
-  if (type === "ReadWriteControl") {
-    return "Managers"
-  } else if (type === "ReadWrite") {
-    return "Editors"
-  } else if (type === "Read") {
-    return "Viewers"
+  if (type === "Owners") {
+    return "Owners"
+  } else if (type === "Writers") {
+    return "Writers"
+  } else if (type === "Readers") {
+    return "Readers"
   } else {
     return "Custom Permissions"
   }
 }
 
-const PermissionsType = ({ aclUri, type }) => {
+const PermissionsType = ({ aclUri, type, readOnly }) => {
   const uri = `${aclUri}#${type}`
   const [adding, setAdding] = useState(false)
   const agents = useLDflexList(`[${uri}][${acl.agent}]`);
@@ -76,7 +79,11 @@ const PermissionsType = ({ aclUri, type }) => {
   return (
     <Box>
       <ModeDescription type={type}/>
-      <Add onClick={() => setAdding(true)}/>
+      {readOnly ? undefined : (
+        <IconButton  onClick={() => setAdding(true)} size="small">
+          <Add/>
+        </IconButton>
+      )}
       {agents && agents.map(agent => (
         <Agent agent={agent.value} onRemove={() => deleteAgent(agent.value)} key={agent}/>
       ))}
@@ -94,8 +101,45 @@ const PermissionsType = ({ aclUri, type }) => {
   )
 }
 
+const PageName = ({page}) => {
+  const name = useLDflexValue(`[${page}][${schema.name}]`);
+  return <>{name && name.value}</>
+}
+
+function NoAclContent({page, aclUri}){
+  const webId = useWebId()
+  const {uri: parentAclUri, loading} = useParentAcl(page)
+  return (
+    <>
+      {loading ? (
+        <Loader />
+      ) : (
+        <>
+          <DialogContentText>
+            This page is using the permissions of&nbsp;
+            {parentAclUri && (
+              <PageName page={`${parentAclUri.split(".").slice(0, -1).join(".")}index.ttl`}/>
+            )}
+          </DialogContentText>
+          <Button onClick={() => {
+            createDefaultAcl(webId, aclUri.split(".").slice(0, -1).join("."))
+          }}>
+            create custom acl
+          </Button>
+
+          <PermissionsType aclUri={parentAclUri} type="Owners" readOnly/>
+          <PermissionsType aclUri={parentAclUri} type="Writers" readOnly/>
+          <PermissionsType aclUri={parentAclUri} type="Readers" readOnly/>
+        </>
+      )}
+    </>
+
+  )
+}
+
 export default function SharingModal({page, aclUri, open, onClose}) {
-  const [name] = useLDflex(`[${page}][${schema.name}]`);
+  const name = useLDflexValue(`[${page}][${schema.name}]`);
+  const {exists, loading} = useAclExists(aclUri)
   const classes = useStyles();
   return (
     <Dialog open={open} onClose={onClose}>
@@ -106,12 +150,22 @@ export default function SharingModal({page, aclUri, open, onClose}) {
         </IconButton>
       </DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          Set sharing for {name && name.toString()}
-        </DialogContentText>
-        <PermissionsType aclUri={aclUri} type="Read"/>
-        <PermissionsType aclUri={aclUri} type="ReadWrite"/>
-        <PermissionsType aclUri={aclUri} type="ControlReadWrite"/>
+        {loading ? (
+          <Loader/>
+        ) : (
+          exists ? (
+            <>
+              <DialogContentText>
+                Set sharing for {name && name.toString()}
+              </DialogContentText>
+              <PermissionsType aclUri={aclUri} type="Owners"/>
+              <PermissionsType aclUri={aclUri} type="Writers"/>
+              <PermissionsType aclUri={aclUri} type="Readers"/>
+            </>
+          ) : (
+            <NoAclContent page={page} aclUri={aclUri}/>
+          )
+        )}
       </DialogContent>
     </Dialog>
   )

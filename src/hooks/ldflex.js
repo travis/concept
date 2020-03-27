@@ -6,7 +6,6 @@ function toString(object) {
 }
 
 export function useLDflex(...args) {
-
   const [result, pending, error] = sr.useLDflex(...args);
   const [cachedResult, setCachedResult] = useState(result);
   useEffect(() => {
