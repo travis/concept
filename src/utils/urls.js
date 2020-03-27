@@ -1,1 +1,1 @@
-export const sharingUrl = (page) => `https://useconcept.art/pages/${encodeURIComponent(page)}`
+export const sharingUrl = (page) => `https://useconcept.art/page/${encodeURIComponent(page)}`
