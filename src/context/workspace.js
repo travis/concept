@@ -6,6 +6,7 @@ import {namedNode} from '@rdfjs/data-model';
 import uuid from 'uuid/v1';
 import { createNonExistentDocument, deleteFile } from '../utils/ldflex-helper';
 import { createDefaultAcl } from '../utils/acl';
+import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import concept from '../ontology'
 
 const WorkspaceContext = createContext({});
@@ -22,8 +23,8 @@ const initialPage = JSON.stringify([
 export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
-  const conceptContainer = `${storage}concept/v2.0/`;
-  const publicPages = `${conceptContainer}publicPages.ttl`;
+  const conceptContainer = conceptContainerUrl(storage)
+  const publicPages = publicPagesUrl(conceptContainer)
   const workspaceFile = 'workspace/index.ttl';
   const workspace = storage && `${conceptContainer}${workspaceFile}`;
 
