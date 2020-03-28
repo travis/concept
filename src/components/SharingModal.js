@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useContext} from 'react';
 
 import {useWebId} from '@solid/react';
 import data from '@solid/query-ldflex';
@@ -18,15 +18,16 @@ import Typography from '@material-ui/core/Typography';
 import Chip from '@material-ui/core/Chip';
 import Avatar from '@material-ui/core/Avatar';
 import Link from '@material-ui/core/Link';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import CloseIcon from '@material-ui/icons/Close';
 import CopyIcon from '@material-ui/icons/FileCopy';
 
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import Close from '@material-ui/icons/Close';
 import Add from '@material-ui/icons/Add';
-import { schema, foaf, acl, vcard } from 'rdf-namespaces';
+import { schema, foaf, acl, vcard, rdf } from 'rdf-namespaces';
 
 import { useDrag, useDrop } from 'react-dnd'
 
@@ -35,6 +36,8 @@ import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
 import { useAclExists, useParentAcl } from '../hooks/acls';
 import { createDefaultAcl } from '../utils/acl';
 import { sharingUrl } from '../utils/urls';
+import { addPublicPage, removePublicPage, addPublicAccess, removePublicAccess } from '../utils/data';
+import WorkspaceContext from '../context/workspace';
 
 const useStyles = makeStyles(theme => ({
   closeButton: {
@@ -46,6 +49,18 @@ const useStyles = makeStyles(theme => ({
   permissionsType: {
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2)
+  },
+  publicAccess: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2)
+  },
+  publicAccessModes: {
+    padding: theme.spacing(1),
+    minHeight: theme.spacing(6),
+  },
+  listPublicly: {
+    padding: theme.spacing(1),
+    minHeight: theme.spacing(6),
   },
   agent: {
     cursor: ({readOnly}) => readOnly ? "default" : "pointer",
@@ -193,6 +208,92 @@ function NoAclContent({page, aclUri}){
   )
 }
 
+async function ensurePublicAclExists(publicAccessUri, resourceUri){
+  const [type, agentClass, accessTo, def] = await Promise.all([
+    data[publicAccessUri][rdf.type],
+    data[publicAccessUri][acl.agentClass],
+    data[publicAccessUri][acl.accessTo],
+    data[publicAccessUri][acl.default__workaround],
+  ])
+  await Promise.all([
+    type ? null : data[publicAccessUri][rdf.type].set(namedNode(acl.Authorization)),
+    agentClass ? null : data[publicAccessUri][acl.agentClass].set(namedNode(foaf.Agent)),
+    accessTo ? null : data[publicAccessUri][acl.accessTo].set(namedNode(resourceUri)),
+    def ? null : data[publicAccessUri][acl.default__workaround].set(namedNode(resourceUri))
+  ])
+}
+
+function PublicAccess({page, aclUri}){
+  const {publicPages} = useContext(WorkspaceContext)
+  const [saving, setSaving] = useState(false)
+  const publicAccessUri = `${aclUri}#Public`
+  const publicAccessModeNodes = useLDflexList(`[${publicAccessUri}][${acl.mode}]`);
+  const publicAccessModes = publicAccessModeNodes && publicAccessModeNodes.map(node => node.value)
+  const read = publicAccessModes && publicAccessModes.includes(acl.Read)
+  const write = publicAccessModes && publicAccessModes.includes(acl.Write)
+  const handleChange = useCallback(async event => {
+    const checked = event.target.checked
+    const name = event.target.name
+    const resourceUri = aclUri.split(".").slice(0, -1).join(".")
+    setSaving(true)
+    await ensurePublicAclExists(publicAccessUri, resourceUri)
+    if (checked){
+      await addPublicAccess(publicAccessUri, name)
+    } else {
+      await Promise.all([
+        removePublicAccess(publicAccessUri, name),
+        (name === "Read") ? removePublicAccess(publicAccessUri, "Write") : null,
+        (name === "Read") ? removePublicPage(publicPages, page) : null
+      ])
+    }
+    setSaving(false)
+  }, [page, publicPages, aclUri, publicAccessUri])
+
+  const publicDocs = useLDflexList(`[${publicPages}][${schema.itemListElement}]`);
+  const listedPublicly = publicDocs && publicDocs.map(n => n.value).includes(page)
+  const handleChangeListPublicly = useCallback(async event => {
+    const checked = event.target.checked
+    if (checked){
+      await addPublicPage(publicPages, page)
+    } else {
+      await removePublicPage(publicPages, page)
+    }
+  }, [page, publicPages])
+  const classes = useStyles()
+  return (
+    <Box className={classes.publicAccess}>
+      <Typography variant="h6">
+        Public Access
+      </Typography>
+      <Box className={classes.publicAccessModes} display="flex">
+        {publicAccessModes && (
+          <>
+            <FormControlLabel label="Read" control={
+              <Checkbox onChange={handleChange} name="Read"
+                        checked={!!read}/>
+            }/>
+            {read && (
+              <FormControlLabel label="Write" control={
+                <Checkbox onChange={handleChange} name="Write"
+                          checked={!!write}/>
+              }/>
+            )}
+          </>
+        )}
+        {saving && <Loader height={5} width={5} />}
+      </Box>
+      {(publicAccessModes && read) && (
+        <Box className={classes.listPublicly}>
+          <FormControlLabel label="List Publicly?" control={
+            <Checkbox onChange={handleChangeListPublicly} name="ListPublicly"
+                      checked={!!listedPublicly}/>
+          }/>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
 function AclContent({page, aclUri}){
   const name = useLDflexValue(`[${page}][${schema.name}]`);
   const url = sharingUrl(page)
@@ -214,6 +315,7 @@ function AclContent({page, aclUri}){
       <PermissionsType aclUri={aclUri} type="Owners"/>
       <PermissionsType aclUri={aclUri} type="Writers"/>
       <PermissionsType aclUri={aclUri} type="Readers"/>
+      <PublicAccess page={page} aclUri={aclUri}/>
     </DialogContent>
   )
 }

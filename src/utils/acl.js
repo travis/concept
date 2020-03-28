@@ -1,5 +1,4 @@
 import solid from 'solid-auth-client';
-import parseLink from 'parse-link-header';
 import {parse as parseWAC} from 'wac-allow'
 
 export async function getAccessInfo(pageUri){

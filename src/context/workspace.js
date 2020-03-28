@@ -23,6 +23,7 @@ export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
   const conceptContainer = `${storage}concept/v2.0/`;
+  const publicPages = `${conceptContainer}publicPages.ttl`;
   const workspaceFile = 'workspace/index.ttl';
   const workspace = storage && `${conceptContainer}${workspaceFile}`;
 
@@ -75,7 +76,7 @@ export const WorkspaceProvider = (props) => {
   }, [])
 
   return (
-    <Provider {...props} value={{workspace, addPage, updatePage, deletePage}} />
+    <Provider {...props} value={{conceptContainer, publicPages, workspace, addPage, updatePage, deletePage}} />
   )
 }
 

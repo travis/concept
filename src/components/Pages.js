@@ -264,6 +264,7 @@ function AppBarMenu({page, onClose, onDelete, ...props}){
 }
 
 function Page({page}){
+  const {publicPages} = useContext(WorkspaceContext)
   const menuButton = useRef();
   const classes = useStyles();
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
@@ -314,7 +315,7 @@ function Page({page}){
                     horizontal: 'right',
                   }}/>
       {aclUri && (
-        <LiveUpdate subscribe={aclUri}>
+        <LiveUpdate subscribe={[aclUri, publicPages]}>
           {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)}/>)}
         </LiveUpdate>
       )}
