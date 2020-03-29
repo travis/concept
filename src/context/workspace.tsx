@@ -1,4 +1,4 @@
-import React, { FunctionComponent, ReactNode, createContext, useCallback, useEffect, useMemo } from 'react';
+import React, { ReactNode, createContext, useCallback, useEffect, useMemo } from 'react';
 import { space, schema } from 'rdf-namespaces';
 import { useWebId, useLDflexValue } from '@solid/react';
 import data from '@solid/query-ldflex';
@@ -31,42 +31,42 @@ type WorkspaceProviderProps = {
   children: ReactNode
 }
 
-export const WorkspaceProvider: FunctionComponent<WorkspaceProviderProps> = ({ children }) => {
+export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   const webId = useWebId();
   const storage: any = useLDflexValue(`[${webId}][${space.storage}]`);
   const workspace = useMemo(
-    () => (storage === undefined) ? undefined : m.workspaceFromStorage(storage.value as string)
-    , [storage])
+    () => (storage === undefined) ? undefined : m.workspaceFromStorage(storage.value as string),
+    [storage]
+  )
 
   useEffect(() => {
-    console.log("workspace changed")
     if (workspace && workspace.docUri) {
       const createWorkspace = async () => {
-        await createNonExistentDocument(workspace);
+        await createNonExistentDocument(workspace.docUri);
       }
       createWorkspace();
     }
   }, [workspace])
 
-  const addPage: AddPageType = async ({ name = "Untitled" } = {}) => {
+  const addPage: AddPageType = async ({ name = "Untitled" }) => {
     if (workspace !== undefined) {
       const page = await m.addPage(workspace, { name })
       await createDefaultAcl(webId, page.containerUri)
     }
   }
 
-  const addSubPage: AddSubPageType = async (parentPageListItem, { name = "Untitled" } = {}) => {
+  const addSubPage: AddSubPageType = async (parentPageListItem, { name = "Untitled" }) => {
     await m.addSubPage(parentPageListItem, { name })
   }
 
-  const updatePage = useCallback(async (page, predicate, value) => {
+  const updatePage = useCallback(async (page: m.Page, predicate: string, value: string) => {
     if (predicate === schema.name) {
       await Promise.all([
         data[page.uri][predicate].set(value),
-        data[page.inListItem.value][predicate].set(value)
+        data[page.inListItem][predicate].set(value)
       ])
     } else if (predicate === schema.text) {
-      await data[page][predicate].set(value)
+      await data[page.uri][predicate].set(value)
     }
   }, [])
 

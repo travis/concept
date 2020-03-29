@@ -14,13 +14,16 @@ import ArrowRight from '@material-ui/icons/ArrowRight';
 import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import AddIcon from '@material-ui/icons/Add';
 
-import {usePageListItems, usePageFromPageListItem} from '../hooks/data';
+import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
 
 import IconButton from './IconButton';
 import WorkspaceContext from "../context/workspace";
 import LogInLogOutButton from './LogInLogOutButton';
-import {drawerWidth} from '../constants'
+import { drawerWidth } from '../constants'
 import logo from '../logo.svg'
+import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
+
+type WithLevel = { level?: number }
 
 const useStyles = makeStyles(theme => ({
   drawer: {
@@ -40,7 +43,7 @@ const useStyles = makeStyles(theme => ({
     display: "inline-block",
   },
   item: {
-    paddingLeft: ({level}) => theme.spacing(1 + (level * 2)),
+    paddingLeft: ({ level = 0 }: WithLevel) => theme.spacing(1 + (level * 2)),
     paddingRight: theme.spacing(1),
     paddingTop: 0,
     paddingBottom: 0,
@@ -83,28 +86,41 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function SubPageListItems({pageListItem, level}){
-  const classes = useStyles()
+type SubPageListItemsProps = {
+  pageListItem: PageListItemType,
+  level: number
+}
+
+function SubPageListItems({ pageListItem, level }: SubPageListItemsProps) {
+  const classes = useStyles({ level })
   const page = usePageFromPageListItem(pageListItem)
   const subPages = usePageListItems(page)
-  if (subPages) {
+  if (page && subPages) {
     if (subPages.length === 0) {
       return <ListItem className={classes.noInnerPages}>no inner pages</ListItem>
     } else {
-      return subPages.map((subPage, index) => (
-        <PageListItem parent={page} pageListItem={subPage} key={index} level={level}/>
-      ))
+      return <>
+        {subPages.map((subPage, index) => (
+          <PageListItem parent={page} pageListItem={subPage} key={index} level={level} />
+        ))}
+      </>
     }
   } else {
-    return null
+    return <></>
   }
 }
 
-function PageListItem({parent, pageListItem, level=0}) {
-  const {addSubPage} = useContext(WorkspaceContext);
+type PageListItemProps = {
+  parent: PageContainer,
+  pageListItem: PageListItemType,
+  level?: number
+}
+
+function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
+  const { addSubPage } = useContext(WorkspaceContext);
   const [showSubpages, setShowSubpages] = useState(false)
   const { selectedPage } = useParams();
-  const classes = useStyles({level})
+  const classes = useStyles({ level })
   const pageUri = pageListItem.pageNode && pageListItem.pageNode.value
   const encodedPage = pageUri && encodeURIComponent(pageUri)
   return (
@@ -112,51 +128,61 @@ function PageListItem({parent, pageListItem, level=0}) {
       <ListItem dense={true} selected={selectedPage === encodedPage} className={`${classes.item} ${classes.sidebarItem}`}>
         {showSubpages ? (
           <IconButton title="hide subpages" className={classes.sidebarItemHoverButton}
-                      onClick={() => setShowSubpages(false)}>
-            <ArrowDown fontSize="small"/>
+            onClick={() => setShowSubpages(false)}>
+            <ArrowDown fontSize="small" />
           </IconButton>
         ) : (
-          <IconButton title="show subpages" className={classes.sidebarItemHoverButton}
-                      onClick={() => setShowSubpages(true)}>
-            <ArrowRight fontSize="small"/>
-          </IconButton>
-        )}
+            <IconButton title="show subpages" className={classes.sidebarItemHoverButton}
+              onClick={() => setShowSubpages(true)}>
+              <ArrowRight fontSize="small" />
+            </IconButton>
+          )}
         <Link to={`/page/${encodedPage}`}>
           <ListItemText primary={`${pageListItem.name || ""}`} />
         </Link>
         <IconButton title="add inner page" className={classes.sidebarItemHoverButton}
-                    onClick={() => addSubPage(pageListItem)}>
-          <AddIcon fontSize="small"/>
+          onClick={() => {
+            if (addSubPage) {
+              addSubPage(pageListItem, {})
+            }
+          }}>
+          <AddIcon fontSize="small" />
         </IconButton>
       </ListItem>
       {showSubpages && (
         <LiveUpdate subscribe={[pageUri]}>
-          <SubPageListItems pageListItem={pageListItem} level={level + 1}/>
+          <SubPageListItems pageListItem={pageListItem} level={level + 1} />
         </LiveUpdate>
       )}
     </>
   )
 }
 
-const PageNameList = ({workspace}) => {
+const PageNameList = ({ workspace }: { workspace: Workspace }) => {
   const pageListItems = usePageListItems(workspace)
   return (
     <List>
       {pageListItems && pageListItems.map((pageListItem, index) => (
-        <PageListItem parent={workspace} pageListItem={pageListItem} key={index}/>
+        <PageListItem parent={workspace} pageListItem={pageListItem} key={index} />
       ))}
     </List>
   )
 }
 
-export default ({workspace}) => {
-  const classes = useStyles()
+type PageDrawerProps = {
+  workspace: Workspace
+}
+
+export default ({ workspace }: PageDrawerProps) => {
+  const classes = useStyles({})
   const [showPages, setShowPages] = useState(true)
-  const {addPage} = useContext(WorkspaceContext);
+  const { addPage } = useContext(WorkspaceContext);
   const [addingPage, setAddingPage] = useState(false)
   const addNewPage = useCallback(async () => {
     setAddingPage(true)
-    await addPage()
+    if (addPage) {
+      await addPage({})
+    }
     setAddingPage(false)
   }, [addPage])
 
@@ -170,24 +196,24 @@ export default ({workspace}) => {
       anchor="left"
     >
       <div className={classes.toolbar}>
-        <img src={logo} className={classes.logo} alt="logo"/>
+        <img src={logo} className={classes.logo} alt="logo" />
         <p className={classes.version}>alpha</p>
       </div>
       <div className={`${classes.sectionTitle} ${classes.sidebarItem}`}>
         <Tooltip title={showPages ? "hide pages" : "show pages"}>
           <Button size="small" className={classes.sectionTitleButton}
-                  onClick={() => setShowPages(!showPages)}>
+            onClick={() => setShowPages(!showPages)}>
             pages
           </Button>
         </Tooltip>
         <IconButton title="add a page"
-                    className={`${classes.sidebarItemHoverButton} ${classes.sectionTitleRightButton}`}
-                    onClick={() => addNewPage()}>
-          <AddIcon fontSize="small"/>
+          className={`${classes.sidebarItemHoverButton} ${classes.sectionTitleRightButton}`}
+          onClick={() => addNewPage()}>
+          <AddIcon fontSize="small" />
         </IconButton>
       </div>
-      {workspace && showPages && <PageNameList workspace={workspace}/>}
-      <LogInLogOutButton/>
+      {workspace && showPages && <PageNameList workspace={workspace} />}
+      <LogInLogOutButton />
     </Drawer>
 
   )

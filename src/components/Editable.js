@@ -399,7 +399,7 @@ const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
       <ImageUploader element={element}
                      onClose={onClose}
                      open={imagePickerOpen}
-                     uploadDirectory={`${page.split(".").slice(0, -1).join(".")}/images/`}
+                     uploadDirectory={page.imageContainerUri}
                      classes={{paper: classes.imageUploadPopover}}/>
     </>
   )

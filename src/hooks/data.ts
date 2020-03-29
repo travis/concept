@@ -69,7 +69,7 @@ export function useListQuery(...queryUris: string[]) {
   return useQuery(listResolver, ...queryUris)
 }
 
-export function usePageListItems(parent: PageContainer) {
+export function usePageListItems(parent: PageContainer | undefined) {
   const [items] = useQuery(pageListItemsResolver, parent && parent.uri, schema.itemListElement)
   return items
 }

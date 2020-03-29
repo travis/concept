@@ -21,7 +21,9 @@ export interface Workspace extends PageContainer {
 export interface Page extends PageContainer {
   id: string,
   name: string,
-  text: string
+  text: string,
+  inListItem: string,
+  imageContainerUri: string
 }
 
 export interface PageListItem {
@@ -45,32 +47,30 @@ export function pageUris(containerUri: string) {
   const docUri = `${containerUri}index.ttl`
   const uri = `${docUri}#Page`
   const subpageContainerUri = `${containerUri}pages/`
-  return ({ containerUri, docUri, uri, subpageContainerUri })
+  const imageContainerUri = `${containerUri}images/`
+  return ({ containerUri, docUri, uri, subpageContainerUri, imageContainerUri })
 }
 
 export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page {
   const id = uuid()
-  const { containerUri, docUri, uri, subpageContainerUri } = pageUris(`${parent.subpageContainerUri}${id}/`)
+  const inListItem = `${parent.docUri}#${id}`
   return ({
     id,
-    uri,
-    docUri,
-    containerUri,
-    subpageContainerUri,
     name,
-    text: initialPage
+    text: initialPage,
+    inListItem,
+    ...pageUris(`${parent.subpageContainerUri}${id}/`)
   })
 }
 
 const addPageMetadata = async (parent: PageContainer, page: Page) => {
-  const childListItemUri = `${parent.docUri}#${page.id}`
-  const childListItemNode = data[childListItemUri]
+  const childListItemNode = data[page.inListItem]
   await Promise.all([
     childListItemNode[rdf.type].set(namedNode(schema.ListItem)),
     childListItemNode[schema.item].set(namedNode(page.uri)),
     childListItemNode[schema.name].set(page.name)
   ])
-  return { inListItem: childListItemNode, ...page }
+  return page
 }
 
 export const addPage = async (parent: PageContainer, pageProps = {}) => {
@@ -86,7 +86,7 @@ export const addPage = async (parent: PageContainer, pageProps = {}) => {
     pageNode[concept.parent].set(namedNode(parent.uri)),
     pageNode[concept.inListItem].set(page.inListItem)
   ])
-  await data[parent.uri][schema.itemListElement].add(page.inListItem)
+  await data[parent.uri][schema.itemListElement].add(namedNode(page.inListItem))
   return page
 }
 
