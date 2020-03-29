@@ -5,7 +5,6 @@ import data from '@solid/query-ldflex';
 import { namedNode } from '@rdfjs/data-model';
 import { createNonExistentDocument, deleteFile } from '../utils/ldflex-helper';
 import { createDefaultAcl } from '../utils/acl';
-import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import concept from '../ontology'
 import * as m from "../utils/model"
 

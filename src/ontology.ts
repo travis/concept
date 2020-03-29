@@ -1,5 +1,4 @@
 const root = "https://useconcept.art/ontology#"
-const terms = ["backupOf", "parent", "inListItem"]
 
 interface ConceptOntology {
   backupOf: string,

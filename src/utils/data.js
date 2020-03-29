@@ -1,11 +1,8 @@
 import data from '@solid/query-ldflex';
 import { namedNode } from '@rdfjs/data-model';
-import { acl, schema, rdf, dc } from 'rdf-namespaces';
-import uuid from 'uuid/v1';
+import { acl, schema, dc } from 'rdf-namespaces';
 import concept from '../ontology'
-import { createNonExistentDocument, deleteFile } from './ldflex-helper';
-import { createDefaultAcl } from '../utils/acl';
-import {newPage, pageUris} from './model'
+import { pageUris} from './model'
 
 export const addPublicPage = (publicPageListUri, page) =>
   data[publicPageListUri][schema.itemListElement].add(namedNode(page))
@@ -18,12 +15,6 @@ export const addPublicAccess = (publicAccessUri, accessType) =>
 
 export const removePublicAccess = (publicAccessUri, accessType) =>
   data[publicAccessUri][acl.mode].delete(namedNode(acl[accessType]))
-
-const refDocument = (ref) => {
-  const url = new URL(ref)
-  url.hash = ""
-  return url.toString()
-}
 
 export function pageUrisFromPageUri(pageUri) {
   return pageUris(`${pageUri.split("/").slice(0, -1).join("/")}/`)

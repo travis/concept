@@ -1,6 +1,5 @@
 import React, { useContext, useState, useCallback } from 'react';
 import { useParams, Link } from "react-router-dom";
-import { schema } from 'rdf-namespaces';
 import { LiveUpdate } from "@solid/react";
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -15,7 +14,6 @@ import ArrowRight from '@material-ui/icons/ArrowRight';
 import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import AddIcon from '@material-ui/icons/Add';
 
-import {useLDflexValue, useLDflexList} from '../hooks/ldflex';
 import {usePageListItems, usePageFromPageListItem} from '../hooks/data';
 
 import IconButton from './IconButton';
