@@ -62,24 +62,25 @@ const addPageMetadata = async (parent, page) => {
   await Promise.all([
     childListItemNode[rdf.type].set(namedNode(schema.ListItem)),
     childListItemNode[schema.item].set(namedNode(page.uri)),
-    childListItemNode[schema.name].set(page.name),
-    data[parent.uri][schema.itemListElement].add(childListItemNode)
+    childListItemNode[schema.name].set(page.name)
   ])
-  return page
+  return {inListItem: childListItemNode, ...page}
 }
 
 export const addPage = async (parent, pageProps={}) => {
-  const page = newPage(parent, pageProps)
-  await createNonExistentDocument(page.docUri)
-  await addPageMetadata(parent, page)
+  const barePage = newPage(parent, pageProps)
+  await createNonExistentDocument(barePage.docUri)
+  const page = await addPageMetadata(parent, barePage)
   const pageNode = data[page.uri]
   await Promise.all([
     pageNode[rdf.type].set(schema.DigitalDocument),
     pageNode[dc.identifier].set(page.id),
     pageNode[schema.text].set(page.text),
     pageNode[schema.name].set(page.name),
-    pageNode[concept.parent].set(namedNode(parent.uri))
+    pageNode[concept.parent].set(namedNode(parent.uri)),
+    pageNode[concept.inListItem].set(page.inListItem)
   ])
+  await data[parent.uri][schema.itemListElement].add(page.inListItem)
   return page
 }
 
@@ -120,6 +121,9 @@ export const pageResolver = async query => {
   const [uri, id, text, name] = resolveValues(await Promise.all([
     query, query[dc.identifier], query[schema.text], query[schema.name]
   ]))
+  const [parent, inListItem] = await Promise.all([
+    query[concept.parent], query[concept.inListItem]
+  ])
   const {containerUri, docUri, subpageContainerUri} = pageUrisFromPageUri(uri)
-  return {id, text, name, uri, containerUri, docUri, subpageContainerUri}
+  return {id, text, name, uri, containerUri, docUri, subpageContainerUri, parent, inListItem}
 }

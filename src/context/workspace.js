@@ -32,7 +32,7 @@ export const WorkspaceProvider = (props) => {
     docUri: workspaceDoc,
     uri: `${workspaceDoc}#Workspace`,
     subpageContainerUri: `${workspaceContainer}pages/`
-  }), [workspaceDoc])
+  }), [workspaceDoc, workspaceContainer])
 
   useEffect(() => {
     if (workspaceDoc) {
@@ -54,10 +54,9 @@ export const WorkspaceProvider = (props) => {
 
   const updatePage = useCallback(async (page, predicate, value) => {
     if (predicate === schema.name) {
-      const parent = await data[page][concept.parent]
       await Promise.all([
-        data[page][predicate].set(value),
-        data.from(parent)[page][predicate].set(value)
+        data[page.uri][predicate].set(value),
+        data[page.inListItem.value][predicate].set(value)
       ])
     } else if (predicate === schema.text) {
       await data[page][predicate].set(value)
