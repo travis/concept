@@ -12,7 +12,7 @@ import * as m from "../utils/model"
 type AddPageType = (props: m.PageProps) => Promise<void>
 type AddSubPageType = (parentPageListItem: m.PageListItem, props: m.PageProps) => Promise<void>
 type UpdatePageType = (page: m.Page, predicate: string, value: any) => Promise<void>
-type DeletePageType = (pageUriOrNode: string) => Promise<void>
+type DeletePageType = (page: m.Page) => Promise<void>
 
 export interface WorkspaceContextType {
   conceptContainer?: string,

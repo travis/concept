@@ -1,19 +1,29 @@
 import solid from 'solid-auth-client';
-import {parse as parseWAC} from 'wac-allow'
+import { parse as parseWAC } from 'wac-allow'
 
-export async function getAccessInfo(pageUri){
+type Allowed = {
+  user: Set<String>,
+  public: Set<String>
+}
+
+export type AccessInfo = {
+  aclUri?: string,
+  allowed?: Allowed
+}
+
+export async function getAccessInfo(pageUri: string): Promise<AccessInfo> {
   try {
     const response = await solid.fetch(pageUri, { method: 'HEAD' });
     const allowed = parseWAC(response.headers.get('WAC-Allow'))
     // for concept, acls are stored at the container level to ensure subpages inherit permissions by default
     const aclUri = `${pageUri.split("/").slice(0, -1).join("/")}/.acl`
-    return {aclUri, allowed}
+    return { aclUri, allowed }
   } catch (error) {
     throw error;
   }
 };
 
-export const defaultAcl = (webId, container) => `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+export const defaultAcl = (webId: string, container: string) => `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 @prefix n: <http://www.w3.org/2006/vcard/ns#>.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
@@ -34,7 +44,7 @@ export const defaultAcl = (webId, container) => `@prefix acl: <http://www.w3.org
     acl:mode acl:Read.
 `
 
-export const createDefaultAcl = (webId, container) => solid.fetch(`${container}.acl`, {
+export const createDefaultAcl = (webId: string, container: string) => solid.fetch(`${container}.acl`, {
   method: 'PUT',
   headers: {
     'Content-Type': 'text/turtle'
@@ -43,11 +53,11 @@ export const createDefaultAcl = (webId, container) => solid.fetch(`${container}.
 })
 
 // thanks, https://github.com/inrupt/solid-react-components/blob/develop/src/lib/classes/access-control-list.js
-export const getParentACLUri = async (url) => {
+export const getParentACLUri = async (url: string): Promise<string | undefined> => {
   const newURL = new URL(url);
   const { pathname } = newURL;
   const hasParent = pathname.length > 1;
-  if (!hasParent) return null;
+  if (!hasParent) return undefined;
   const isContainer = pathname.endsWith('/');
   let newPathname = isContainer ? pathname.slice(0, pathname.length - 1) : pathname;
   newPathname = `${newPathname.slice(0, newPathname.lastIndexOf('/'))}/`;
@@ -56,5 +66,5 @@ export const getParentACLUri = async (url) => {
   if (result.status === 404) return getParentACLUri(parentURI);
   if (result.status === 200) return `${parentURI}.acl`;
 
-  return null;
+  return undefined;
 };

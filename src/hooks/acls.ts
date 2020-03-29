@@ -1,19 +1,19 @@
 import solid from 'solid-auth-client';
-import {useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 import { useLiveUpdate } from '@solid/react';
-import { getAccessInfo, getParentACLUri } from "../utils/acl"
+import { getAccessInfo, getParentACLUri, AccessInfo } from "../utils/acl"
 
-export function useAccessInfo(documentUri){
+export function useAccessInfo(documentUri: string) {
   const [error, setError] = useState(undefined);
-  const [accessInfo, setAccessInfo] = useState({});
+  const [accessInfo, setAccessInfo] = useState<AccessInfo>({});
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    if (documentUri){
-      async function fetchUri() {
+    if (documentUri) {
+      const fetchUri = async () => {
         setLoading(true)
         try {
           setAccessInfo(await getAccessInfo(documentUri))
-        } catch(e){
+        } catch (e) {
           setError(e)
         }
         setLoading(false)
@@ -21,26 +21,26 @@ export function useAccessInfo(documentUri){
       fetchUri()
     }
   }, [documentUri])
-  return {loading, error, ...accessInfo}
+  return { loading, error, ...accessInfo }
 }
 
-export function useAclExists(aclUri){
+export function useAclExists(aclUri: string) {
   const [error, setError] = useState(undefined);
   const [exists, setExists] = useState({});
   const [loading, setLoading] = useState(false);
-  const {timestamp, url} = useLiveUpdate()
+  const { timestamp, url } = useLiveUpdate()
   const [thisTimestamp, setThisTimestamp] = useState(timestamp)
-  if ((timestamp !== thisTimestamp) && (url === aclUri)){
+  if ((timestamp !== thisTimestamp) && (url === aclUri)) {
     setThisTimestamp(timestamp)
   }
   useEffect(() => {
-    if (aclUri){
-      async function fetchUri() {
+    if (aclUri) {
+      const fetchUri = async () => {
         setLoading(true)
         try {
           const response = await solid.fetch(aclUri, { method: 'HEAD' })
           setExists(response.ok)
-        } catch(e){
+        } catch (e) {
           setError(e)
         }
         setLoading(false)
@@ -48,20 +48,20 @@ export function useAclExists(aclUri){
       fetchUri()
     }
   }, [aclUri, timestamp])
-  return {loading, error, exists}
+  return { loading, error, exists }
 }
 
-export function useParentAcl(pageUri){
+export function useParentAcl(pageUri: string) {
   const [error, setError] = useState();
-  const [aclUri, setAclUri] = useState();
+  const [aclUri, setAclUri] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    if (pageUri){
-      async function fetchUri() {
+    if (pageUri) {
+      const fetchUri = async () => {
         setLoading(true)
         try {
           setAclUri(await getParentACLUri(pageUri))
-        } catch(e){
+        } catch (e) {
           setError(e)
         }
         setLoading(false)
@@ -69,5 +69,5 @@ export function useParentAcl(pageUri){
       fetchUri()
     }
   }, [pageUri])
-  return {loading, error, uri: aclUri}
+  return { loading, error, uri: aclUri }
 }

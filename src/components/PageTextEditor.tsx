@@ -12,7 +12,7 @@ import { Node } from 'slate';
 import { HoveringToolbar } from "./EditorToolbar";
 import Editable, { useNewEditor } from "./Editable";
 import { Page } from "../utils/model"
-import WorkspaceContext, { WorkspaceContextType } from "../context/workspace";
+import WorkspaceContext from "../context/workspace";
 import { useLDflex } from '../hooks/ldflex';
 import { useBackups } from '../hooks/backup';
 
@@ -53,7 +53,7 @@ interface PageTextEditorProps {
 
 export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) {
   const pageUri = page.uri
-  const { updatePage } = useContext<WorkspaceContextType>(WorkspaceContext);
+  const { updatePage } = useContext(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
   const [pageTextNode] = useLDflex(`[${page.uri}][${schema.text}]`);
