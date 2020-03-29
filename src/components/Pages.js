@@ -90,8 +90,7 @@ const useStyles = makeStyles(theme => ({
 function PageName({page}){
   const {updatePage} = useContext(WorkspaceContext);
   const [editing, setEditing] = useState(false);
-  const [savedNameNode] = useLDflex(`[${page}][${schema.name}]`);
-  const savedName = savedNameNode && savedNameNode.toString();
+  const savedName = page.name
   const [name, setName] = useState(savedName);
   useEffect(() => {
     savedName && setName(`${savedName}`);
@@ -238,7 +237,7 @@ function AppBarMenu({page, onClose, onDelete, ...props}){
     <>
       <Menu onClose={onClose} {...props}>
         <MenuItem>
-          <Link href={page} target="_blank" rel="noopener noreferrer" color="inherit">
+          <Link href={page.uri} target="_blank" rel="noopener noreferrer" color="inherit">
             Source
           </Link>
         </MenuItem>
@@ -270,7 +269,7 @@ function Page({page}){
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
   const [backupsDialogOpen, setBackupsDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false)
-  const pageUri = page.toString()
+  const pageUri = page.uri
   const { aclUri, allowed } = useAccessInfo(pageUri)
   const readOnly = !(allowed && allowed.user.has("write"))
 
@@ -322,8 +321,8 @@ function Page({page}){
       {backupsDialogOpen && <BackupsDialog page={page} open={backupsDialogOpen} handleClose={() => setBackupsDialogOpen(false)}/>}
       {allowed && (
         <EditorErrorBoundary>
-          <LiveUpdate subscribe={page.toString()}>
-            <PageTextEditor page={page.toString()} readOnly={readOnly}/>
+          <LiveUpdate subscribe={page.uri}>
+            <PageTextEditor page={page.uri} readOnly={readOnly}/>
           </LiveUpdate>
         </EditorErrorBoundary>
       )}
@@ -341,9 +340,9 @@ const usePagesStyles = makeStyles(theme => ({
 }));
 
 function CurrentPage() {
-  const currentPage = useCurrentPage()
+  const [currentPage] = useCurrentPage()
   return currentPage ? (
-    <LiveUpdate subscribe={currentPage}>
+    <LiveUpdate subscribe={currentPage.uri}>
       <Page page={currentPage}/>
     </LiveUpdate>
   ) : (
@@ -356,7 +355,7 @@ export default function Pages({workspace, addPage}){
   return (
     <>
       {workspace ? (
-        <LiveUpdate subscribe={[workspace.toString()]}>
+        <LiveUpdate subscribe={[workspace.uri]}>
           <PageDrawer workspace={workspace}/>
         </LiveUpdate>
       ) : (

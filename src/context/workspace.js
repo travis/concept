@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useEffect} from 'react';
+import React, {createContext, useCallback, useEffect, useMemo} from 'react';
 import {space, schema} from 'rdf-namespaces';
 import {useWebId, useLDflexValue} from '@solid/react';
 import data from '@solid/query-ldflex';
@@ -8,6 +8,7 @@ import { createNonExistentDocument, deleteFile } from '../utils/ldflex-helper';
 import { createDefaultAcl } from '../utils/acl';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import concept from '../ontology'
+import * as model from "../utils/data"
 
 const WorkspaceContext = createContext({});
 
@@ -23,35 +24,32 @@ const initialPage = JSON.stringify([
 export const WorkspaceProvider = (props) => {
   const webId = useWebId();
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
-  const conceptContainer = conceptContainerUrl(storage)
-  const publicPages = publicPagesUrl(conceptContainer)
-  const workspaceFile = 'workspace/index.ttl';
-  const workspace = storage && `${conceptContainer}${workspaceFile}`;
+  const conceptContainer = storage && conceptContainerUrl(storage)
+  const publicPages = conceptContainer && publicPagesUrl(conceptContainer)
+  const workspaceContainer = conceptContainer && `${conceptContainer}workspace/`
+  const workspaceDoc = workspaceContainer && `${workspaceContainer}index.ttl`
+  const workspace = useMemo(() => workspaceDoc && ({
+    docUri: workspaceDoc,
+    uri: `${workspaceDoc}#Workspace`,
+    subpageContainerUri: `${workspaceContainer}pages/`
+  }), [workspaceDoc])
 
   useEffect(() => {
-    if (workspace) {
+    if (workspaceDoc) {
       const createWorkspace = async () => {
-        await createNonExistentDocument(workspace);
+        await createNonExistentDocument(workspaceDoc);
       }
       createWorkspace();
     }
-  }, [workspace])
+  }, [workspaceDoc])
 
-  const addPage = async ({name="Untitled", parent=workspace}={}) => {
-    const id = uuid();
-    const pageContainer = `${parent.toString().split("/").slice(0, -1).join("/")}/pages/${id}/`
-    const pageRef = `${pageContainer}index.ttl`;
-    await createNonExistentDocument(pageRef);
-    await Promise.all([
-      data[pageRef][schema.text].set(initialPage),
-      data[pageRef][schema.name].set(name),
-      data[pageRef][concept.parent].set(namedNode(parent.toString())),
-      data.from(parent)[pageRef][schema.name].set(name),
-      data[parent][schema.itemListElement].add(namedNode(pageRef)),
-    ]);
-    if (parent === workspace){
-      await createDefaultAcl(webId, pageContainer)
-    }
+  const addPage = async ({name="Untitled"}={}) => {
+    const page = await model.addPage(workspace, {name})
+    await createDefaultAcl(webId, page.containerUri)
+  }
+
+  const addSubPage = async (parentPageListItem, {name="Untitled", parent}={}) => {
+    await model.addSubPage(parentPageListItem, {name})
   }
 
   const updatePage = useCallback(async (page, predicate, value) => {
@@ -77,7 +75,7 @@ export const WorkspaceProvider = (props) => {
   }, [])
 
   return (
-    <Provider {...props} value={{conceptContainer, publicPages, workspace, addPage, updatePage, deletePage}} />
+    <Provider {...props} value={{conceptContainer, publicPages, workspace, addPage, addSubPage, updatePage, deletePage}} />
   )
 }
 

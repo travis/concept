@@ -337,9 +337,9 @@ export default function SharingModal({page, aclUri, open, onClose}) {
           <Loader/>
         ) : (
           exists ? (
-            <AclContent page={page} aclUri={aclUri}/>
+            <AclContent page={page.uri} aclUri={aclUri}/>
           ) : (
-            <NoAclContent page={page} aclUri={aclUri}/>
+            <NoAclContent page={page.uri} aclUri={aclUri}/>
           )
         )}
     </Dialog>

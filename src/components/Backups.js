@@ -165,7 +165,7 @@ function Backup({backupFolder, backup, handleClose}){
 }
 
 export default function Backups({page, handleClose}){
-  const backupFolder = backupFolderForPage(page)
+  const backupFolder = backupFolderForPage(page.uri)
   const backups = useLDflexList(`[${backupFolder}][${ldp.contains}]`)
   const classes = useStyles()
   return (

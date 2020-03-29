@@ -16,7 +16,7 @@ import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import AddIcon from '@material-ui/icons/Add';
 
 import {useLDflexValue, useLDflexList} from '../hooks/ldflex';
-
+import {usePageListItems, usePageFromPageListItem} from '../hooks/data';
 
 import IconButton from './IconButton';
 import WorkspaceContext from "../context/workspace";
@@ -85,15 +85,16 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function SubPageListItems({page, level}){
+function SubPageListItems({pageListItem, level}){
   const classes = useStyles()
-  const subPages = useLDflexList(`[${page}][${schema.itemListElement}]`);
+  const page = usePageFromPageListItem(pageListItem)
+  const subPages = usePageListItems(page)
   if (subPages) {
     if (subPages.length === 0) {
       return <ListItem className={classes.noInnerPages}>no inner pages</ListItem>
     } else {
       return subPages.map((subPage, index) => (
-        <PageListItem parent={page} page={subPage} key={index} level={level}/>
+        <PageListItem parent={page} pageListItem={subPage} key={index} level={level}/>
       ))
     }
   } else {
@@ -101,13 +102,13 @@ function SubPageListItems({page, level}){
   }
 }
 
-function PageListItem({parent, page, level=0}) {
-  const {addPage} = useContext(WorkspaceContext);
+function PageListItem({parent, pageListItem, level=0}) {
+  const {addSubPage} = useContext(WorkspaceContext);
   const [showSubpages, setShowSubpages] = useState(false)
   const { selectedPage } = useParams();
   const classes = useStyles({level})
-  const name = useLDflexValue(`from('${parent}')[${page}][${schema.name}]`);
-  const encodedPage = encodeURIComponent(page)
+  const pageUri = pageListItem.pageNode && pageListItem.pageNode.value
+  const encodedPage = pageUri && encodeURIComponent(pageUri)
   return (
     <>
       <ListItem dense={true} selected={selectedPage === encodedPage} className={`${classes.item} ${classes.sidebarItem}`}>
@@ -123,32 +124,34 @@ function PageListItem({parent, page, level=0}) {
           </IconButton>
         )}
         <Link to={`/page/${encodedPage}`}>
-          <ListItemText primary={`${name || ""}`} />
+          <ListItemText primary={`${pageListItem.name || ""}`} />
         </Link>
         <IconButton title="add inner page" className={classes.sidebarItemHoverButton}
-                    onClick={() => addPage({parent: page})}>
+                    onClick={() => addSubPage(pageListItem)}>
           <AddIcon fontSize="small"/>
         </IconButton>
       </ListItem>
-      <LiveUpdate subscribe={[page.toString()]}>
-        {showSubpages && <SubPageListItems page={page} level={level + 1}/>}
-      </LiveUpdate>
+      {showSubpages && (
+        <LiveUpdate subscribe={[pageUri]}>
+          <SubPageListItems pageListItem={pageListItem} level={level + 1}/>
+        </LiveUpdate>
+      )}
     </>
   )
 }
 
 const PageNameList = ({workspace}) => {
-  const pages = useLDflexList(`[${workspace}][${schema.itemListElement}]`);
+  const pageListItems = usePageListItems(workspace)
   return (
     <List>
-      {pages && pages.map((page, index) => (
-        <PageListItem parent={workspace} page={page} key={index}/>
+      {pageListItems && pageListItems.map((pageListItem, index) => (
+        <PageListItem parent={workspace} pageListItem={pageListItem} key={index}/>
       ))}
     </List>
   )
 }
 
-export default ({workspace, deletePage}) => {
+export default ({workspace}) => {
   const classes = useStyles()
   const [showPages, setShowPages] = useState(true)
   const {addPage} = useContext(WorkspaceContext);
@@ -181,11 +184,11 @@ export default ({workspace, deletePage}) => {
         </Tooltip>
         <IconButton title="add a page"
                     className={`${classes.sidebarItemHoverButton} ${classes.sectionTitleRightButton}`}
-                    onClick={() => addPage()}>
+                    onClick={() => addNewPage()}>
           <AddIcon fontSize="small"/>
         </IconButton>
       </div>
-      {workspace && showPages && <PageNameList {...{workspace}}/>}
+      {workspace && showPages && <PageNameList workspace={workspace}/>}
       <LogInLogOutButton/>
     </Drawer>
 
