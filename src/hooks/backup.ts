@@ -1,11 +1,13 @@
-import {  useEffect, useRef } from 'react'
+import { useEffect, useRef, MutableRefObject } from 'react'
 import { schema, dct } from 'rdf-namespaces';
 import solidNamespace from 'solid-namespace';
 import data from '@solid/query-ldflex';
+import { namedNode, literal } from '@rdfjs/data-model';
+import { Node } from 'slate'
 import { resourceExists, createNonExistentDocument } from '../utils/ldflex-helper'
 import { backupFolderForPage } from '../utils/backups'
 import concept from '../ontology'
-import {namedNode, literal} from '@rdfjs/data-model';
+import { Page } from '../utils/model'
 
 const ns = solidNamespace()
 
@@ -14,18 +16,20 @@ const EVERY_FIVE_MINUTES = 5 * EVERY_MINUTE
 const EVERY_TEN_MINUTES = 10 * EVERY_MINUTE
 const EVERY_THIRTY_MINUTES = 30 * EVERY_MINUTE
 
-async function ensureBackupFileExists(original, backup){
+type BodyRef = MutableRefObject<Node[] | undefined>
+
+async function ensureBackupFileExists(original: Page, backup: string) {
   const exists = await resourceExists(backup)
   if (!exists) {
     await createNonExistentDocument(backup)
   }
   const backupOf = data[backup][concept.backupOf]
   if (!await backupOf) {
-    await backupOf.set(namedNode(original))
+    await backupOf.set(namedNode(original.uri))
   }
 }
 
-async function ensureBackupFolderExists(backupFolder){
+async function ensureBackupFolderExists(backupFolder: string) {
   const metaFile = `${backupFolder}.meta`
   const exists = await resourceExists(metaFile)
   if (!exists) {
@@ -33,7 +37,7 @@ async function ensureBackupFolderExists(backupFolder){
   }
 }
 
-export async function createBackup(page, backupFile, value){
+export async function createBackup(page: Page, backupFile: string, value: string) {
   const folder = backupFolderForPage(page)
   const metaFile = `${folder}.meta`
   const backup = `${folder}${backupFile}`
@@ -43,16 +47,16 @@ export async function createBackup(page, backupFile, value){
   await data.from(metaFile)[backup][dct.modified].set(literal(new Date().toISOString(), ns.xsd("dateTime")))
 }
 
-function createBackupInterval(bodyRef, file, backupFile, interval){
+function createBackupInterval(bodyRef: BodyRef, page: Page, backupFile: string, interval: number) {
   return setInterval(async () => {
-    if (bodyRef.current !== undefined){
-      await createBackup(file, backupFile, JSON.stringify(bodyRef.current))
+    if (bodyRef.current !== undefined) {
+      await createBackup(page, backupFile, JSON.stringify(bodyRef.current))
     }
   }, interval)
 }
 
-export function useBackups(page, value){
-  const bodyRef = useRef()
+export function useBackups(page: Page, value: Node[] | undefined) {
+  const bodyRef: BodyRef = useRef()
   bodyRef.current = value
   useEffect(() => {
     const backupFolder = backupFolderForPage(page)

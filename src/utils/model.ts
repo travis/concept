@@ -95,13 +95,12 @@ export const addSubPage = async (pageListItem: PageListItem, pageProps = {}) => 
   return await addPage(parentPage, pageProps)
 }
 
-export function workspaceFromStorage(storage: string) {
+export function workspaceFromStorage(storage: string): Workspace {
   const conceptContainer = conceptContainerUrl(storage)
   const publicPages = publicPagesUrl(conceptContainer)
   const workspaceContainer = `${conceptContainer}workspace/`
   const workspaceDoc = `${workspaceContainer}index.ttl`
   return ({
-    conceptContainer,
     containerUri: workspaceContainer,
     docUri: workspaceDoc,
     uri: `${workspaceDoc}#Workspace`,

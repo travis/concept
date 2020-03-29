@@ -205,7 +205,7 @@ function Page({page}){
       {allowed && (
         <EditorErrorBoundary>
           <LiveUpdate subscribe={page.uri}>
-            <PageTextEditor page={page.uri} readOnly={readOnly}/>
+            <PageTextEditor page={page} readOnly={readOnly}/>
           </LiveUpdate>
         </EditorErrorBoundary>
       )}

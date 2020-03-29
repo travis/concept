@@ -52,10 +52,11 @@ interface PageTextEditorProps {
 }
 
 export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) {
+  const pageUri = page.uri
   const { updatePage } = useContext<WorkspaceContextType>(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
-  const [pageTextNode] = useLDflex(`[${page}][${schema.text}]`);
+  const [pageTextNode] = useLDflex(`[${page.uri}][${schema.text}]`);
   const pageText = pageTextNode && pageTextNode.value;
   const [editorValue, setEditorValue] = useState<Node[] | undefined>(undefined);
   const [saveNeeded, setSaveNeeded] = useState(false);
@@ -74,7 +75,7 @@ export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) 
     editor.children = undefined
     setEditorValue(undefined);
     savedVersionsRef.current = []
-  }, [editor, page])
+  }, [editor, pageUri])
 
   useBackups(page, editorValue)
 

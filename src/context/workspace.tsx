@@ -35,9 +35,12 @@ type WorkspaceProviderProps = {
 export const WorkspaceProvider: FunctionComponent<WorkspaceProviderProps> = ({ children }) => {
   const webId = useWebId();
   const storage: any = useLDflexValue(`[${webId}][${space.storage}]`);
-  const workspace = (storage === undefined) ? undefined : m.workspaceFromStorage(storage.value as string)
+  const workspace = useMemo(
+    () => (storage === undefined) ? undefined : m.workspaceFromStorage(storage.value as string)
+    , [storage])
 
   useEffect(() => {
+    console.log("workspace changed")
     if (workspace && workspace.docUri) {
       const createWorkspace = async () => {
         await createNonExistentDocument(workspace);
