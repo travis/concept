@@ -224,7 +224,8 @@ async function ensurePublicAclExists(publicAccessUri, resourceUri){
 }
 
 function PublicAccess({page, aclUri}){
-  const {publicPages} = useContext(WorkspaceContext)
+  const {workspace} = useContext(WorkspaceContext)
+  const publicPages = workspace.publicPages
   const [saving, setSaving] = useState(false)
   const publicAccessUri = `${aclUri}#Public`
   const publicAccessModeNodes = useLDflexList(`[${publicAccessUri}][${acl.mode}]`);

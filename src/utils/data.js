@@ -29,41 +29,6 @@ export function pageUrisFromPageUri(pageUri) {
   return pageUris(`${pageUri.split("/").slice(0, -1).join("/")}/`)
 }
 
-const addPageMetadata = async (parent, page) => {
-  const childListItemUri = `${parent.docUri}#${page.id}`
-  const childListItemNode = data[childListItemUri]
-  await Promise.all([
-    childListItemNode[rdf.type].set(namedNode(schema.ListItem)),
-    childListItemNode[schema.item].set(namedNode(page.uri)),
-    childListItemNode[schema.name].set(page.name)
-  ])
-  return {inListItem: childListItemNode, ...page}
-}
-
-export const addPage = async (parent, pageProps={}) => {
-  const barePage = newPage(parent, pageProps)
-  await createNonExistentDocument(barePage.docUri)
-  const page = await addPageMetadata(parent, barePage)
-  const pageNode = data[page.uri]
-  await Promise.all([
-    pageNode[rdf.type].set(schema.DigitalDocument),
-    pageNode[dc.identifier].set(page.id),
-    pageNode[schema.text].set(page.text),
-    pageNode[schema.name].set(page.name),
-    pageNode[concept.parent].set(namedNode(parent.uri)),
-    pageNode[concept.inListItem].set(page.inListItem)
-  ])
-  await data[parent.uri][schema.itemListElement].add(page.inListItem)
-  return page
-}
-
-export const addSubPage = async (pageListItem, pageProps={}) => {
-  const parentPage = await pageResolver(pageListItem.pageNode)
-  return await addPage(parentPage, pageProps)
-}
-
-
-
 export const listResolver = async query => {
   const newResult = []
   for await (const result of query){

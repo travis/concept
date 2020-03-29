@@ -36,6 +36,7 @@ import WorkspaceContext from "../context/workspace";
 import PageContext from '../context/page'
 
 import PageDrawer from './PageDrawer';
+import PageTextEditor from './PageTextEditor'
 import { LiveUpdate } from "@solid/react";
 import { useLDflex } from '../hooks/ldflex';
 import { useAccessInfo } from '../hooks/acls';
@@ -44,37 +45,10 @@ import { useCurrentPage } from '../hooks/pages';
 import {drawerWidth} from '../constants'
 
 const useStyles = makeStyles(theme => ({
-  saving: {
-    position: "fixed",
-    right: theme.spacing(0),
-    top: "78px",
-    zIndex: 1000,
-    color: theme.palette.primary.light
-  },
   appBar: {
     width: `calc(100% - ${drawerWidth}px)`,
     marginLeft: drawerWidth,
     background: "white"
-  },
-  editor: {
-    position: "relative",
-    height: "100%",
-    overflow: "scroll"
-  },
-  editable: {
-    marginTop: "48px",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    textAlign: "left",
-    padding: theme.spacing(1),
-    paddingLeft: theme.spacing(8),
-    paddingRight: theme.spacing(8),
-    paddingTop: 0,
-    background: "white",
-    position: "absolute"
-
   },
   shareButton: {
     float: "right"
@@ -109,97 +83,6 @@ function PageName({page}){
                onChange={(e) => setName(e.target.value)}/>
   ) : (
     <Typography variant="h5" onClick={() => setEditing(true)} noWrap>{name}</Typography>
-  );
-}
-
-function PageTextEditor({page, readOnly}){
-  const {updatePage} = useContext(WorkspaceContext);
-  const classes = useStyles();
-  const [saving, setSaving] = useState(false);
-  const [pageTextNode] = useLDflex(`[${page}][${schema.text}]`);
-  const pageText = pageTextNode && pageTextNode.value;
-  const [editorValue, setEditorValue] = useState(undefined);
-  const [saveNeeded, setSaveNeeded] = useState(false);
-  const [debouncedValue] = useDebounce(editorValue, 1500);
-  const savedVersionsRef = useRef([])
-  const setSavedVersions = useCallback(
-    (mutate) => {
-      savedVersionsRef.current = mutate(savedVersionsRef.current)
-    },
-    [savedVersionsRef]
-  )
-  const editor = useNewEditor()
-
-  useEffect(() => {
-    // set editor text to null when the page changes so we won't save page text from another page to the current page
-    editor.children = undefined
-    setEditorValue(undefined);
-    savedVersionsRef.current = []
-  }, [editor, page])
-
-  useBackups(page, editorValue)
-
-  const previouslySaved = useCallback(
-    (text) => savedVersionsRef.current.some(previousVersion => previousVersion === text),
-    [savedVersionsRef]
-  )
-
-  useEffect(() => {
-    // once pageText loads, set editorValue
-    if ((pageText !== undefined) && (pageText !== null)) {
-      setEditorValue(currentValue => {
-        if ((JSON.stringify(currentValue) === pageText) ||
-            previouslySaved(pageText)){
-          return currentValue
-        } else {
-          return JSON.parse(pageText)
-        }
-      })
-    }
-  }, [pageText, previouslySaved, savedVersionsRef]);
-
-  useEffect(() => {
-    const maybeSave = async () => {
-      const saveableText = JSON.stringify(debouncedValue);
-      if (saveableText !== pageText) {
-        setSaving(true);
-        await updatePage(page, schema.text, saveableText);
-        setSavedVersions(currentSavedVersions => [saveableText, ...currentSavedVersions].slice(0, 100))
-        setSaving(false);
-      }
-    }
-    if (saveNeeded) {
-      setSaveNeeded(false);
-      maybeSave();
-    }
-  }, [saveNeeded, page, pageText, debouncedValue, updatePage, setSavedVersions])
-
-  useEffect(() => {
-    if (debouncedValue !== undefined) {
-      setSaveNeeded(true);
-    }
-  }, [debouncedValue])
-
-  return (
-    <Paper className={classes.editor}>
-      {saving && <SaveIcon className={classes.saving}/>}
-      {editorValue === undefined ? (
-        <div>Loading...</div>
-      ) : (
-        <Slate editor={editor}
-               value={editorValue === undefined ? [] : editorValue}
-               onChange={newValue => setEditorValue(newValue)}>
-          {!readOnly && (
-            <>
-              <HoveringToolbar />
-            </>
-          )}
-
-          <Editable autoFocus readOnly={readOnly} editor={editor}
-                    className={classes.editable}/>
-        </Slate>
-      )}
-    </Paper>
   );
 }
 
@@ -263,7 +146,7 @@ function AppBarMenu({page, onClose, onDelete, ...props}){
 }
 
 function Page({page}){
-  const {publicPages} = useContext(WorkspaceContext)
+  const {workspace} = useContext(WorkspaceContext)
   const menuButton = useRef();
   const classes = useStyles();
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
@@ -314,7 +197,7 @@ function Page({page}){
                     horizontal: 'right',
                   }}/>
       {aclUri && (
-        <LiveUpdate subscribe={[aclUri, publicPages]}>
+        <LiveUpdate subscribe={[aclUri, workspace.publicPages]}>
           {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)}/>)}
         </LiveUpdate>
       )}

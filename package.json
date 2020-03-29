@@ -13,6 +13,7 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.0",
     "@testing-library/user-event": "^7.2.1",
+    "@types/solid__react": "^1.6.1",
     "@types/uuid": "^7.0.2",
     "copy-to-clipboard": "^3.3.1",
     "image-extensions": "^1.1.0",
