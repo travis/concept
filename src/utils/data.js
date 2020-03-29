@@ -5,6 +5,7 @@ import uuid from 'uuid/v1';
 import concept from '../ontology'
 import { createNonExistentDocument, deleteFile } from './ldflex-helper';
 import { createDefaultAcl } from '../utils/acl';
+import {newPage, pageUris} from './model'
 
 export const addPublicPage = (publicPageListUri, page) =>
   data[publicPageListUri][schema.itemListElement].add(namedNode(page))
@@ -24,36 +25,8 @@ const refDocument = (ref) => {
   return url.toString()
 }
 
-const initialPage = JSON.stringify([
-  {
-    type: 'paragraph',
-    children: [{text: ''}]
-  }
-])
-
-export function pageUris(containerUri) {
-  const docUri = `${containerUri}index.ttl`
-  const uri = `${docUri}#Page`
-  const subpageContainerUri = `${containerUri}pages/`
-  return ({ containerUri, docUri, uri, subpageContainerUri })
-}
-
 export function pageUrisFromPageUri(pageUri) {
   return pageUris(`${pageUri.split("/").slice(0, -1).join("/")}/`)
-}
-
-export function newPage(parent, {name="Untitled"}={}){
-  const id = uuid()
-  const {containerUri, docUri, uri, subpageContainerUri} = pageUris(`${parent.subpageContainerUri}${id}/`)
-  return ({
-    id,
-    uri,
-    docUri,
-    containerUri,
-    subpageContainerUri: `${containerUri}pages/`,
-    name,
-    text: initialPage
-  })
 }
 
 const addPageMetadata = async (parent, page) => {
