@@ -8,7 +8,7 @@ import { addPage } from "../utils/model"
 import { useWorkspace, usePageListItems } from "../hooks/data"
 
 function Workspace({workspace}){
-  const pageListItems = usePageListItems(workspace)
+  const [pageListItems] = usePageListItems(workspace)
   return (
     <div>
       {workspace && <Link href={workspace.uri}>{workspace.uri}</Link>}

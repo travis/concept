@@ -96,10 +96,12 @@ type SubPageListItemsProps = {
   pageListItem: PageListItemType
 }
 
+const SidebarLoader = () => <Loader type="ThreeDots" width={3} height={1} />
+
 function SubPageListItems({ pageListItem, level }: SubPageListItemsProps) {
   const classes = useStyles({ level })
-  const page = usePageFromPageListItem(pageListItem)
-  const subPageListItems = usePageListItems(page)
+  const [page] = usePageFromPageListItem(pageListItem)
+  const [subPageListItems] = usePageListItems(page)
 
   if (page && subPageListItems) {
     if (subPageListItems.length === 0) {
@@ -169,7 +171,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
       {showSubpages && (
         <SubPageListItems pageListItem={pageListItem} level={level + 1} />
       )}
-      {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
+      {adding && <ListItem className={classes.loaderListItem}><SidebarLoader /></ListItem>}
     </>
   )
 }
@@ -184,7 +186,7 @@ const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: Pag
         </LiveUpdate>
       ))}
 
-      {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
+      {adding && <ListItem className={classes.loaderListItem}><SidebarLoader /></ListItem>}
     </List>
   )
 }
@@ -196,7 +198,7 @@ type PageDrawerProps = {
 export default ({ workspace }: PageDrawerProps) => {
   const classes = useStyles({})
   const history = useHistory();
-  const pageListItems = usePageListItems(workspace)
+  const [pageListItems, pageListItemsLoading] = usePageListItems(workspace)
   const [showPages, setShowPages] = useState(true)
   const { addPage } = useContext(WorkspaceContext);
   const [addingPage, setAddingPage] = useState(false)
@@ -238,6 +240,12 @@ export default ({ workspace }: PageDrawerProps) => {
         </IconButton>
       </div>
       {pageListItems && showPages && <PageNameList pageListItems={pageListItems} workspace={workspace} adding={addingPage} />}
+      {pageListItemsLoading && <SidebarLoader />}
+      {!pageListItemsLoading && pageListItems && (pageListItems.length === 0) && (
+        <>
+          <Button onClick={() => addNewPage()}>create your first page</Button>
+        </>
+      )}
       <LogInLogOutButton />
     </Drawer>
 

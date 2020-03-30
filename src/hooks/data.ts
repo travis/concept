@@ -70,13 +70,11 @@ export function useListQuery(...queryUris: string[]) {
 }
 
 export function usePageListItems(parent: PageContainer | undefined) {
-  const [items] = useQuery(pageListItemsResolver, parent && parent.uri, schema.itemListElement)
-  return items
+  return useQuery(pageListItemsResolver, parent && parent.uri, schema.itemListElement)
 }
 
 export function usePageFromPageListItem(pageListItem: PageListItem) {
-  const [items] = useQuery(pageResolver, pageListItem && pageListItem.pageUri)
-  return items
+  return useQuery(pageResolver, pageListItem && pageListItem.pageUri)
 }
 
 export function usePage(pageUri: string | undefined): [Page | undefined, boolean, Error | undefined] {
