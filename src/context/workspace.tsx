@@ -5,10 +5,11 @@ import data from '@solid/query-ldflex';
 import { namedNode } from '@rdfjs/data-model';
 import { createNonExistentDocument, deleteFile } from '../utils/ldflex-helper';
 import { createDefaultAcl } from '../utils/acl';
+import { listResolver } from '../utils/data';
 import * as m from "../utils/model"
 
 type AddPageType = (props: m.PageProps, pageListProps: m.PageListItemProps) => Promise<m.Page | null>
-type AddSubPageType = (parentPageListItem: m.PageListItem, props: m.PageProps, pageListItemProps: m.PageListItemProps) => Promise<m.Page | null>
+type AddSubPageType = (props: m.PageProps, parentPageListItem: m.PageListItem) => Promise<m.Page | null>
 type UpdatePageType = (page: m.Page, predicate: string, value: any) => Promise<void>
 type DeletePageType = (page: m.Page) => Promise<void>
 
@@ -57,8 +58,9 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
     }
   }
 
-  const addSubPage: AddSubPageType = async (parentPageListItem, { name = "Untitled" }, pageListItemProps) => {
-    return await m.addSubPage(parentPageListItem, { name }, pageListItemProps)
+  const addSubPage: AddSubPageType = async ({ name = "Untitled" }, parentPageListItem) => {
+    const subPageList = await listResolver(data[parentPageListItem.pageUri][schema.itemListElement])
+    return await m.addSubPage(parentPageListItem, { name }, { position: subPageList.length })
   }
 
   const updatePage = useCallback(async (page: m.Page, predicate: string, value: string) => {

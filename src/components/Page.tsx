@@ -58,11 +58,10 @@ type PageNameProps = {
 function PageName({ page }: PageNameProps) {
   const { updatePage } = useContext(WorkspaceContext);
   const [editing, setEditing] = useState(false);
-  const savedName = page.name
-  const [name, setName] = useState(savedName);
+  const [name, setName] = useState(page.name);
   useEffect(() => {
-    savedName && setName(`${savedName}`);
-  }, [savedName])
+    page.name && setName(page.name);
+  }, [page.name, page.uri])
 
   const saveAndStopEditing = async () => {
     setEditing(false)

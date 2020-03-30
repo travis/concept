@@ -93,19 +93,23 @@ const useStyles = makeStyles(theme => ({
 
 type SubPageListItemsProps = {
   level: number,
-  page?: Page,
-  subPages?: PageListItemType[]
+  pageListItem: PageListItemType
 }
 
-function SubPageListItems({ page, subPages, level }: SubPageListItemsProps) {
+function SubPageListItems({ pageListItem, level }: SubPageListItemsProps) {
   const classes = useStyles({ level })
-  if (page && subPages) {
-    if (subPages.length === 0) {
+  const page = usePageFromPageListItem(pageListItem)
+  const subPageListItems = usePageListItems(page)
+
+  if (page && subPageListItems) {
+    if (subPageListItems.length === 0) {
       return <ListItem className={classes.noInnerPages}>no inner pages</ListItem>
     } else {
       return <>
-        {subPages.map((subPage, index) => (
-          <PageListItem parent={page} pageListItem={subPage} key={index} level={level} />
+        {subPageListItems.map((subPageListItem, index) => (
+          <LiveUpdate subscribe={subPageListItem.pageUri} key={index}>
+            <PageListItem parent={page} pageListItem={subPageListItem} key={index} level={level} />
+          </LiveUpdate>
         ))}
       </>
     }
@@ -129,8 +133,6 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
   const classes = useStyles({ level })
   const pageUri = pageListItem.pageUri
   const encodedPage = pageUri && encodeURIComponent(pageUri)
-  const page = usePageFromPageListItem(pageListItem)
-  const subPageListItems = usePageListItems(page)
 
   return (
     <>
@@ -154,7 +156,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
             if (addSubPage) {
               setShowSubpages(true)
               setAdding(true)
-              const page = await addSubPage(pageListItem, {}, { position: subPageListItems ? subPageListItems.length : 0 })
+              const page = await addSubPage({}, pageListItem)
               setAdding(false)
               if (page) {
                 history.push(conceptPagePath(page.uri))
@@ -165,7 +167,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
         </IconButton>
       </ListItem>
       {showSubpages && (
-        <SubPageListItems page={page} subPages={subPageListItems} level={level + 1} />
+        <SubPageListItems pageListItem={pageListItem} level={level + 1} />
       )}
       {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
     </>
