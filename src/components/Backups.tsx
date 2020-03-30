@@ -66,7 +66,7 @@ function RestoreDialog({ original, date, restore, handleClose, open }: RestoreDi
     setRestoring(true)
     await restore()
     handleClose({ closeAll: true })
-  }, [restore])
+  }, [restore, handleClose])
   const classes = useStyles()
   return (
     <Dialog
