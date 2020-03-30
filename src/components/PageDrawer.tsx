@@ -13,15 +13,17 @@ import Tooltip from '@material-ui/core/Tooltip';
 import ArrowRight from '@material-ui/icons/ArrowRight';
 import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import AddIcon from '@material-ui/icons/Add';
-
-import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
+import { useHistory } from "react-router-dom";
 
 import IconButton from './IconButton';
-import WorkspaceContext from "../context/workspace";
 import LogInLogOutButton from './LogInLogOutButton';
+import Loader from './Loader';
+import WorkspaceContext from "../context/workspace";
+import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
+import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
+import { conceptPagePath } from '../utils/urls';
 import { drawerWidth } from '../constants'
 import logo from '../logo.svg'
-import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
 
 type WithLevel = { level?: number }
 
@@ -83,6 +85,9 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.grey[500],
     paddingTop: 0,
     paddingBottom: 0
+  },
+  loaderListItem: {
+    paddingLeft: ({ level = 0 }: WithLevel) => theme.spacing(4 + (level * 2)),
   }
 }));
 
@@ -117,7 +122,9 @@ type PageListItemProps = {
 }
 
 function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
+  const history = useHistory();
   const { addSubPage } = useContext(WorkspaceContext);
+  const [adding, setAdding] = useState(false)
   const [showSubpages, setShowSubpages] = useState(false)
   const { selectedPage } = useParams();
   const classes = useStyles({ level })
@@ -137,13 +144,19 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
               <ArrowRight fontSize="small" />
             </IconButton>
           )}
-        <Link to={`/page/${encodedPage}`}>
+        <Link to={conceptPagePath(pageUri)}>
           <ListItemText primary={`${pageListItem.name || ""}`} />
         </Link>
         <IconButton title="add inner page" className={classes.sidebarItemHoverButton}
-          onClick={() => {
+          onClick={async () => {
             if (addSubPage) {
-              addSubPage(pageListItem, {})
+              setShowSubpages(true)
+              setAdding(true)
+              const page = await addSubPage(pageListItem, {})
+              setAdding(false)
+              if (page) {
+                history.push(conceptPagePath(page.uri))
+              }
             }
           }}>
           <AddIcon fontSize="small" />
@@ -152,19 +165,23 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
       {showSubpages && (
         <LiveUpdate subscribe={[pageUri]}>
           <SubPageListItems pageListItem={pageListItem} level={level + 1} />
+          {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
         </LiveUpdate>
       )}
     </>
   )
 }
 
-const PageNameList = ({ workspace }: { workspace: Workspace }) => {
+const PageNameList = ({ workspace, adding }: { workspace: Workspace, adding?: boolean }) => {
   const pageListItems = usePageListItems(workspace)
+  const classes = useStyles()
   return (
     <List>
       {pageListItems && pageListItems.map((pageListItem, index) => (
         <PageListItem parent={workspace} pageListItem={pageListItem} key={index} />
       ))}
+
+      {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
     </List>
   )
 }
@@ -175,13 +192,17 @@ type PageDrawerProps = {
 
 export default ({ workspace }: PageDrawerProps) => {
   const classes = useStyles({})
+  const history = useHistory();
   const [showPages, setShowPages] = useState(true)
   const { addPage } = useContext(WorkspaceContext);
   const [addingPage, setAddingPage] = useState(false)
   const addNewPage = useCallback(async () => {
     setAddingPage(true)
     if (addPage) {
-      await addPage({})
+      const page = await addPage({})
+      if (page) {
+        history.push(conceptPagePath(page.uri))
+      }
     }
     setAddingPage(false)
   }, [addPage])
@@ -212,7 +233,7 @@ export default ({ workspace }: PageDrawerProps) => {
           <AddIcon fontSize="small" />
         </IconButton>
       </div>
-      {workspace && showPages && <PageNameList workspace={workspace} />}
+      {workspace && showPages && <PageNameList workspace={workspace} adding={addingPage} />}
       <LogInLogOutButton />
     </Drawer>
 

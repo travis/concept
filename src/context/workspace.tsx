@@ -8,8 +8,8 @@ import { createDefaultAcl } from '../utils/acl';
 import concept from '../ontology'
 import * as m from "../utils/model"
 
-type AddPageType = (props: m.PageProps) => Promise<void>
-type AddSubPageType = (parentPageListItem: m.PageListItem, props: m.PageProps) => Promise<void>
+type AddPageType = (props: m.PageProps) => Promise<m.Page | null>
+type AddSubPageType = (parentPageListItem: m.PageListItem, props: m.PageProps) => Promise<m.Page | null>
 type UpdatePageType = (page: m.Page, predicate: string, value: any) => Promise<void>
 type DeletePageType = (page: m.Page) => Promise<void>
 
@@ -52,11 +52,14 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
     if (workspace !== undefined) {
       const page = await m.addPage(workspace, { name })
       await createDefaultAcl(webId, page.containerUri)
+      return page
+    } else {
+      return null
     }
   }
 
   const addSubPage: AddSubPageType = async (parentPageListItem, { name = "Untitled" }) => {
-    await m.addSubPage(parentPageListItem, { name })
+    return await m.addSubPage(parentPageListItem, { name })
   }
 
   const updatePage = useCallback(async (page: m.Page, predicate: string, value: string) => {
