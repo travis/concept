@@ -1,7 +1,7 @@
 import uuid from 'uuid/v1';
 import { schema, rdf, dc } from 'rdf-namespaces';
 import data from '@solid/query-ldflex';
-import { namedNode } from '@rdfjs/data-model';
+import { namedNode, literal } from '@rdfjs/data-model';
 import { createNonExistentDocument } from './ldflex-helper';
 import concept from '../ontology';
 import { pageResolver } from './data';
@@ -36,6 +36,10 @@ export interface PageProps {
   name?: string
 }
 
+export interface PageListItemProps {
+  position?: number
+}
+
 const initialPage = JSON.stringify([
   {
     type: 'paragraph',
@@ -63,20 +67,21 @@ export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page
   })
 }
 
-const addPageMetadata = async (parent: PageContainer, page: Page) => {
+const addPageMetadata = async (parent: PageContainer, page: Page, props: PageListItemProps = {}) => {
   const childListItemNode = data[page.inListItem]
   await Promise.all([
     childListItemNode[rdf.type].set(namedNode(schema.ListItem)),
     childListItemNode[schema.item].set(namedNode(page.uri)),
-    childListItemNode[schema.name].set(page.name)
+    childListItemNode[schema.name].set(page.name),
+    childListItemNode[schema.position].set(literal(`${props.position || 0}`, "http://www.w3.org/2001/XMLSchema#int"))
   ])
   return page
 }
 
-export const addPage = async (parent: PageContainer, pageProps = {}) => {
+export const addPage = async (parent: PageContainer, pageProps = {}, pageListItemProps = {}) => {
   const barePage = newPage(parent, pageProps)
   await createNonExistentDocument(barePage.docUri)
-  const page = await addPageMetadata(parent, barePage)
+  const page = await addPageMetadata(parent, barePage, pageListItemProps)
   const pageNode = data[page.uri]
   await Promise.all([
     pageNode[rdf.type].set(schema.DigitalDocument),
@@ -90,9 +95,9 @@ export const addPage = async (parent: PageContainer, pageProps = {}) => {
   return page
 }
 
-export const addSubPage = async (pageListItem: PageListItem, pageProps = {}) => {
+export const addSubPage = async (pageListItem: PageListItem, pageProps = {}, pageListItemProps = {}) => {
   const parentPage = await pageResolver(pageListItem.pageNode)
-  return await addPage(parentPage, pageProps)
+  return await addPage(parentPage, pageProps, pageListItemProps)
 }
 
 export function workspaceFromStorage(storage: string): Workspace {

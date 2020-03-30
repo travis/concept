@@ -42,7 +42,7 @@ export const pageListItemResolver = async query => {
 }
 
 export const pageListItemsResolver = async query => {
-  const itemQueries = await listResolver(query)
+  const itemQueries = await listResolver(query.sort(schema.position))
   return Promise.all(itemQueries.map(pageListItemResolver))
 }
 

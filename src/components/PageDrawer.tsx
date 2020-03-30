@@ -20,7 +20,7 @@ import LogInLogOutButton from './LogInLogOutButton';
 import Loader from './Loader';
 import WorkspaceContext from "../context/workspace";
 import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
-import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
+import { Page, Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
 import { conceptPagePath } from '../utils/urls';
 import { drawerWidth } from '../constants'
 import logo from '../logo.svg'
@@ -92,14 +92,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type SubPageListItemsProps = {
-  pageListItem: PageListItemType,
-  level: number
+  level: number,
+  page?: Page,
+  subPages?: PageListItemType[]
 }
 
-function SubPageListItems({ pageListItem, level }: SubPageListItemsProps) {
+function SubPageListItems({ page, subPages, level }: SubPageListItemsProps) {
   const classes = useStyles({ level })
-  const page = usePageFromPageListItem(pageListItem)
-  const subPages = usePageListItems(page)
   if (page && subPages) {
     if (subPages.length === 0) {
       return <ListItem className={classes.noInnerPages}>no inner pages</ListItem>
@@ -130,6 +129,9 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
   const classes = useStyles({ level })
   const pageUri = pageListItem.pageNode && pageListItem.pageNode.value
   const encodedPage = pageUri && encodeURIComponent(pageUri)
+  const page = usePageFromPageListItem(pageListItem)
+  const subPageListItems = usePageListItems(page)
+
   return (
     <>
       <ListItem dense={true} selected={selectedPage === encodedPage} className={`${classes.item} ${classes.sidebarItem}`}>
@@ -152,7 +154,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
             if (addSubPage) {
               setShowSubpages(true)
               setAdding(true)
-              const page = await addSubPage(pageListItem, {})
+              const page = await addSubPage(pageListItem, {}, { position: subPageListItems ? subPageListItems.length : 0 })
               setAdding(false)
               if (page) {
                 history.push(conceptPagePath(page.uri))
@@ -164,7 +166,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
       </ListItem>
       {showSubpages && (
         <LiveUpdate subscribe={[pageUri]}>
-          <SubPageListItems pageListItem={pageListItem} level={level + 1} />
+          <SubPageListItems page={page} subPages={subPageListItems} level={level + 1} />
           {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
         </LiveUpdate>
       )}
@@ -172,8 +174,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
   )
 }
 
-const PageNameList = ({ workspace, adding }: { workspace: Workspace, adding?: boolean }) => {
-  const pageListItems = usePageListItems(workspace)
+const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: PageListItemType[], workspace: Workspace, adding?: boolean }) => {
   const classes = useStyles()
   return (
     <List>
@@ -193,19 +194,20 @@ type PageDrawerProps = {
 export default ({ workspace }: PageDrawerProps) => {
   const classes = useStyles({})
   const history = useHistory();
+  const pageListItems = usePageListItems(workspace)
   const [showPages, setShowPages] = useState(true)
   const { addPage } = useContext(WorkspaceContext);
   const [addingPage, setAddingPage] = useState(false)
   const addNewPage = useCallback(async () => {
     setAddingPage(true)
     if (addPage) {
-      const page = await addPage({})
+      const page = await addPage({}, { position: pageListItems ? pageListItems.length : 0 })
       if (page) {
         history.push(conceptPagePath(page.uri))
       }
     }
     setAddingPage(false)
-  }, [addPage, history])
+  }, [addPage, history, pageListItems])
 
   return (
     <Drawer
@@ -233,7 +235,7 @@ export default ({ workspace }: PageDrawerProps) => {
           <AddIcon fontSize="small" />
         </IconButton>
       </div>
-      {workspace && showPages && <PageNameList workspace={workspace} adding={addingPage} />}
+      {pageListItems && showPages && <PageNameList pageListItems={pageListItems} workspace={workspace} adding={addingPage} />}
       <LogInLogOutButton />
     </Drawer>
 
