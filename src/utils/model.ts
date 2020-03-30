@@ -86,7 +86,7 @@ export const addPage = async (parent: PageContainer, pageProps = {}, pageListIte
   const page = await addPageMetadata(parent, barePage, pageListItemProps)
   const pageNode = data[page.uri]
   await Promise.all([
-    pageNode[rdf.type].set(schema.DigitalDocument),
+    pageNode[rdf.type].set(namedNode(schema.DigitalDocument)),
     pageNode[dc.identifier].set(page.id),
     pageNode[schema.text].set(page.text),
     pageNode[schema.name].set(page.name),

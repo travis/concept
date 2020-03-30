@@ -165,11 +165,9 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
         </IconButton>
       </ListItem>
       {showSubpages && (
-        <LiveUpdate subscribe={[pageUri]}>
-          <SubPageListItems page={page} subPages={subPageListItems} level={level + 1} />
-          {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
-        </LiveUpdate>
+        <SubPageListItems page={page} subPages={subPageListItems} level={level + 1} />
       )}
+      {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}
     </>
   )
 }
@@ -179,7 +177,9 @@ const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: Pag
   return (
     <List>
       {pageListItems && pageListItems.map((pageListItem, index) => (
-        <PageListItem parent={workspace} pageListItem={pageListItem} key={index} />
+        <LiveUpdate subscribe={pageListItem.pageNode.value}>
+          <PageListItem parent={workspace} pageListItem={pageListItem} key={index} />
+        </LiveUpdate>
       ))}
 
       {adding && <ListItem className={classes.loaderListItem}><Loader type="ThreeDots" width={3} height={1} /></ListItem>}

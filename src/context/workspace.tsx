@@ -74,6 +74,7 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   }, [])
 
   const deletePage = useCallback(async (page: m.Page) => {
+    // TODO: we should delete the ListItem data as well
     await Promise.all([
       data[page.parent][schema.itemListElement].delete(namedNode(page.inListItem)),
       deleteFile(page.uri)
