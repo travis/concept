@@ -47,12 +47,9 @@ export const pageListItemsResolver = async query => {
 }
 
 export const pageResolver = async query => {
-  const [uri, id, text, name] = resolveValues(await Promise.all([
-    query, query[dc.identifier], query[schema.text], query[schema.name]
+  const [uri, id, text, name, inListItem, parent] = resolveValues(await Promise.all([
+    query, query[dc.identifier], query[schema.text], query[schema.name],
+    query[concept.inListItem], query[concept.parent]
   ]))
-  const [parent, inListItem] = await Promise.all([
-    query[concept.parent], query[concept.inListItem]
-  ])
-  const {containerUri, docUri, subpageContainerUri, imageContainerUri} = pageUrisFromPageUri(uri)
-  return {id, text, name, uri, containerUri, docUri, subpageContainerUri, parent, inListItem, imageContainerUri}
+  return {id, text, name, uri, parent, inListItem, ...pageUrisFromPageUri(uri)}
 }

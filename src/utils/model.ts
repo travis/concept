@@ -23,7 +23,8 @@ export interface Page extends PageContainer {
   name: string,
   text: string,
   inListItem: string,
-  imageContainerUri: string
+  imageContainerUri: string,
+  parent: string
 }
 
 export interface PageListItem {
@@ -63,6 +64,7 @@ export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page
     name,
     text: initialPage,
     inListItem,
+    parent: parent.uri,
     ...pageUris(`${parent.subpageContainerUri}${id}/`)
   })
 }

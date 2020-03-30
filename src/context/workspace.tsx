@@ -73,15 +73,13 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
     }
   }, [])
 
-  const deletePage = useCallback(async (pageUriOrNode) => {
-    const parent = await data[pageUriOrNode][concept.parent]
-    const page = namedNode(pageUriOrNode.toString())
+  const deletePage = useCallback(async (page: m.Page) => {
     await Promise.all([
-      data[parent][schema.itemListElement].delete(page),
-      data.from(parent)[page.value][schema.name].delete(),
-      deleteFile(page.value)
+      data[page.parent][schema.itemListElement].delete(namedNode(page.inListItem)),
+      deleteFile(page.uri)
     ])
   }, [])
+
   return (
     <Provider value={{ workspace, addPage, addSubPage, updatePage, deletePage }
     }
