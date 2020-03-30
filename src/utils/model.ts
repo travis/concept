@@ -2,7 +2,7 @@ import uuid from 'uuid/v1';
 import { schema, rdf, dc } from 'rdf-namespaces';
 import data from '@solid/query-ldflex';
 import { namedNode, literal } from '@rdfjs/data-model';
-import { createNonExistentDocument } from './ldflex-helper';
+import { createDocument, patchDocument } from './ldflex-helper';
 import concept from '../ontology';
 import { pageResolver } from './data';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
@@ -70,30 +70,31 @@ export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page
 }
 
 const addPageMetadata = async (parent: PageContainer, page: Page, props: PageListItemProps = {}) => {
-  const childListItemNode = data[page.inListItem]
-  await Promise.all([
-    childListItemNode[rdf.type].set(namedNode(schema.ListItem)),
-    childListItemNode[schema.item].set(namedNode(page.uri)),
-    childListItemNode[schema.name].set(page.name),
-    childListItemNode[schema.position].set(literal(`${props.position || 0}`, "http://www.w3.org/2001/XMLSchema#int"))
-  ])
+  await patchDocument(parent.docUri, `
+INSERT DATA {
+<${page.inListItem}>
+  <${rdf.type}> <${schema.ListItem}> ;
+  <${schema.item}> <${page.uri}> ;
+  <${schema.name}> """${page.name}""" ;
+  <${schema.position}> "${props.position || 0}"^^<http://www.w3.org/2001/XMLSchema#int> .
+<${parent.uri}> <${schema.itemListElement}> <${page.inListItem}> .
+}
+`)
   return page
 }
 
 export const addPage = async (parent: PageContainer, pageProps = {}, pageListItemProps = {}) => {
-  const barePage = newPage(parent, pageProps)
-  await createNonExistentDocument(barePage.docUri)
-  const page = await addPageMetadata(parent, barePage, pageListItemProps)
-  const pageNode = data[page.uri]
-  await Promise.all([
-    pageNode[rdf.type].set(namedNode(schema.DigitalDocument)),
-    pageNode[dc.identifier].set(page.id),
-    pageNode[schema.text].set(page.text),
-    pageNode[schema.name].set(page.name),
-    pageNode[concept.parent].set(namedNode(parent.uri)),
-    pageNode[concept.inListItem].set(page.inListItem)
-  ])
-  await data[parent.uri][schema.itemListElement].add(namedNode(page.inListItem))
+  const page = newPage(parent, pageProps)
+  await createDocument(page.docUri, `
+<${page.uri}>
+   <${rdf.type}> <${schema.DigitalDocument}> ;
+   <${dc.identifier}> "${page.id}" ;
+   <${schema.text}> """${page.text}""" ;
+   <${schema.name}> """${page.name}""" ;
+   <${concept.parent}> <${parent.uri}> ;
+   <${concept.inListItem}> <${page.inListItem}> .
+`)
+  await addPageMetadata(parent, page, pageListItemProps)
   return page
 }
 

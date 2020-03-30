@@ -43,6 +43,21 @@ export const createDocument = async (documentUri, body = '') => {
   }
 };
 
+export const patchDocument = async (documentUri, body = '') => {
+  try {
+    const options = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/sparql-update'
+      },
+      body
+    };
+    return await auth.fetch(documentUri, options);
+  } catch (e) {
+    throw e;
+  }
+};
+
 export const createDocumentWithTurtle = async (documentUri, body = '') => {
   try {
     return createDoc(documentUri, {
