@@ -127,7 +127,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
   const [showSubpages, setShowSubpages] = useState(false)
   const { selectedPage } = useParams();
   const classes = useStyles({ level })
-  const pageUri = pageListItem.pageNode && pageListItem.pageNode.value
+  const pageUri = pageListItem.pageUri
   const encodedPage = pageUri && encodeURIComponent(pageUri)
   const page = usePageFromPageListItem(pageListItem)
   const subPageListItems = usePageListItems(page)
@@ -177,7 +177,7 @@ const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: Pag
   return (
     <List>
       {pageListItems && pageListItems.map((pageListItem, index) => (
-        <LiveUpdate subscribe={pageListItem.pageNode.value} key={index}>
+        <LiveUpdate subscribe={pageListItem.pageUri} key={index}>
           <PageListItem parent={workspace} pageListItem={pageListItem} />
         </LiveUpdate>
       ))}

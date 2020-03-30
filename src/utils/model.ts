@@ -30,7 +30,7 @@ export interface Page extends PageContainer {
 export interface PageListItem {
   uri: string,
   name: string,
-  pageNode: any
+  pageUri: string
 }
 
 export interface PageProps {
@@ -98,7 +98,7 @@ export const addPage = async (parent: PageContainer, pageProps = {}, pageListIte
 }
 
 export const addSubPage = async (pageListItem: PageListItem, pageProps = {}, pageListItemProps = {}) => {
-  const parentPage = await pageResolver(pageListItem.pageNode)
+  const parentPage = await pageResolver(data[pageListItem.pageUri])
   return await addPage(parentPage, pageProps, pageListItemProps)
 }
 

@@ -13,7 +13,7 @@ function Workspace({workspace}){
     <div>
       {workspace && <Link href={workspace.uri}>{workspace.uri}</Link>}
       <Button onClick={() => addPage(workspace)}>add child</Button>
-      {pageListItems && pageListItems.map(item => <div key={item.pageNode.value}>{item.pageNode.value}</div>)}
+      {pageListItems && pageListItems.map(item => <div key={item.pageUri}>{item.pageUri}</div>)}
     </div>
   )
 }

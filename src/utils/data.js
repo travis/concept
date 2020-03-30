@@ -31,14 +31,12 @@ export const listResolver = async query => {
 export const resolveValues = terms => terms.map(term => term && term.value)
 
 export const pageListItemResolver = async query => {
-  const [uri, name] = resolveValues(await Promise.all([
+  const [uri, name, pageUri] = resolveValues(await Promise.all([
     query,
     query[schema.name],
-  ]))
-  const [pageNode] = await Promise.all([
     query[schema.item]
-  ])
-  return {uri, name, pageNode}
+  ]))
+  return {uri, name, pageUri}
 }
 
 export const pageListItemsResolver = async query => {

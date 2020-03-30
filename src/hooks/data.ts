@@ -75,7 +75,7 @@ export function usePageListItems(parent: PageContainer | undefined) {
 }
 
 export function usePageFromPageListItem(pageListItem: PageListItem) {
-  const [items] = useQuery(pageResolver, pageListItem && pageListItem.pageNode.value)
+  const [items] = useQuery(pageResolver, pageListItem && pageListItem.pageUri)
   return items
 }
 
