@@ -177,8 +177,8 @@ const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: Pag
   return (
     <List>
       {pageListItems && pageListItems.map((pageListItem, index) => (
-        <LiveUpdate subscribe={pageListItem.pageNode.value}>
-          <PageListItem parent={workspace} pageListItem={pageListItem} key={index} />
+        <LiveUpdate subscribe={pageListItem.pageNode.value} key={index}>
+          <PageListItem parent={workspace} pageListItem={pageListItem} />
         </LiveUpdate>
       ))}
 
