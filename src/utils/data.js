@@ -3,6 +3,7 @@ import { namedNode } from '@rdfjs/data-model';
 import { acl, schema, dc } from 'rdf-namespaces';
 import concept from '../ontology'
 import { pageUris} from './model'
+import { patchDocument } from '../utils/ldflex-helper'
 
 export const addPublicPage = (publicPageListUri, page) =>
   data[publicPageListUri][schema.itemListElement].add(namedNode(page))
@@ -13,8 +14,27 @@ export const removePublicPage = (publicPageListUri, page) =>
 export const addPublicAccess = (publicAccessUri, accessType) =>
   data[publicAccessUri][acl.mode].add(namedNode(acl[accessType]))
 
-export const removePublicAccess = (publicAccessUri, accessType) =>
-  data[publicAccessUri][acl.mode].delete(namedNode(acl[accessType]))
+export const removePublicAccess = async (publicAccessUri, accessType, publicPages, page, hasWrite) => {
+  if (accessType === "Write"){
+    await data[publicAccessUri][acl.mode].delete(namedNode(acl.Write))
+  } else if (accessType === "Read"){
+    await Promise.all([
+      hasWrite ? (
+        patchDocument(publicAccessUri, `
+DELETE DATA {
+<${publicAccessUri}>
+  <${acl.mode}> <${acl.Read}> ;
+  <${acl.mode}> <${acl.Write}> .
+}
+`)
+      ) : (
+        data[publicAccessUri][acl.mode].delete(namedNode(acl.Read))
+      ),
+      removePublicPage(publicPages, page)
+    ])
+  }
+}
+
 
 export function pageUrisFromPageUri(pageUri) {
   return pageUris(`${pageUri.split("/").slice(0, -1).join("/")}/`)

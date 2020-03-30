@@ -42,6 +42,10 @@ export const defaultAcl = (webId: string, container: string) => `@prefix acl: <h
     acl:accessTo <${container}>;
     acl:default <${container}>;
     acl:mode acl:Read.
+:Public a acl:Authorization;
+    acl:accessTo <${container}>;
+    acl:default <${container}>;
+    acl:agentClass foaf:Agent.
 `
 
 export const createDefaultAcl = (webId: string, container: string) => solid.fetch(`${container}.acl`, {

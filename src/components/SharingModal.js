@@ -208,21 +208,6 @@ function NoAclContent({page, aclUri}){
   )
 }
 
-async function ensurePublicAclExists(publicAccessUri, resourceUri){
-  const [type, agentClass, accessTo, def] = await Promise.all([
-    data[publicAccessUri][rdf.type],
-    data[publicAccessUri][acl.agentClass],
-    data[publicAccessUri][acl.accessTo],
-    data[publicAccessUri][acl.default__workaround],
-  ])
-  await Promise.all([
-    type ? null : data[publicAccessUri][rdf.type].set(namedNode(acl.Authorization)),
-    agentClass ? null : data[publicAccessUri][acl.agentClass].set(namedNode(foaf.Agent)),
-    accessTo ? null : data[publicAccessUri][acl.accessTo].set(namedNode(resourceUri)),
-    def ? null : data[publicAccessUri][acl.default__workaround].set(namedNode(resourceUri))
-  ])
-}
-
 function PublicAccess({page, aclUri}){
   const {workspace} = useContext(WorkspaceContext)
   const publicPages = workspace.publicPages
@@ -237,15 +222,10 @@ function PublicAccess({page, aclUri}){
     const name = event.target.name
     const resourceUri = aclUri.split(".").slice(0, -1).join(".")
     setSaving(true)
-    await ensurePublicAclExists(publicAccessUri, resourceUri)
     if (checked){
       await addPublicAccess(publicAccessUri, name)
     } else {
-      await Promise.all([
-        removePublicAccess(publicAccessUri, name),
-        (name === "Read") ? removePublicAccess(publicAccessUri, "Write") : null,
-        (name === "Read") ? removePublicPage(publicPages, page) : null
-      ])
+      await removePublicAccess(publicAccessUri, name, publicPages, page, write)
     }
     setSaving(false)
   }, [page, publicPages, aclUri, publicAccessUri])
