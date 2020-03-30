@@ -1,4 +1,4 @@
-import React, { forwardRef, Ref } from 'react';
+import React, { forwardRef, Ref, PropsWithChildren } from 'react';
 import IconButton, { IconButtonProps } from '@material-ui/core/IconButton';
 
 import Tooltip from '@material-ui/core/Tooltip';
@@ -20,7 +20,7 @@ interface Props extends IconButtonProps {
   ariaLabel?: string
 }
 
-const MyIconButton = forwardRef(({ active, title, ariaLabel, ...props }: Props, ref: Ref<HTMLButtonElement>) => {
+const MyIconButton = forwardRef(({ active, title, ariaLabel, ...props }: PropsWithChildren<Props>, ref: Ref<HTMLButtonElement>) => {
   const classes = useStyles();
   const button = (
     <IconButton className={active ? classes.active : classes.inactive}

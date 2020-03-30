@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback, PropsWithChildren } from 'react';
 
 import data from '@solid/query-ldflex';
 
@@ -25,9 +25,10 @@ import { Slate } from 'slate-react';
 
 import { useLDflexList, useLDflexValue } from '../hooks/ldflex';
 import { backupFolderForPage } from '../utils/backups'
+import { Page } from '../utils/model'
 import { createBackup } from '../hooks/backup'
 import concept from '../ontology'
-import Editable, {useNewEditor} from "./Editable";
+import Editable, { useNewEditor } from "./Editable";
 import Loader from "./Loader";
 
 const useStyles = makeStyles(theme => ({
@@ -54,18 +55,23 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function RestoreDialog({original, date, restore, handleClose, open}){
+type CloseOpts = { closeAll: boolean }
+type HandleClose = (opts?: CloseOpts) => void
+type RestoreDialogProps = { original: string, date: Date, restore: () => void, handleClose: HandleClose, open: boolean }
+
+function RestoreDialog({ original, date, restore, handleClose, open }: RestoreDialogProps) {
   const originalName = useLDflexValue(`[${original}][${schema.name}]`)
   const [restoring, setRestoring] = useState(false)
   const handleConfirm = useCallback(async () => {
     setRestoring(true)
     await restore()
+    handleClose({ closeAll: true })
   }, [restore])
   const classes = useStyles()
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={() => handleClose()}
       aria-labelledby="confirm-restore-dialog-title"
       aria-describedby="confirm-restore-dialog-description"
     >
@@ -78,27 +84,29 @@ function RestoreDialog({original, date, restore, handleClose, open}){
         </DialogContentText>
       </DialogContent>
       {restoring ? (
-        <Loader className={classes.restoreLoader}/>
+        <Loader className={classes.restoreLoader} />
       ) : (
-        <DialogActions>
-          <Button onClick={handleConfirm} color="primary">
-            Yes!
-          </Button>
-          <Button onClick={handleClose} color="primary" autoFocus>
-            No nevermind
-          </Button>
-        </DialogActions>
-      )}
+          <DialogActions>
+            <Button onClick={() => handleConfirm()} color="primary">
+              Yes!
+            </Button>
+            <Button onClick={() => handleClose()} color="primary" autoFocus>
+              No nevermind
+            </Button>
+          </DialogActions>
+        )}
     </Dialog>
   )
 }
 
-function PreviewName({original}){
+function PreviewName({ original }: { original: string }) {
   const name = useLDflexValue(`[${original}][${schema.name}]`)
   return <>{name && name.value}</>
 }
 
-function PreviewDialog({backup, date, open=true, handleClose}){
+type PreviewDialogProps = { backup: string, date: Date, open?: boolean, handleClose: HandleClose }
+
+function PreviewDialog({ backup, date, open = true, handleClose }: PreviewDialogProps) {
   const [showRestore, setShowRestore] = useState(false)
   const original = useLDflexValue(`[${backup}][${concept.backupOf}]`)
   const backupText = useLDflexValue(`[${backup}][${schema.text}]`)
@@ -109,21 +117,21 @@ function PreviewDialog({backup, date, open=true, handleClose}){
     await createBackup(original.value, "beforeLastRestore.ttl", (await currentText).value)
     await currentText.set(backupText.value)
     setShowRestore(false)
-    handleClose({closeAll: true})
+    handleClose({ closeAll: true })
   }, [original, backupText, handleClose])
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={() => handleClose()}>
       <DialogTitle>
-        {original && <PreviewName original={original}/>}
-        <IconButton aria-label="close" className={classes.previewCloseButton} onClick={handleClose}>
+        {original && <PreviewName original={original.value} />}
+        <IconButton aria-label="close" className={classes.previewCloseButton} onClick={() => handleClose()}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent>
         {backupText && (
-          <Slate editor={editor} value={JSON.parse(backupText.value)}>
+          <Slate editor={editor} value={JSON.parse(backupText.value)} onChange={() => { }}>
             <Paper className={classes.editor}>
-              <Editable readOnly editor={editor}/>
+              <Editable readOnly editor={editor} />
             </Paper>
           </Slate>
         )}
@@ -133,38 +141,54 @@ function PreviewDialog({backup, date, open=true, handleClose}){
           Restore
         </Button>
       </DialogActions>
-      {showRestore && <RestoreDialog original={original} date={date}
-                                     restore={restore} handleClose={() => setShowRestore(false)}
-                                     open={showRestore} />}
-    </Dialog>
+      {
+        showRestore && <RestoreDialog original={original} date={date}
+          restore={restore} handleClose={(opts?: CloseOpts) => {
+            setShowRestore(false)
+            handleClose(opts)
+          }}
+          open={showRestore} />
+      }
+    </Dialog >
   )
 }
 
-function Backup({backupFolder, backup, handleClose}){
+type BackupProps = {
+  backupFolder: string,
+  backup: string,
+  handleClose: HandleClose
+}
+
+function Backup({ backupFolder, backup, handleClose }: PropsWithChildren<BackupProps>) {
   const [showPreview, setShowPreview] = useState(false)
   const meta = `${backupFolder}.meta`
   const backupDateNode = useLDflexValue(`from([${meta}])[${backup}][${dct.modified}]`)
   const backupDate = backupDateNode && new Date(backupDateNode.value)
-  const handleClosePreview = useCallback(({closeAll}) => {
+  const handleClosePreview = useCallback(({ closeAll } = { closeAll: false }) => {
     setShowPreview(false)
-    if (closeAll){
-      handleClose({closeAll})
+    if (closeAll) {
+      handleClose({ closeAll })
     }
   }, [handleClose])
   return (
     <TableRow>
       <TableCell>{backupDate && backupDate.toLocaleString()}</TableCell>
-      <TableCell>{backup && backup.value.split("/").slice(-1)[0]}</TableCell>
+      <TableCell>{backup && backup.split("/").slice(-1)[0]}</TableCell>
       <TableCell>
         <Button onClick={() => setShowPreview(true)}>Show Preview</Button>
         {showPreview && <PreviewDialog backup={backup} date={backupDate}
-                                       handleClose={handleClosePreview}/>}
+          handleClose={(opts?: CloseOpts) => handleClosePreview(opts)} />}
       </TableCell>
     </TableRow>
   )
 }
 
-export default function Backups({page, handleClose}){
+type BackupsProps = {
+  page: Page,
+  handleClose: HandleClose
+}
+
+export default function Backups({ page, handleClose }: BackupsProps) {
   const backupFolder = backupFolderForPage(page.uri)
   const backups = useLDflexList(`[${backupFolder}][${ldp.contains}]`)
   const classes = useStyles()
@@ -180,8 +204,8 @@ export default function Backups({page, handleClose}){
         </TableHead>
         <TableBody>
           {
-            backups && backups.map(backup => (
-              <Backup key={backup} backupFolder={backupFolder} backup={backup} handleClose={handleClose}>
+            backups && backups.map((backup: any) => (
+              <Backup key={backup.value} backupFolder={backupFolder} backup={backup.value} handleClose={handleClose}>
                 {backup.value}
               </Backup>
             ))

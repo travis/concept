@@ -205,7 +205,7 @@ export default ({ workspace }: PageDrawerProps) => {
       }
     }
     setAddingPage(false)
-  }, [addPage])
+  }, [addPage, history])
 
   return (
     <Drawer

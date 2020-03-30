@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css"
 import Loader from 'react-loader-spinner'
@@ -6,7 +6,9 @@ import { useTheme } from '@material-ui/core/styles';
 
 type Types = 'Triangle' | 'ThreeDots'
 
-export default ({ height, width, type = "Triangle", ...props }: { height?: number, width: number, type?: Types }) => {
+type Props = { height?: number, width?: number, type?: Types, className?: string }
+
+export default ({ height, width, type = "Triangle", ...props }: PropsWithChildren<Props>) => {
   const theme = useTheme();
   return (
     <Loader

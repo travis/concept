@@ -18,14 +18,14 @@ const EVERY_THIRTY_MINUTES = 30 * EVERY_MINUTE
 
 type BodyRef = MutableRefObject<Node[] | undefined>
 
-async function ensureBackupFileExists(original: Page, backup: string) {
+async function ensureBackupFileExists(pageUri: string, backup: string) {
   const exists = await resourceExists(backup)
   if (!exists) {
     await createNonExistentDocument(backup)
   }
   const backupOf = data[backup][concept.backupOf]
   if (!await backupOf) {
-    await backupOf.set(namedNode(original.uri))
+    await backupOf.set(namedNode(pageUri))
   }
 }
 
@@ -37,11 +37,11 @@ async function ensureBackupFolderExists(backupFolder: string) {
   }
 }
 
-export async function createBackup(page: Page, backupFile: string, value: string) {
-  const folder = backupFolderForPage(page)
+export async function createBackup(pageUri: string, backupFile: string, value: string) {
+  const folder = backupFolderForPage(pageUri)
   const metaFile = `${folder}.meta`
   const backup = `${folder}${backupFile}`
-  await ensureBackupFileExists(page, backup)
+  await ensureBackupFileExists(pageUri, backup)
   await data[backup][schema.text].set(value)
   await data[backup][dct.modified].set(literal(new Date().toISOString(), ns.xsd("dateTime")))
   await data.from(metaFile)[backup][dct.modified].set(literal(new Date().toISOString(), ns.xsd("dateTime")))
@@ -50,7 +50,7 @@ export async function createBackup(page: Page, backupFile: string, value: string
 function createBackupInterval(bodyRef: BodyRef, page: Page, backupFile: string, interval: number) {
   return setInterval(async () => {
     if (bodyRef.current !== undefined) {
-      await createBackup(page, backupFile, JSON.stringify(bodyRef.current))
+      await createBackup(page.uri, backupFile, JSON.stringify(bodyRef.current))
     }
   }, interval)
 }
@@ -59,7 +59,7 @@ export function useBackups(page: Page, value: Node[] | undefined) {
   const bodyRef: BodyRef = useRef()
   bodyRef.current = value
   useEffect(() => {
-    const backupFolder = backupFolderForPage(page)
+    const backupFolder = backupFolderForPage(page.uri)
     ensureBackupFolderExists(backupFolder)
     const one = createBackupInterval(bodyRef, page, `oneMinute.ttl`, EVERY_MINUTE)
     const five = createBackupInterval(bodyRef, page, `fiveMinutes.ttl`, EVERY_FIVE_MINUTES)

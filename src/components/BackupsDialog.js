@@ -23,7 +23,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function BackupsDialog({page, open, handleClose}) {
-  const name = useLDflexValue(`[${page}][${schema.name}]`);
+  const name = useLDflexValue(`[${page.uri}][${schema.name}]`);
   const classes = useStyles();
   return (
     <Dialog open={open} onClose={handleClose}>
