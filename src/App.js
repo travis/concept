@@ -10,7 +10,7 @@ import {WorkspaceProvider} from './context/workspace'
 
 import Workspace from './components/Workspace';
 import Console from './components/Console';
-import PublicProfile from './components/PublicProfile';
+import PublicProfile, {EncodedWebIdPublicProfile} from './components/PublicProfile';
 
 function App() {
   return (
@@ -26,6 +26,7 @@ function App() {
                   <Route path="/1337" component={Console}/>
                   <Route path="/page/:selectedPage" component={Workspace}/>
                   <Route path="/for/:handle" component={PublicProfile}/>
+                  <Route path="/webid/:encodedWebId" component={EncodedWebIdPublicProfile}/>
                 </Switch>
               </WorkspaceProvider>
             </div>

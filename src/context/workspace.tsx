@@ -67,7 +67,8 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
     if (predicate === schema.name) {
       await Promise.all([
         data[page.uri][predicate].set(value),
-        data[page.inListItem][predicate].set(value)
+        data[page.inListItem][predicate].set(value),
+        data.from(page.metaUri)[page.uri][predicate].set(value)
       ])
     } else if (predicate === schema.text) {
       await data[page.uri][predicate].set(value)
@@ -75,11 +76,7 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   }, [])
 
   const deletePage = useCallback(async (page: m.Page) => {
-    // TODO: we should delete the ListItem data as well
-    await Promise.all([
-      data[page.parent][schema.itemListElement].delete(namedNode(page.inListItem)),
-      deleteFile(page.uri)
-    ])
+    await data[page.parent][schema.itemListElement].delete(namedNode(page.inListItem))
   }, [])
 
   return (

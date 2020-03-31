@@ -23,7 +23,8 @@ export interface Page extends PageContainer {
   text: string,
   inListItem: string,
   imageContainerUri: string,
-  parent: string
+  parent: string,
+  metaUri: string
 }
 
 export interface PageListItem {
@@ -47,12 +48,17 @@ const initialPage = JSON.stringify([
   }
 ])
 
+export function metaForPageUri(pageUri: string) {
+  return `${pageUri.split("/").slice(0, -1).join("/")}/.meta`
+}
+
 export function pageUris(containerUri: string) {
   const docUri = `${containerUri}index.ttl`
+  const metaUri = `${containerUri}.meta`
   const uri = `${docUri}#Page`
   const subpageContainerUri = `${containerUri}pages/`
   const imageContainerUri = `${containerUri}images/`
-  return ({ containerUri, docUri, uri, subpageContainerUri, imageContainerUri })
+  return ({ containerUri, docUri, uri, subpageContainerUri, imageContainerUri, metaUri })
 }
 
 export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page {
@@ -69,7 +75,8 @@ export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page
 }
 
 const addPageMetadata = async (parent: PageContainer, page: Page, props: PageListItemProps = {}) => {
-  await patchDocument(parent.docUri, `
+  await Promise.all([
+    patchDocument(parent.docUri, `
 INSERT DATA {
 <${page.inListItem}>
   <${rdf.type}> <${schema.ListItem}> ;
@@ -78,7 +85,11 @@ INSERT DATA {
   <${schema.position}> "${props.position || 0}"^^<http://www.w3.org/2001/XMLSchema#int> .
 <${parent.uri}> <${schema.itemListElement}> <${page.inListItem}> .
 }
+`),
+    createDocument(page.metaUri, `
+<${page.uri}> <${schema.name}> """${page.name}""" .
 `)
+  ])
   return page
 }
 
