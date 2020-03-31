@@ -20,7 +20,7 @@ import LogInLogOutButton from './LogInLogOutButton';
 import Loader from './Loader';
 import WorkspaceContext from "../context/workspace";
 import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
-import { Page, Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
+import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
 import { conceptPagePath } from '../utils/urls';
 import { drawerWidth } from '../constants'
 import logo from '../logo.svg'

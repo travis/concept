@@ -1,7 +1,6 @@
 import uuid from 'uuid/v1';
 import { schema, rdf, dc } from 'rdf-namespaces';
 import data from '@solid/query-ldflex';
-import { namedNode, literal } from '@rdfjs/data-model';
 import { createDocument, patchDocument } from './ldflex-helper';
 import concept from '../ontology';
 import { pageResolver } from './data';

@@ -27,7 +27,7 @@ import CopyIcon from '@material-ui/icons/FileCopy';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import Add from '@material-ui/icons/Add';
-import { schema, foaf, acl, vcard, rdf } from 'rdf-namespaces';
+import { schema, foaf, acl, vcard } from 'rdf-namespaces';
 
 import { useDrag, useDrop } from 'react-dnd'
 
@@ -220,7 +220,6 @@ function PublicAccess({page, aclUri}){
   const handleChange = useCallback(async event => {
     const checked = event.target.checked
     const name = event.target.name
-    const resourceUri = aclUri.split(".").slice(0, -1).join(".")
     setSaving(true)
     if (checked){
       await addPublicAccess(publicAccessUri, name)
@@ -228,7 +227,7 @@ function PublicAccess({page, aclUri}){
       await removePublicAccess(publicAccessUri, name, publicPages, page, write)
     }
     setSaving(false)
-  }, [page, publicPages, aclUri, publicAccessUri])
+  }, [page, publicPages, publicAccessUri, write])
 
   const publicDocs = useLDflexList(`[${publicPages}][${schema.itemListElement}]`);
   const listedPublicly = publicDocs && publicDocs.map(n => n.value).includes(page)
