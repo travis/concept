@@ -1,14 +1,17 @@
 import React, { useContext, useState, useCallback } from 'react';
 import { useParams, Link } from "react-router-dom";
-import { LiveUpdate } from "@solid/react";
+import { LiveUpdate, useWebId, useLDflexValue } from "@solid/react";
+import { vcard } from 'rdf-namespaces';
 
 import { makeStyles } from '@material-ui/core/styles';
+import Avatar from '@material-ui/core/Avatar';
 import Drawer from '@material-ui/core/Drawer';
 import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 
 import ArrowRight from '@material-ui/icons/ArrowRight';
 import ArrowDown from '@material-ui/icons/ArrowDropDown';
@@ -17,6 +20,7 @@ import { useHistory } from "react-router-dom";
 
 import IconButton from './IconButton';
 import LogInLogOutButton from './LogInLogOutButton';
+import ProfileLink from './ProfileLink';
 import Loader from './Loader';
 import WorkspaceContext from "../context/workspace";
 import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
@@ -44,6 +48,12 @@ const useStyles = makeStyles(theme => ({
     fontWeight: theme.typography.fontWeightBold,
     display: "inline-block",
   },
+  avatar: {
+    marginLeft: theme.spacing(3),
+    marginRight: theme.spacing(1),
+    height: theme.spacing(3),
+    width: theme.spacing(3)
+  },
   item: {
     paddingLeft: ({ level = 0 }: WithLevel) => theme.spacing(1 + (level * 2)),
     paddingRight: theme.spacing(1),
@@ -67,6 +77,11 @@ const useStyles = makeStyles(theme => ({
     visibility: "hidden",
     opacity: 0.5,
     padding: 0
+  },
+  userSidebarItem: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: theme.spacing(2)
   },
   sectionTitle: {
     textAlign: "left",
@@ -196,6 +211,9 @@ type PageDrawerProps = {
 }
 
 export default ({ workspace }: PageDrawerProps) => {
+  const webId = useWebId()
+  const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
+  const photoTerm = useLDflexValue(`[${webId}][${vcard.hasPhoto}]`);
   const classes = useStyles({})
   const history = useHistory();
   const [pageListItems, pageListItemsLoading] = usePageListItems(workspace)
@@ -225,6 +243,13 @@ export default ({ workspace }: PageDrawerProps) => {
       <div className={classes.toolbar}>
         <img src={logo} className={classes.logo} alt="logo" />
         <p className={classes.version}>alpha</p>
+      </div>
+      <div className={`${classes.sidebarItem} ${classes.userSidebarItem}`}>
+        <Avatar alt={nameTerm ? nameTerm.value : ""} src={photoTerm && photoTerm.value}
+          className={classes.avatar} />
+        <ProfileLink webId={webId} color="inherit">
+          <Typography variant="subtitle2">{nameTerm && nameTerm.value}</Typography>
+        </ProfileLink>
       </div>
       <div className={`${classes.sectionTitle} ${classes.sidebarItem}`}>
         <Tooltip title={showPages ? "hide pages" : "show pages"}>

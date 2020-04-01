@@ -38,13 +38,11 @@ export default function Pages({ workspace }: PagesProps) {
   const classes = usePagesStyles()
   return (
     <>
-      {workspace ? (
+      {workspace && (
         <LiveUpdate subscribe={[workspace.uri]}>
           <PageDrawer workspace={workspace} />
         </LiveUpdate>
-      ) : (
-          <PageDrawer workspace={workspace} />
-        )}
+      )}
       <Box className={classes.content}>
         {workspace && <CurrentPage />}
       </Box>

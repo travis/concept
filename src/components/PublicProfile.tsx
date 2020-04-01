@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useContext } from 'react'
+import { LiveUpdate } from "@solid/react";
 
 import { space, schema, vcard, foaf } from 'rdf-namespaces';
 import { useParams } from "react-router-dom";
@@ -12,22 +13,27 @@ import Typography from '@material-ui/core/Typography';
 
 import Loader from "./Loader";
 
-import Link from './Link'
+import WorkspaceContext from "../context/workspace";
 import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import { metaForPageUri } from '../utils/model'
-import { pagePath, handleHausUriForWebId, handleProfilePath, webIdProfilePath } from '../utils/urls'
+import { pagePath } from '../utils/urls'
+
+import PageDrawer from './PageDrawer';
+import Link from './Link'
+import ProfileLink from './ProfileLink'
 
 const useStyles = makeStyles(theme => ({
   profile: {
     padding: theme.spacing(2),
+    marginLeft: 240,
     height: "100%"
   },
   profileImage: {
     width: theme.spacing(10)
   },
   name: {
-    textAlign: "left"
+
   }
 }));
 
@@ -35,7 +41,7 @@ function PublicPage({ pageUri }: { pageUri: string }) {
   const nameTerm = useLDflexValue(`from('${metaForPageUri(pageUri)}')[${pageUri}][${schema.name}]`);
   return (
     <ListItem>
-      <Link to={pagePath(pageUri)}>
+      <Link to={pagePath(pageUri)} variant="h6">
         {nameTerm ? nameTerm.value : ""}
       </Link>
     </ListItem>
@@ -60,12 +66,11 @@ function PublicPages({ url }: { url: string }) {
 
 function Friend({ webId }: { webId: string }) {
   const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
-  const handleTerm = useLDflexValue(`[${handleHausUriForWebId(webId)}][${foaf.nick}]`)
-  const handle = handleTerm && handleTerm.value
-  const profilePath = handle ? handleProfilePath(handle) : webIdProfilePath(webId)
   return (
     <ListItem>
-      <Link to={profilePath}>{nameTerm ? nameTerm.value : ""}</Link>
+      <ProfileLink webId={webId} variant="h6">
+        {nameTerm ? nameTerm.value : ""}
+      </ProfileLink>
     </ListItem>
   )
 }
@@ -101,7 +106,7 @@ function PublicInfo({ webId }: { webId: string }) {
         </Grid >
         <Grid item xs={9}><Typography variant="h4" className={classes.name}>{name && name.value}</Typography></Grid>
       </Grid >
-      <Grid container className={classes.profile}>
+      <Grid container>
         <Grid item xs={6}>
           <Friends webId={webId} />
         </Grid>
@@ -115,14 +120,23 @@ function PublicInfo({ webId }: { webId: string }) {
 
 export function WebIdPublicProfile({ webId }: { webId: string }) {
   const classes = useStyles()
+  const { workspace } = useContext(WorkspaceContext);
+
   return (
-    <Paper className={classes.profile}>
-      {webId ? (
-        <PublicInfo webId={webId} />
-      ) : (
-          <Loader />
-        )}
-    </Paper>
+    <>
+      {workspace && (
+        <LiveUpdate subscribe={[workspace.uri]}>
+          <PageDrawer workspace={workspace} />
+        </LiveUpdate>
+      )}
+      <Paper className={classes.profile}>
+        {webId ? (
+          <PublicInfo webId={webId} />
+        ) : (
+            <Loader />
+          )}
+      </Paper>
+    </>
   )
 }
 
