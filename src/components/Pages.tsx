@@ -3,8 +3,6 @@ import React from 'react'
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
-import PageDrawer from './PageDrawer';
-
 import { LiveUpdate } from "@solid/react";
 import { useCurrentPage } from '../hooks/pages';
 import Page from './Page'
@@ -37,15 +35,8 @@ type PagesProps = {
 export default function Pages({ workspace }: PagesProps) {
   const classes = usePagesStyles()
   return (
-    <>
-      {workspace && (
-        <LiveUpdate subscribe={[workspace.uri]}>
-          <PageDrawer workspace={workspace} />
-        </LiveUpdate>
-      )}
-      <Box className={classes.content}>
-        {workspace && <CurrentPage />}
-      </Box>
-    </>
+    <Box className={classes.content}>
+      {workspace && <CurrentPage />}
+    </Box>
   )
 }

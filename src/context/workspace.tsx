@@ -3,7 +3,7 @@ import { space, schema } from 'rdf-namespaces';
 import { useWebId, useLDflexValue } from '@solid/react';
 import data from '@solid/query-ldflex';
 import { namedNode } from '@rdfjs/data-model';
-import { createNonExistentDocument, deleteFile } from '../utils/ldflex-helper';
+import { createNonExistentDocument } from '../utils/ldflex-helper';
 import { createDefaultAcl } from '../utils/acl';
 import { listResolver } from '../utils/data';
 import * as m from "../utils/model"

@@ -1,5 +1,4 @@
-import React, { useContext } from 'react'
-import { LiveUpdate } from "@solid/react";
+import React from 'react'
 
 import { space, schema, vcard, foaf } from 'rdf-namespaces';
 import { useParams } from "react-router-dom";
@@ -11,15 +10,12 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 
-import Loader from "./Loader";
-
-import WorkspaceContext from "../context/workspace";
 import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import { metaForPageUri } from '../utils/model'
 import { pagePath } from '../utils/urls'
 
-import PageDrawer from './PageDrawer';
+import Loader from "./Loader";
 import Link from './Link'
 import ProfileLink from './ProfileLink'
 
@@ -124,23 +120,15 @@ function PublicInfo({ webId }: { webId: string }) {
 
 export function WebIdPublicProfile({ webId }: { webId: string }) {
   const classes = useStyles()
-  const { workspace } = useContext(WorkspaceContext);
 
   return (
-    <>
-      {workspace && (
-        <LiveUpdate subscribe={[workspace.uri]}>
-          <PageDrawer workspace={workspace} />
-        </LiveUpdate>
-      )}
-      <Paper className={classes.profile}>
-        {webId ? (
-          <PublicInfo webId={webId} />
-        ) : (
-            <Loader />
-          )}
-      </Paper>
-    </>
+    <Paper className={classes.profile}>
+      {webId ? (
+        <PublicInfo webId={webId} />
+      ) : (
+          <Loader />
+        )}
+    </Paper>
   )
 }
 

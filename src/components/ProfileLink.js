@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react'
+import React from 'react'
 import { foaf } from 'rdf-namespaces';
 import { useLDflexValue } from '../hooks/ldflex';
 import { handleHausUriForWebId, handleProfilePath, webIdProfilePath } from '../utils/urls'
