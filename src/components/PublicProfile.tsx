@@ -33,7 +33,7 @@ const useStyles = makeStyles(theme => ({
     width: theme.spacing(10)
   },
   name: {
-
+    textAlign: "left"
   }
 }));
 
@@ -100,11 +100,15 @@ function PublicInfo({ webId }: { webId: string }) {
   const classes = useStyles()
   return (
     <>
-      <Grid container alignItems="center">
-        <Grid item xs={3}>
+      <Grid container alignItems="center" justify="flex-start">
+        <Grid item xs={2}>
           {photo && <img src={photo} alt={`${name} 's profile`} className={classes.profileImage} />}
         </Grid >
-        <Grid item xs={9}><Typography variant="h4" className={classes.name}>{name && name.value}</Typography></Grid>
+        <Grid item xs={10}>
+          <Typography variant="h4" className={classes.name}>
+            {name && name.value}
+          </Typography>
+        </Grid>
       </Grid >
       <Grid container>
         <Grid item xs={6}>
