@@ -13,6 +13,8 @@ import Console from './components/Console';
 import LandingPage from './components/LandingPage';
 import SignupPage from './components/SignupPage';
 import WhatPage from './components/WhatPage';
+import Pages from "./components/Pages"
+import PublicProfile, {EncodedWebIdPublicProfile} from './components/PublicProfile';
 
 function App() {
   const loggedIn = useLoggedIn()
@@ -29,6 +31,9 @@ function App() {
         ) : (
           <Switch>
             <Route path="/signup" component={SignupPage}/>
+            <Route path="/page/:selectedPage" component={Pages}/>
+            <Route path="/for/:handle" component={PublicProfile}/>
+            <Route path="/webid/:encodedWebId" component={EncodedWebIdPublicProfile}/>
             <Route path="/" component={LandingPage}/>
           </Switch>
         )}

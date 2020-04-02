@@ -36,7 +36,7 @@ export default function Pages({ workspace }: PagesProps) {
   const classes = usePagesStyles()
   return (
     <Box className={classes.content}>
-      {workspace && <CurrentPage />}
+      <CurrentPage />
     </Box>
   )
 }
