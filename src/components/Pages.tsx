@@ -5,26 +5,31 @@ import Box from '@material-ui/core/Box';
 
 import { LiveUpdate } from "@solid/react";
 import { useCurrentPage } from '../hooks/pages';
+import Home from './Home'
 import Page from './Page'
+import Loader from './Loader'
 import { Workspace } from "../utils/model"
 
 const usePagesStyles = makeStyles(theme => ({
   content: {
     flexGrow: 1,
-    marginLeft: 240,
     position: "relative",
     height: "100%"
   },
 }));
 
 function CurrentPage() {
-  const [currentPage] = useCurrentPage()
-  return currentPage ? (
-    <LiveUpdate subscribe={currentPage.uri}>
-      <Page page={currentPage} />
-    </LiveUpdate>
+  const [currentPage, loading] = useCurrentPage()
+  return loading ? (
+    <Loader />
   ) : (
-      <p>Welcome to Concept! Add or select a page on the left to get started.</p>
+      currentPage ? (
+        <LiveUpdate subscribe={currentPage.uri}>
+          <Page page={currentPage} />
+        </LiveUpdate >
+      ) : (
+          <Home />
+        )
     )
 }
 

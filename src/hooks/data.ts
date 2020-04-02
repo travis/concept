@@ -35,11 +35,15 @@ export function useQuery<T>(resolver: (query: any) => Promise<T>, ...queryUris: 
   const [updatedTimestamp, setUpdatedTimestamp] = useState(timestamp)
   useEffect(() => {
     if (resourceUri) {
-      const url = new URL(resourceUri)
-      url.hash = ''
-      const docUri = url.toString()
-      if (updatedUri === docUri) {
-        setUpdatedTimestamp(timestamp)
+      try {
+        const url = new URL(resourceUri)
+        url.hash = ''
+        const docUri = url.toString()
+        if (updatedUri === docUri) {
+          setUpdatedTimestamp(timestamp)
+        }
+      } catch (e) {
+        setError(e)
       }
     }
   }, [resourceUri, updatedUri, timestamp])

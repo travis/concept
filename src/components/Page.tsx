@@ -36,8 +36,8 @@ import { Page } from '../utils/model'
 
 const useStyles = makeStyles(theme => ({
   appBar: {
-    width: `calc(100% - ${drawerWidth}px)`,
-    marginLeft: drawerWidth,
+    width: ({ hasWorkspace }: any) => hasWorkspace ? `calc(100% - ${drawerWidth}px)` : "100%",
+    marginLeft: ({ hasWorkspace }: any) => hasWorkspace ? drawerWidth : 0,
     background: "white"
   },
   shareButton: {
@@ -157,7 +157,7 @@ type PageProps = {
 export default function PageComponent({ page }: PageProps) {
   const { workspace } = useContext(WorkspaceContext)
   const menuButton = useRef<HTMLButtonElement | null>(null);
-  const classes = useStyles();
+  const classes = useStyles({ hasWorkspace: !!workspace });
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
   const [backupsDialogOpen, setBackupsDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false)

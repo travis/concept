@@ -22,7 +22,6 @@ import ProfileLink from './ProfileLink'
 const useStyles = makeStyles(theme => ({
   profile: {
     padding: theme.spacing(2),
-    marginLeft: 240,
     height: "100%"
   },
   profileImage: {
