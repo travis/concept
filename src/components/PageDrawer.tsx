@@ -106,6 +106,10 @@ const useStyles = makeStyles(theme => ({
   },
   loaderListItem: {
     paddingLeft: ({ level = 0 }: WithLevel) => theme.spacing(4 + (level * 2)),
+  },
+  menuLink: {
+    color: "inherit",
+    textDecoration: "none"
   }
 }));
 
@@ -225,7 +229,12 @@ function AvatarMenu({ name, photo }: { name: string, photo: string }) {
         <MenuItem>
           <ProfileLink webId={webId} color="inherit">
             profile
-          </ProfileLink>
+            </ProfileLink>
+        </MenuItem>
+        <MenuItem>
+          <Link to="/what" className={classes.menuLink}>
+            what is this?
+          </Link>
         </MenuItem>
         <MenuItem onClick={() => logOut()}>
           log out

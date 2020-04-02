@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button';
 
 import { LogInButton } from './LogInLogOutButton'
 import { AppTitleGridRow } from './AppTitle'
+import SocialIcons from './SocialIcons'
 import logo from '../logo.svg'
 
 
@@ -21,6 +22,12 @@ const useStyles = makeStyles(theme => ({
   },
   actionButton: {
     fontSize: "1.6rem"
+  },
+  social: {
+    marginTop: theme.spacing(6)
+  },
+  socialIcon: {
+    color: "inherit"
   }
 }))
 
@@ -54,6 +61,7 @@ function LandingPage() {
           <Button component={Link} to="/what">what is this?</Button>
         </Grid>
       </Grid>
+      <SocialIcons />
     </>
   )
 }

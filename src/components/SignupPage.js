@@ -5,6 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import { LogInButton } from './LogInLogOutButton'
 import { AppTitleGridRow, MottoGridRow } from './AppTitle'
 import { Question, Answer, A } from './FAQ'
+import SocialIcons from './SocialIcons'
 
 function LandingPage() {
   return (

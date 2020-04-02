@@ -5,6 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import { LogInButton } from './LogInLogOutButton'
 import { AppTitleGridRow, MottoGridRow } from './AppTitle'
 import { Question, Answer, A } from './FAQ'
+import SocialIcons from './SocialIcons'
 
 function LandingPage() {
   return (
@@ -61,6 +62,7 @@ function LandingPage() {
           expert-level skills to get your data back for now.
         </Typography>
       </Answer>
+      <SocialIcons />
     </>
   )
 }
