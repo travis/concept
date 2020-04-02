@@ -62,6 +62,14 @@ function LandingPage() {
           expert-level skills to get your data back for now.
         </Typography>
       </Answer>
+      <Question>
+        Something went wrong! How do I get help?
+      </Question>
+      <Answer>
+        <Typography>
+          For now, please file bug reports in the <A href="https://github.com/travis/concept/issues">issue tracker on GitHub.</A>
+        </Typography>
+      </Answer>
       <SocialIcons />
     </>
   )
