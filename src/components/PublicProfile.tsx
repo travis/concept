@@ -117,7 +117,7 @@ function FollowButton({ webId }: { webId: string }) {
 
 function PublicInfo({ webId }: { webId: string }) {
   const currentUserWebId = useWebId();
-  const nameTerm = useValueQuery() useLDflexValue(`[${webId}][${vcard.fn}]`);
+  const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
   const name = nameTerm && nameTerm.value
   const photo = useLDflexValue(`[${webId}][${vcard.hasPhoto}]`);
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
