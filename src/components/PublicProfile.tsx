@@ -2,6 +2,7 @@ import React from 'react'
 
 import { space, schema, vcard, foaf } from 'rdf-namespaces';
 import { useParams } from "react-router-dom";
+import { Follow, useWebId } from "@solid/react";
 
 import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
@@ -9,6 +10,7 @@ import ListItem from '@material-ui/core/ListItem';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 
 import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
@@ -29,6 +31,9 @@ const useStyles = makeStyles(theme => ({
   },
   name: {
     textAlign: "left"
+  },
+  followButton: {
+    ...theme.typography.button
   }
 }));
 
@@ -50,7 +55,7 @@ function PublicPages({ url }: { url: string }) {
       <ListItem>
         <Typography variant="h5">
           Public Pages
-        </Typography>
+            </Typography>
       </ListItem>
       {pageUriTerms && pageUriTerms.map((pageUriTerm: any) => (
         <PublicPage key={pageUriTerm.value} pageUri={pageUriTerm.value} />
@@ -77,7 +82,7 @@ function Friends({ webId }: { webId: string }) {
       <ListItem>
         <Typography variant="h5">
           Friends
-        </Typography>
+            </Typography>
       </ListItem>
       {friendsTerms && friendsTerms.map((friendTerm: any) => (
         <Friend key={friendTerm.value} webId={friendTerm.value} />
@@ -86,8 +91,13 @@ function Friends({ webId }: { webId: string }) {
   )
 }
 
+function FollowButton({ }) {
+}
+
 function PublicInfo({ webId }: { webId: string }) {
-  const name = useLDflexValue(`[${webId}][${vcard.fn}]`);
+  const currentUserWebId = useWebId();
+  const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
+  const name = nameTerm && nameTerm.value
   const photo = useLDflexValue(`[${webId}][${vcard.hasPhoto}]`);
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
   const conceptContainer = storage && conceptContainerUrl(storage)
@@ -96,13 +106,21 @@ function PublicInfo({ webId }: { webId: string }) {
   return (
     <>
       <Grid container alignItems="center" justify="flex-start">
-        <Grid item xs={2}>
+        <Grid item xs={3}>
           {photo && <img src={photo} alt={`${name} 's profile`} className={classes.profileImage} />}
         </Grid >
-        <Grid item xs={10}>
+        <Grid item xs={6}>
           <Typography variant="h4" className={classes.name}>
-            {name && name.value}
+            {name}
           </Typography>
+        </Grid>
+        <Grid item xs={3}>
+          {(webId !== currentUserWebId) && (
+            <Button component={Follow} object={webId} className={classes.followButton}
+              activateLabel={name ? `Follow ${name}` : ""}
+              deactivateLabel={name ? `Unfollow ${name}` : ""}
+            />
+          )}
         </Grid>
       </Grid >
       <Grid container>
