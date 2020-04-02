@@ -38,7 +38,29 @@ function LandingPage() {
           then <LogInButton>log in</LogInButton> to Concept using your WebId.
         </Typography>
       </Answer>
-
+      <Question>
+        Is my data safe?
+      </Question>
+      <Answer>
+        <Typography>
+          You're trusting your Pod provider with your data, so ultimately it's
+          as safe as you think your Pod provider makes it.
+        </Typography>
+        <Typography>
+          Concept is in Alpha at the moment, which means we might make
+          non-backwards-compatible changes to the data model. We can't promise
+          to support migration between different data formats for now. We're
+          hoping to move to Beta soon, at which point we'll provide better
+          support.
+        </Typography>
+        <Typography>
+          Your data will always be accessible via your Pod provider's data
+          browser, and we create backups of your active documents every 1, 5 and
+          10 minutes while you're editing. You definitely won't lose data as
+          long as as your Pod provider doesn't lose data, it might just require
+          expert-level skills to get your data back for now.
+        </Typography>
+      </Answer>
     </>
   )
 }

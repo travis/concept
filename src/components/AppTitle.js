@@ -11,10 +11,17 @@ import { titleFont } from '../utils/fonts'
 const useStyles = makeStyles(theme => ({
   name: {
     marginTop: theme.spacing(3),
-    marginBottom: theme.spacing(1),
-    fontFamily: titleFont,
+    marginBottom: theme.spacing(-3),
+    fontFamily: titleFont
+  },
+  nameLink: {
     textDecoration: "none",
     color: "inherit"
+  },
+  version: {
+    position: "relative",
+    left: theme.spacing(12),
+    height: 0
   },
   motto: {
     marginBottom: theme.spacing(1),
@@ -24,13 +31,16 @@ const useStyles = makeStyles(theme => ({
 export function AppTitleGridRow(){
   const classes = useStyles({})
   return (
-    <Grid container>
+    <Grid container >
       <Grid item xs={12}>
-          <Typography variant="h2">
-            <Link to="/" className={classes.name}>
-              Concept
-            </Link>
-          </Typography>
+        <Typography variant="h2" className={classes.name}>
+          <Link to="/" className={classes.nameLink}>
+            Concept
+          </Link>
+        </Typography>
+        <Typography variant="overline" className={classes.version}>
+          alpha
+        </Typography>
       </Grid>
     </Grid>
   )
