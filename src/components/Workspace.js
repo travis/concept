@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { LiveUpdate } from "@solid/react";
 import {Switch, Route} from 'react-router-dom'
 
-import WorkspaceContext from "../context/workspace";
+import WorkspaceContext, {WorkspaceProvider} from "../context/workspace";
 
 import PageDrawer from './PageDrawer';
 import Pages from "./Pages"
@@ -10,7 +10,7 @@ import PublicProfile, {EncodedWebIdPublicProfile} from './PublicProfile';
 
 
 
-export default function Workspace(){
+function WorkspaceContent(){
   const {workspace, addPage} = useContext(WorkspaceContext);
   return (
     <>
@@ -25,5 +25,13 @@ export default function Workspace(){
         <Route path="/webid/:encodedWebId" component={EncodedWebIdPublicProfile}/>
       </Switch>
     </>
+  )
+}
+
+export default function Workspace(){
+  return (
+    <WorkspaceProvider>
+      <WorkspaceContent/>
+    </WorkspaceProvider>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useContext, useState, useCallback, useRef } from 'react';
 import { useParams, Link } from "react-router-dom";
 import { LiveUpdate, useWebId, useLDflexValue } from "@solid/react";
 import { vcard } from 'rdf-namespaces';
@@ -7,6 +7,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
 import Drawer from '@material-ui/core/Drawer';
 import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -18,16 +20,16 @@ import ArrowDown from '@material-ui/icons/ArrowDropDown';
 import AddIcon from '@material-ui/icons/Add';
 import { useHistory } from "react-router-dom";
 
-import IconButton from './IconButton';
-import LogInLogOutButton from './LogInLogOutButton';
-import ProfileLink from './ProfileLink';
-import Loader from './Loader';
+import { useAuthContext } from "../context/auth"
 import WorkspaceContext from "../context/workspace";
 import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
 import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
 import { conceptPagePath } from '../utils/urls';
 import { drawerWidth } from '../constants'
-import logo from '../logo.svg'
+
+import IconButton from './IconButton';
+import ProfileLink from './ProfileLink';
+import Loader from './Loader';
 
 type WithLevel = { level?: number }
 
@@ -38,6 +40,7 @@ const useStyles = makeStyles(theme => ({
   },
   drawerPaper: {
     width: drawerWidth,
+    paddingTop: theme.spacing(2)
   },
   toolbar: theme.mixins.toolbar,
   logo: {
@@ -206,6 +209,33 @@ const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: Pag
   )
 }
 
+function AvatarMenu({ name, photo }: { name: string, photo: string }) {
+  const webId = useWebId()
+  const avatarRef = useRef<HTMLDivElement>(null)
+  const classes = useStyles({})
+  const { logOut } = useAuthContext()
+  const [showMenu, setShowMenu] = useState(false)
+  return (
+    <>
+      <Avatar ref={avatarRef} alt={name || ""} src={photo} className={classes.avatar}
+        onClick={() => setShowMenu(!showMenu)} />
+      <Menu anchorEl={avatarRef.current}
+        open={showMenu}
+        onClose={() => setShowMenu(false)}>
+        <MenuItem>
+          <ProfileLink webId={webId} color="inherit">
+            profile
+          </ProfileLink>
+        </MenuItem>
+        <MenuItem onClick={() => logOut()}>
+          log out
+        </MenuItem>
+      </Menu>
+    </>
+  )
+}
+
+
 type PageDrawerProps = {
   workspace: Workspace
 }
@@ -240,13 +270,8 @@ export default ({ workspace }: PageDrawerProps) => {
       }}
       anchor="left"
     >
-      <div className={classes.toolbar}>
-        <img src={logo} className={classes.logo} alt="logo" />
-        <p className={classes.version}>alpha</p>
-      </div>
       <div className={`${classes.sidebarItem} ${classes.userSidebarItem}`}>
-        <Avatar alt={nameTerm ? nameTerm.value : ""} src={photoTerm && photoTerm.value}
-          className={classes.avatar} />
+        <AvatarMenu name={nameTerm && nameTerm.value} photo={photoTerm && photoTerm.value} />
         <ProfileLink webId={webId} color="inherit">
           <Typography variant="subtitle2">{nameTerm && nameTerm.value}</Typography>
         </ProfileLink>
@@ -256,7 +281,7 @@ export default ({ workspace }: PageDrawerProps) => {
           <Button size="small" className={classes.sectionTitleButton}
             onClick={() => setShowPages(!showPages)}>
             pages
-          </Button>
+                </Button>
         </Tooltip>
         <IconButton title="add a page"
           className={`${classes.sidebarItemHoverButton} ${classes.sectionTitleRightButton}`}
@@ -271,7 +296,6 @@ export default ({ workspace }: PageDrawerProps) => {
           <Button onClick={() => addNewPage()}>create your first page</Button>
         </>
       )}
-      <LogInLogOutButton />
     </Drawer>
 
   )
