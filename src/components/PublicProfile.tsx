@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { space, schema, vcard, foaf } from 'rdf-namespaces';
 import { useParams } from "react-router-dom";
-import { Follow, useWebId } from "@solid/react";
+import { useWebId, LiveUpdate } from "@solid/react";
+import data from '@solid/query-ldflex';
 
 import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
@@ -13,11 +14,13 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
 import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
+import { useListValuesQuery, useValueQuery } from '../hooks/data';
+import { follow, unfollow } from '../utils/data';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import { metaForPageUri } from '../utils/model'
 import { pagePath } from '../utils/urls'
 
-import Loader from "./Loader";
+import Loader, { ButtonLoader } from "./Loader";
 import Link from './Link'
 import ProfileLink from './ProfileLink'
 
@@ -82,7 +85,7 @@ function Friends({ webId }: { webId: string }) {
       <ListItem>
         <Typography variant="h5">
           Friends
-            </Typography>
+        </Typography>
       </ListItem>
       {friendsTerms && friendsTerms.map((friendTerm: any) => (
         <Friend key={friendTerm.value} webId={friendTerm.value} />
@@ -91,12 +94,30 @@ function Friends({ webId }: { webId: string }) {
   )
 }
 
-function FollowButton({ }) {
+function FollowButton({ webId }: { webId: string }) {
+  const currentUserWebId = useWebId();
+  const [knowsWebIds, knowsLoading] = useListValuesQuery(currentUserWebId, foaf.knows);
+  const knows = knowsWebIds && knowsWebIds.includes(webId)
+  const onFollow = async () => {
+    await follow(currentUserWebId, webId)
+  }
+  const onUnfollow = async () => {
+    await unfollow(currentUserWebId, webId)
+  }
+  return (
+    <Button onClick={knows ? onUnfollow : onFollow}>
+      {knowsLoading ? (
+        <ButtonLoader />
+      ) : (
+          knows ? "Unfollow " : "Follow"
+        )}
+    </Button>
+  )
 }
 
 function PublicInfo({ webId }: { webId: string }) {
   const currentUserWebId = useWebId();
-  const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
+  const nameTerm = useValueQuery() useLDflexValue(`[${webId}][${vcard.fn}]`);
   const name = nameTerm && nameTerm.value
   const photo = useLDflexValue(`[${webId}][${vcard.hasPhoto}]`);
   const storage = useLDflexValue(`[${webId}][${space.storage}]`);
@@ -115,12 +136,11 @@ function PublicInfo({ webId }: { webId: string }) {
           </Typography>
         </Grid>
         <Grid item xs={3}>
-          {(webId !== currentUserWebId) && (
-            <Button component={Follow} object={webId} className={classes.followButton}
-              activateLabel={name ? `Follow ${name}` : ""}
-              deactivateLabel={name ? `Unfollow ${name}` : ""}
-            />
-          )}
+          <LiveUpdate subscribe={currentUserWebId}>
+            {webId && currentUserWebId && (webId !== currentUserWebId) && (
+              <FollowButton webId={webId} />
+            )}
+          </LiveUpdate>
         </Grid>
       </Grid >
       <Grid container>

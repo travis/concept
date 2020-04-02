@@ -1,9 +1,15 @@
 import data from '@solid/query-ldflex';
 import { namedNode } from '@rdfjs/data-model';
-import { acl, schema, dc } from 'rdf-namespaces';
+import { acl, schema, dc, foaf } from 'rdf-namespaces';
 import concept from '../ontology'
 import { pageUris} from './model'
 import { patchDocument } from '../utils/ldflex-helper'
+
+export const follow = (webId, followWebId) =>
+  data[webId][foaf.knows].add(namedNode(followWebId))
+
+export const unfollow = (webId, unfollowWebId) =>
+  data[webId][foaf.knows].delete(namedNode(unfollowWebId))
 
 export const addPublicPage = (publicPageListUri, page) =>
   data[publicPageListUri][schema.itemListElement].add(namedNode(page))
@@ -49,6 +55,13 @@ export const listResolver = async query => {
 }
 
 export const resolveValues = terms => terms.map(term => term && term.value)
+
+export const listValuesResolver = async query => resolveValues(await listResolver(query))
+
+export const valueResolver = async query => {
+  const term = await query
+  return term && term.value
+}
 
 export const pageListItemResolver = async query => {
   const [uri, name, pageUri] = resolveValues(await Promise.all([

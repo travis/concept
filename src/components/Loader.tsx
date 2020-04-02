@@ -8,7 +8,7 @@ type Types = 'Triangle' | 'ThreeDots'
 
 type Props = { height?: number, width?: number, type?: Types, className?: string }
 
-export default ({ height, width, type = "Triangle", ...props }: PropsWithChildren<Props>) => {
+const ConceptLoader = ({ height, width, type = "Triangle", ...props }: PropsWithChildren<Props>) => {
   const theme = useTheme();
   return (
     <Loader
@@ -18,3 +18,7 @@ export default ({ height, width, type = "Triangle", ...props }: PropsWithChildre
       {...props} />
   )
 }
+
+export const ButtonLoader = () => <ConceptLoader type="ThreeDots" width={3} height={1} />
+
+export default ConceptLoader;

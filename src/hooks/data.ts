@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useWebId, useLDflexValue, useLiveUpdate } from '@solid/react';
 import { space, schema } from 'rdf-namespaces';
 import { appContainerUrl } from '../utils/urls';
-import { listResolver, pageListItemsResolver, pageResolver } from '../utils/data';
+import { valueResolver, listResolver, listValuesResolver, pageListItemsResolver, pageResolver } from '../utils/data';
 import data from '@solid/query-ldflex';
 import { Page, PageContainer, PageListItem } from '../utils/model'
 
@@ -71,6 +71,14 @@ export function useQuery<T>(resolver: (query: any) => Promise<T>, ...queryUris: 
 
 export function useListQuery(...queryUris: string[]) {
   return useQuery(listResolver, ...queryUris)
+}
+
+export function useListValuesQuery(...queryUris: string[]) {
+  return useQuery(listValuesResolver, ...queryUris)
+}
+
+export function useValueQuery(...queryUris: string[]) {
+  return useQuery(valueResolver, ...queryUris)
 }
 
 export function usePageListItems(parent: PageContainer | undefined) {
