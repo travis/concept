@@ -4,7 +4,7 @@ import { acl, schema, dc, foaf } from 'rdf-namespaces';
 import concept from '../ontology'
 import { pageUris } from './model'
 import { patchDocument } from '../utils/ldflex-helper'
-import { Page, PageContainer, PageListItem } from '../utils/model'
+import { Page, PageListItem } from '../utils/model'
 
 const aclNamespace: any = acl
 

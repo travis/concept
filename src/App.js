@@ -14,29 +14,32 @@ import LandingPage from './components/LandingPage';
 import SignupPage from './components/SignupPage';
 import WhatPage from './components/WhatPage';
 import Pages from "./components/Pages"
+import Loader from "./components/Loader"
 import PublicProfile, {EncodedWebIdPublicProfile} from './components/PublicProfile';
 
 function App() {
   const loggedIn = useLoggedIn()
-
   return (
     <div className="App">
       <Switch>
         <Route path="/what" component={WhatPage}/>
-        {loggedIn ? (
-          <Switch>
-            <Route path="/1337" component={Console}/>
-            <Route path="/" component={Workspace}/>
-          </Switch>
+        {(loggedIn === undefined) ? (
+          <Loader/>
         ) : (
-          <Switch>
-            <Route path="/signup" component={SignupPage}/>
-            <Route path="/page/:selectedPage" component={Pages}/>
-            <Route path="/for/:handle" component={PublicProfile}/>
-            <Route path="/webid/:encodedWebId" component={EncodedWebIdPublicProfile}/>
-            <Route path="/" component={LandingPage}/>
-          </Switch>
-        )}
+          loggedIn ? (
+            <Switch>
+            <Route path="/1337" component={Console}/>
+              <Route path="/" component={Workspace}/>
+            </Switch>
+          ) : (
+            <Switch>
+              <Route path="/signup" component={SignupPage}/>
+              <Route path="/page/:selectedPage" component={Pages}/>
+              <Route path="/for/:handle" component={PublicProfile}/>
+              <Route path="/webid/:encodedWebId" component={EncodedWebIdPublicProfile}/>
+              <Route path="/" component={LandingPage}/>
+            </Switch>
+          ))}
       </Switch>
 
     </div>

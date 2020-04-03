@@ -1,5 +1,7 @@
 import React, { useContext, useState, useEffect, useRef, ReactNode } from 'react'
 
+import { LiveUpdate } from "@solid/react";
+
 import { makeStyles } from '@material-ui/core/styles';
 import IconButton from './IconButton';
 import TextField from '@material-ui/core/TextField';
@@ -21,15 +23,15 @@ import MenuIcon from '@material-ui/icons/Menu'
 import { schema } from 'rdf-namespaces';
 import { useHistory } from "react-router-dom";
 
-
 import SharingModal from "./SharingModal";
 import BackupsDialog from "./BackupsDialog";
+import Loader from "./Loader";
 
 import WorkspaceContext from "../context/workspace";
 import PageContext from '../context/page'
 
 import PageTextEditor from './PageTextEditor'
-import { LiveUpdate } from "@solid/react";
+import { usePage } from "../hooks/data"
 import { useAccessInfo } from '../hooks/acls';
 import { drawerWidth } from '../constants'
 import { Page } from '../utils/model'
@@ -125,7 +127,7 @@ function AppBarMenu({ page, onClose, ...props }: AppBarMenuProps) {
         <MenuItem>
           <Link href={page.uri} target="_blank" rel="noopener noreferrer" color="inherit">
             Source
-          </Link>
+            </Link>
         </MenuItem>
         <MenuItem onClick={() => setDeleteConfirmationOpen(true)}>Delete</MenuItem>
       </Menu>
@@ -140,10 +142,10 @@ function AppBarMenu({ page, onClose, ...props }: AppBarMenuProps) {
             history.replace("/")
           }}>
             yes
-          </Button>
+            </Button>
           <Button color="primary" autoFocus onClick={close}>
             no
-          </Button>
+            </Button>
         </DialogActions>
       </Dialog>
     </>
@@ -151,21 +153,20 @@ function AppBarMenu({ page, onClose, ...props }: AppBarMenuProps) {
 }
 
 type PageProps = {
-  page: Page
+  pageUri: string
 }
 
-export default function PageComponent({ page }: PageProps) {
+export default function PageComponent({ pageUri }: PageProps) {
   const { workspace } = useContext(WorkspaceContext)
+  const [page] = usePage(pageUri)
   const menuButton = useRef<HTMLButtonElement | null>(null);
   const classes = useStyles({ hasWorkspace: !!workspace });
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
   const [backupsDialogOpen, setBackupsDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false)
-  const pageUri = page.uri
   const { aclUri, allowed } = useAccessInfo(pageUri)
   const readOnly = !(allowed && allowed.user.has("write"))
-
-  return (
+  return (page === undefined) ? (<Loader />) : (
     <PageContext.Provider value={page}>
       <AppBar position="fixed" className={classes.appBar} color="transparent" elevation={0}>
         <Toolbar variant="dense">

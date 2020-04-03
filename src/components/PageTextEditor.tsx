@@ -13,7 +13,6 @@ import { HoveringToolbar } from "./EditorToolbar";
 import Editable, { useNewEditor } from "./Editable";
 import { Page } from "../utils/model"
 import WorkspaceContext from "../context/workspace";
-import { useLDflex } from '../hooks/ldflex';
 import { useBackups } from '../hooks/backup';
 
 const useStyles = makeStyles(theme => ({
@@ -56,8 +55,7 @@ export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) 
   const { updatePage } = useContext(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
-  const [pageTextNode] = useLDflex(`[${page.uri}][${schema.text}]`);
-  const pageText = pageTextNode && pageTextNode.value;
+  const pageText = page.text;
   const [editorValue, setEditorValue] = useState<Node[] | undefined>(undefined);
   const [saveNeeded, setSaveNeeded] = useState(false);
   const [debouncedValue] = useDebounce(editorValue, 1500);

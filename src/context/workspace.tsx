@@ -1,11 +1,12 @@
 import React, { ReactNode, createContext, useCallback, useEffect, useMemo } from 'react';
 import { space, schema } from 'rdf-namespaces';
-import { useWebId, useLDflexValue } from '@solid/react';
+import { useWebId } from '@solid/react';
 import data from '@solid/query-ldflex';
 import { namedNode } from '@rdfjs/data-model';
 import { createNonExistentDocument } from '../utils/ldflex-helper';
 import { createDefaultAcl } from '../utils/acl';
 import { listResolver } from '../utils/data';
+import { useValueQuery } from '../hooks/data';
 import * as m from "../utils/model"
 
 type AddPageType = (props: m.PageProps, pageListProps: m.PageListItemProps) => Promise<m.Page | null>
@@ -33,9 +34,9 @@ type WorkspaceProviderProps = {
 
 export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   const webId = useWebId();
-  const storage: any = useLDflexValue(`[${webId}][${space.storage}]`);
+  const [storage] = useValueQuery(webId, space.storage)
   const workspace = useMemo(
-    () => (storage === undefined) ? undefined : m.workspaceFromStorage(storage.value as string),
+    () => (storage === undefined) ? undefined : m.workspaceFromStorage(storage),
     [storage]
   )
 

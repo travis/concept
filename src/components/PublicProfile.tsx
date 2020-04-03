@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 
 import { space, schema, vcard, foaf } from 'rdf-namespaces';
 import { useParams } from "react-router-dom";
 import { useWebId, LiveUpdate } from "@solid/react";
-import data from '@solid/query-ldflex';
 
 import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
@@ -14,7 +13,7 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
 import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
-import { useListValuesQuery, useValueQuery } from '../hooks/data';
+import { useListValuesQuery } from '../hooks/data';
 import { follow, unfollow } from '../utils/data';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import { metaForPageUri } from '../utils/model'

@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
+import React, { useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
 import { createEditor, Transforms } from 'slate';
 import {
   Editable as SlateEditable, useSelected, useFocused, useEditor, withReact,
@@ -407,7 +407,6 @@ const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
 
 const InsertEmbedItem = forwardRef(({element, onClose, ...props}, ref) => {
   const classes = useStyles()
-  const page = useContext(PageContext)
   const [embedPickerOpen, setEmbedPickerOpen] = useState(false)
   const editor = useEditor()
 
@@ -426,7 +425,7 @@ const InsertEmbedItem = forwardRef(({element, onClose, ...props}, ref) => {
       <MenuItem onClick={() => setEmbedPickerOpen(true)} {...props}/>
       <EmbedPicker element={element}
                    open={embedPickerOpen}
-                   classes={{paper: classes.embedPickerPopover}}
+s                   classes={{paper: classes.embedPickerPopover}}
                    onClose={close}
                    onSave={save}
       />

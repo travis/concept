@@ -4,11 +4,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
 import { LiveUpdate } from "@solid/react";
-import { useCurrentPage } from '../hooks/pages';
-import Home from './Home'
+import { useCurrentPageUri } from '../hooks/pages';
 import Page from './Page'
 import Loader from './Loader'
-import { Workspace } from "../utils/model"
 
 const usePagesStyles = makeStyles(theme => ({
   content: {
@@ -19,25 +17,19 @@ const usePagesStyles = makeStyles(theme => ({
 }));
 
 function CurrentPage() {
-  const [currentPage, loading] = useCurrentPage()
-  return loading ? (
-    <Loader />
-  ) : (
-      currentPage ? (
-        <LiveUpdate subscribe={currentPage.uri}>
-          <Page page={currentPage} />
-        </LiveUpdate >
-      ) : (
-          <Home />
-        )
-    )
+  const currentPageUri = useCurrentPageUri()
+  return (
+    currentPageUri ? (
+      <LiveUpdate subscribe={currentPageUri}>
+        <Page pageUri={currentPageUri} />
+      </LiveUpdate >
+    ) : (
+        <Loader />
+      )
+  )
 }
 
-type PagesProps = {
-  workspace: Workspace
-}
-
-export default function Pages({ workspace }: PagesProps) {
+export default function Pages() {
   const classes = usePagesStyles()
   return (
     <Box className={classes.content}>

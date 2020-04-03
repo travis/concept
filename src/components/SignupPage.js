@@ -7,7 +7,7 @@ import { AppTitleGridRow, MottoGridRow } from './AppTitle'
 import { Question, Answer, A } from './FAQ'
 import SocialIcons from './SocialIcons'
 
-function LandingPage() {
+function SignupPage() {
   return (
     <>
       <AppTitleGridRow />
@@ -28,11 +28,11 @@ function LandingPage() {
         </Typography>
         <Typography>
           Once you've created your Pod, <LogInButton>log in</LogInButton> to Concept to get started organizing your world.
-
         </Typography>
       </Answer>
+      <SocialIcons/>
     </>
   )
 }
 
-export default LandingPage
+export default SignupPage

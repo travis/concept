@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useWebId, useLDflexValue, useLiveUpdate } from '@solid/react';
+import { useWebId, useLiveUpdate } from '@solid/react';
 import { space, schema } from 'rdf-namespaces';
 import { appContainerUrl } from '../utils/urls';
 import { Resolver, valueResolver, listResolver, listValuesResolver, pageListItemsResolver, pageResolver } from '../utils/data';
@@ -8,7 +8,7 @@ import { Page, PageContainer, PageListItem } from '../utils/model'
 
 export function useAppContainer() {
   const webId = useWebId();
-  const storage = useLDflexValue(`[${webId}][${space.storage}]`);
+  const [storage] = useValueQuery(webId, space.storage)
   return storage && appContainerUrl(storage)
 }
 
@@ -86,6 +86,7 @@ export function useListValuesQuery(subject: QueryTerm, predicate: QueryTerm, opt
 export function useValueQuery(subject: QueryTerm, predicate: QueryTerm, options: QueryOptions<any> = {}) {
   return useQuery(subject, predicate, { resolver: valueResolver, ...options })
 }
+
 
 export function usePageListItems(parent: PageContainer | undefined, options: QueryOptions<PageListItem[]> = {}) {
   return useQuery(parent && parent.uri, schema.itemListElement, { resolver: pageListItemsResolver, ...options })

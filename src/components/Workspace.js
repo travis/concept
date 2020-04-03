@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
 
 function WorkspaceContent(){
   const classes = useStyles()
-  const {workspace, addPage} = useContext(WorkspaceContext);
+  const {workspace} = useContext(WorkspaceContext);
   return (
     <>
       {workspace && (
@@ -35,10 +35,18 @@ function WorkspaceContent(){
       )}
       <Box className={classes.content}>
         <Switch>
-          <Route path="/page/:selectedPage" render={() => <Pages workspace={workspace} addPage={addPage}/>}/>
-          <Route path="/for/:handle" component={PublicProfile}/>
-          <Route path="/webid/:encodedWebId" component={EncodedWebIdPublicProfile}/>
-          <Route path="/" component={Home}/>
+          <Route path="/page/:selectedPage">
+            <Pages/>
+          </Route>
+          <Route path="/for/:handle">
+            <PublicProfile/>
+          </Route>
+          <Route path="/webid/:encodedWebId">
+            <EncodedWebIdPublicProfile/>
+          </Route>
+          <Route path="/">
+            <Home/>
+          </Route>
         </Switch>
       </Box>
     </>
