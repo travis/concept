@@ -70,7 +70,7 @@ export const makeBlock = (editor, format, at=editor.selection) => {
   }
 }
 
-export const insertBlock = (editor, format, at=editor.selection) => {
+export const insertBlock = (editor, format, at=editor.selection, attributes={}) => {
   const isList = LIST_TYPES.includes(format)
   if (format === "table") {
     Transforms.insertNodes(editor, {
@@ -81,15 +81,19 @@ export const insertBlock = (editor, format, at=editor.selection) => {
           type: "table-cell",
           children: [{text: ""}]
         }]
-      }]
+      }],
+      ...attributes
     }, { at })
   } else if (isList) {
     Transforms.insertNodes(editor, {
-      type: format, children: [ { type: "list-item", children: []}]
+      type: format, children: [ { type: "list-item", children: []}],
+      ...attributes
     }, { at })
   } else {
     Transforms.insertNodes(editor,
-                           { type: format, children: [] },
+                           { type: format, children: [],
+                             ...attributes
+                           },
                            { at })
   }
 }
@@ -375,6 +379,12 @@ export const withTables = editor => {
     insertBreak()
   }
 
+  return editor
+}
+
+export const withEmbeds = editor => {
+  const { isVoid } = editor
+  editor.isVoid = element => (element.type === 'embed' ? true : isVoid(element))
   return editor
 }
 

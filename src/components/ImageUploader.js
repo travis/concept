@@ -1,16 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
+
 import { Transforms } from 'slate';
 import { useEditor } from 'slate-react';
+import Cropper from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
+import uuid from 'uuid/v1';
+import auth from 'solid-auth-client';
+
+import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import TextField from '@material-ui/core/TextField';
-import { makeStyles } from '@material-ui/core/styles';
-import Cropper from 'react-cropper';
-import 'cropperjs/dist/cropper.css';
-import uuid from 'uuid/v1';
-import auth from 'solid-auth-client';
+
 
 import { insertionPoint, insertImage } from '../utils/editor';
 import Loader from './Loader';

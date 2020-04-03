@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
+import React, {useEffect, useCallback, useMemo, useRef, useState, forwardRef, useContext } from 'react';
 import { createEditor, Transforms } from 'slate';
 import {
   Editable as SlateEditable, useSelected, useFocused, useEditor, withReact,
@@ -30,7 +30,7 @@ import copy from 'copy-to-clipboard';
 
 import {
   withImages, withLinks, withChecklists, withLists, toggleMark,
-  makeBlock, insertBlock, withTables,
+  makeBlock, insertBlock, withTables, withEmbeds,
   insertRow, insertColumn, removeRow, removeColumn,
   setLinkUrl, insertionPoint
 } from '../utils/editor';
@@ -38,8 +38,10 @@ import {
 import PageContext from '../context/page'
 
 import ChecklistItemElement from './ChecklistItemElement'
+import EmbedPicker from './EmbedPicker'
 import IconButton from './IconButton';
 import ImageUploader, { ImageEditor } from './ImageUploader';
+import EmbedElement from './EmbedElement'
 import { removeLink } from '../utils/editor'
 
 const useStyles = makeStyles(theme => ({
@@ -375,7 +377,7 @@ function TurnIntoMenu({element, onClose, ...props}){
 
 const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
   const editor = useEditor()
-  const onClick = useCallback(() => {
+  const onClick = useCallback(async () => {
     const insertAt = insertionPoint(editor, element)
     insertBlock(editor, format, insertAt)
     Transforms.select(editor, insertAt)
@@ -385,8 +387,6 @@ const InsertItem = forwardRef(({element, format, onClose, ...props}, ref) => {
     <MenuItem onClick={onClick} ref={ref} {...props}/>
   )
 })
-
-
 
 const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
   const classes = useStyles()
@@ -401,6 +401,35 @@ const InsertImageItem = forwardRef(({element, onClose, ...props}, ref) => {
                      open={imagePickerOpen}
                      uploadDirectory={page.imageContainerUri}
                      classes={{paper: classes.imageUploadPopover}}/>
+    </>
+  )
+})
+
+const InsertEmbedItem = forwardRef(({element, onClose, ...props}, ref) => {
+  const classes = useStyles()
+  const page = useContext(PageContext)
+  const [embedPickerOpen, setEmbedPickerOpen] = useState(false)
+  const editor = useEditor()
+
+  const close = useCallback(() => {
+    setEmbedPickerOpen(false)
+    onClose()
+  }, [onClose])
+  const save = useCallback(async (embedUrl, embedType) => {
+    const insertAt = insertionPoint(editor, element)
+    insertBlock(editor, 'embed', insertAt, {url: embedUrl, embedType})
+    Transforms.select(editor, insertAt)
+    onClose()
+  }, [editor, element, onClose])
+  return (
+    <>
+      <MenuItem onClick={() => setEmbedPickerOpen(true)} {...props}/>
+      <EmbedPicker element={element}
+                   open={embedPickerOpen}
+                   classes={{paper: classes.embedPickerPopover}}
+                   onClose={close}
+                   onSave={save}
+      />
     </>
   )
 })
@@ -453,6 +482,9 @@ function InsertMenu({element, onClose, ...props}){
       <InsertItem element={element} format="table" onClose={onClose}>
         table
       </InsertItem>
+      <InsertEmbedItem element={element} format="embed" onClose={onClose}>
+        embed
+      </InsertEmbedItem>
     </Menu>)
 }
 
@@ -606,6 +638,8 @@ const Element = (props) => {
   const { attributes, children, element } = props;
   const classes = useStyles()
   switch (element.type) {
+  case 'embed':
+    return <Block element={element}><EmbedElement {...props}/></Block>
   case 'block-quote':
     return <Block element={element}><blockquote className={classes.blockquote} {...attributes}>{children}</blockquote></Block>
   case 'heading-one':
@@ -641,7 +675,7 @@ const Element = (props) => {
   }
 }
 
-export const useNewEditor = () => useMemo(() => withTables(withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))))), [])
+export const useNewEditor = () => useMemo(() => withEmbeds(withTables(withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor())))))))), [])
 
 export default function Editable({editor, ...props}){
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])

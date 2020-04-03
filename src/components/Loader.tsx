@@ -20,5 +20,6 @@ const ConceptLoader = ({ height, width, type = "Triangle", ...props }: PropsWith
 }
 
 export const ButtonLoader = () => <ConceptLoader type="ThreeDots" width={3} height={1} />
+export const BlockLoader = () => <ConceptLoader type="ThreeDots" width={5} height={2} />
 
 export default ConceptLoader;
