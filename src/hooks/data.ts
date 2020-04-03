@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useWebId, useLDflexValue, useLiveUpdate } from '@solid/react';
 import { space, schema } from 'rdf-namespaces';
 import { appContainerUrl } from '../utils/urls';
-import { valueResolver, listResolver, listValuesResolver, pageListItemsResolver, pageResolver } from '../utils/data';
+import { Resolver, valueResolver, listResolver, listValuesResolver, pageListItemsResolver, pageResolver } from '../utils/data';
 import data from '@solid/query-ldflex';
 import { Page, PageContainer, PageListItem } from '../utils/model'
 
@@ -27,16 +27,19 @@ export function useWorkspace() {
   return workspace
 }
 
-type QueryUri = string | undefined
+type QueryTerm = string | undefined
+type UseQueryResult<T> = [T | undefined, boolean, Error | undefined]
+type QueryOptions<T> = { source?: string, skip?: boolean, resolver?: Resolver<T> }
 
-export function useQuery<T>(resolver: (query: any) => Promise<T>, ...queryUris: QueryUri[]): [T | undefined, boolean, Error | undefined] {
-  const resourceUri = queryUris[0]
+const defaultResolver: Resolver<any> = async (query: any) => query
+
+function useQuery<T>(subject: QueryTerm, predicate: QueryTerm | null, { source = subject, skip = false, resolver = defaultResolver }: QueryOptions<T>): UseQueryResult<T> {
   const { url: updatedUri, timestamp } = useLiveUpdate()
   const [updatedTimestamp, setUpdatedTimestamp] = useState(timestamp)
   useEffect(() => {
-    if (resourceUri) {
+    if (!skip && source) {
       try {
-        const url = new URL(resourceUri)
+        const url = new URL(source)
         url.hash = ''
         const docUri = url.toString()
         if (updatedUri === docUri) {
@@ -46,18 +49,21 @@ export function useQuery<T>(resolver: (query: any) => Promise<T>, ...queryUris: 
         setError(e)
       }
     }
-  }, [resourceUri, updatedUri, timestamp])
+  }, [source, updatedUri, timestamp, skip])
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState()
   const [result, setResult] = useState<T>()
   useEffect(() => {
-    if (queryUris.reduce((u: any, m: any) => u && m, true)) {
+    if (!skip && (source !== undefined) && (subject !== undefined) && (predicate !== undefined)) {
       const updateResult = async () => {
         setLoading(true)
         try {
-          // seatbelts off on this next line because we already made sure all the uris aren't undefined
-          setResult(await resolver(queryUris.reduce((m: any, uri: any) => m[uri], data)))
+          var query = data.from(source)[subject]
+          if (predicate !== null) {
+            query = query[predicate]
+          }
+          setResult(await resolver(query))
         } catch (e) {
           setError(e)
         }
@@ -65,30 +71,30 @@ export function useQuery<T>(resolver: (query: any) => Promise<T>, ...queryUris: 
       }
       updateResult()
     }
-  }, [...queryUris, updatedTimestamp]) //eslint-disable-line
+  }, [source, subject, predicate, updatedTimestamp, resolver, skip])
   return [result, loading, error]
 }
 
-export function useListQuery(...queryUris: string[]) {
-  return useQuery(listResolver, ...queryUris)
+export function useListQuery(subject: QueryTerm, predicate: QueryTerm, options: QueryOptions<any[]> = {}) {
+  return useQuery(subject, predicate, { resolver: listResolver, ...options })
 }
 
-export function useListValuesQuery(...queryUris: string[]) {
-  return useQuery(listValuesResolver, ...queryUris)
+export function useListValuesQuery(subject: QueryTerm, predicate: QueryTerm, options: QueryOptions<any[]> = {}) {
+  return useQuery(subject, predicate, { resolver: listValuesResolver, ...options })
 }
 
-export function useValueQuery(...queryUris: string[]) {
-  return useQuery(valueResolver, ...queryUris)
+export function useValueQuery(subject: QueryTerm, predicate: QueryTerm, options: QueryOptions<any> = {}) {
+  return useQuery(subject, predicate, { resolver: valueResolver, ...options })
 }
 
-export function usePageListItems(parent: PageContainer | undefined) {
-  return useQuery(pageListItemsResolver, parent && parent.uri, schema.itemListElement)
+export function usePageListItems(parent: PageContainer | undefined, options: QueryOptions<PageListItem[]> = {}) {
+  return useQuery(parent && parent.uri, schema.itemListElement, { resolver: pageListItemsResolver, ...options })
 }
 
-export function usePageFromPageListItem(pageListItem: PageListItem) {
-  return useQuery(pageResolver, pageListItem && pageListItem.pageUri)
+export function usePageFromPageListItem(pageListItem: PageListItem, options: QueryOptions<Page> = {}) {
+  return useQuery(pageListItem && pageListItem.pageUri, null, { resolver: pageResolver, ...options })
 }
 
-export function usePage(pageUri: string | undefined): [Page | undefined, boolean, Error | undefined] {
-  return useQuery(pageResolver, pageUri)
+export function usePage(pageUri: string | undefined, options: QueryOptions<Page> = {}) {
+  return useQuery(pageUri, null, { resolver: pageResolver, ...options })
 }
