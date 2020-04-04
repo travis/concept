@@ -32,8 +32,8 @@ import { schema, foaf, acl, vcard } from 'rdf-namespaces';
 import { useDrag, useDrop } from 'react-dnd'
 
 import Loader from './Loader';
-import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
 import { useAclExists, useParentAcl } from '../hooks/acls';
+import { useValueQuery, useListQuery, useListValuesQuery } from '../hooks/data';
 import { createDefaultAcl } from '../utils/acl';
 import { sharingUrl } from '../utils/urls';
 import { addPublicPage, removePublicPage, addPublicAccess, removePublicAccess } from '../utils/data';
@@ -78,10 +78,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const Agent = ({agent, deleteAgent, readOnlyAcl, permissionsType}) => {
-  const avatarUriNode = useLDflexValue(`[${agent}][${vcard.hasPhoto}]`)
-  const avatarUri = avatarUriNode && avatarUriNode.value
-  const nameNode = useLDflexValue(`[${agent}][${vcard.fn}]`)
-  const name = nameNode && nameNode.value
+  const [avatarUri] = useValueQuery(agent, vcard.hasPhoto)
+  const [name] = useValueQuery(agent, vcard.fn)
   const webId = useWebId();
   const readOnly = readOnlyAcl || (agent === webId)
   const [, chip] = useDrag({
@@ -117,9 +115,9 @@ const ModeDescription = ({type}) => {
 const PermissionsType = ({ aclUri, type, readOnly }) => {
   const uri = `${aclUri}#${type}`
   const [adding, setAdding] = useState(false)
-  const agents = useLDflexList(`[${uri}][${acl.agent}]`);
+  const [agents] = useListValuesQuery(uri, acl.agent)
   const webId = useWebId();
-  const friends = useLDflexList(`[${webId}][${foaf.knows}]`)
+  const [friends] = useListValuesQuery(webId, foaf.knows)
   const addAgent = useCallback(async (agent) => {
     await data[uri][acl.agent].add(namedNode(agent))
   }, [uri])
@@ -148,9 +146,9 @@ const PermissionsType = ({ aclUri, type, readOnly }) => {
       </Typography>
       <Box className={classes.agents}>
         {agents && agents.map(agent => (
-          <Agent agent={agent.value} readOnlyAcl={readOnly}
+          <Agent agent={agent} readOnlyAcl={readOnly}
                  permissionsType={type}
-                 deleteAgent={() => deleteAgent(agent.value)}
+                 deleteAgent={() => deleteAgent(agent)}
                  key={agent}/>
         ))}
         {!readOnly && (
@@ -160,9 +158,9 @@ const PermissionsType = ({ aclUri, type, readOnly }) => {
         )}
         {adding && (
           <Autocomplete options={friends}
-                        getOptionLabel={friend => friend.value}
+                        getOptionLabel={friend => friend}
                         onChange={(e, friend) => {
-                          addAgent(friend.value)
+                          addAgent(friend)
                           setAdding(false)
                         }}
                         renderInput={params => <TextField {...params} label="Who?" variant="outlined" />}
@@ -174,8 +172,8 @@ const PermissionsType = ({ aclUri, type, readOnly }) => {
 }
 
 const PageName = ({page}) => {
-  const name = useLDflexValue(`[${page}][${schema.name}]`);
-  return <>{name && name.value}</>
+  const [name] = useValueQuery(page, schema.name);
+  return <>{name || ""}</>
 }
 
 function NoAclContent({page, aclUri}){
@@ -213,8 +211,7 @@ function PublicAccess({page, aclUri}){
   const publicPages = workspace.publicPages
   const [saving, setSaving] = useState(false)
   const publicAccessUri = `${aclUri}#Public`
-  const publicAccessModeNodes = useLDflexList(`[${publicAccessUri}][${acl.mode}]`);
-  const publicAccessModes = publicAccessModeNodes && publicAccessModeNodes.map(node => node.value)
+  const [publicAccessModes] = useListValuesQuery(publicAccessUri, acl.mode);
   const read = publicAccessModes && publicAccessModes.includes(acl.Read)
   const write = publicAccessModes && publicAccessModes.includes(acl.Write)
   const handleChange = useCallback(async event => {
@@ -229,8 +226,8 @@ function PublicAccess({page, aclUri}){
     setSaving(false)
   }, [page, publicPages, publicAccessUri, write])
 
-  const publicDocs = useLDflexList(`[${publicPages}][${schema.itemListElement}]`);
-  const listedPublicly = publicDocs && publicDocs.map(n => n.value).includes(page)
+  const [publicDocs] = useListValuesQuery(publicPages, schema.itemListElement);
+  const listedPublicly = publicDocs && publicDocs.includes(page)
   const handleChangeListPublicly = useCallback(async event => {
     const checked = event.target.checked
     if (checked){
@@ -275,7 +272,7 @@ function PublicAccess({page, aclUri}){
 }
 
 function AclContent({page, aclUri}){
-  const name = useLDflexValue(`[${page}][${schema.name}]`);
+  const [name] = useValueQuery(page, schema.name);
   const url = sharingUrl(page)
   const classes = useStyles();
   return (
