@@ -12,8 +12,7 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-import { useLDflexValue, useLDflexList } from '../hooks/ldflex';
-import { useListValuesQuery } from '../hooks/data';
+import { useListValuesQuery, useListQuery, useValueQuery } from '../hooks/data';
 import { follow, unfollow } from '../utils/data';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 import { metaForPageUri } from '../utils/model'
@@ -40,18 +39,18 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function PublicPage({ pageUri }: { pageUri: string }) {
-  const nameTerm = useLDflexValue(`from('${metaForPageUri(pageUri)}')[${pageUri}][${schema.name}]`);
+  const [name] = useValueQuery(pageUri, schema.name, { source: pageUri && metaForPageUri(pageUri) })
   return (
     <ListItem>
       <Link to={pagePath(pageUri)} variant="h6">
-        {nameTerm ? nameTerm.value : ""}
+        {name || ""}
       </Link>
     </ListItem>
   )
 }
 
 function PublicPages({ url }: { url: string }) {
-  const pageUriTerms = useLDflexList(`[${url}][${schema.itemListElement}]`);
+  const [pageUriTerms] = useListQuery(url, schema.itemListElement)
   return (
     <List>
       <ListItem>
@@ -67,18 +66,18 @@ function PublicPages({ url }: { url: string }) {
 }
 
 function Friend({ webId }: { webId: string }) {
-  const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
+  const [name] = useValueQuery(webId, vcard.fn);
   return (
     <ListItem>
       <ProfileLink webId={webId} variant="h6">
-        {nameTerm ? nameTerm.value : ""}
+        {name || ""}
       </ProfileLink>
     </ListItem>
   )
 }
 
 function Friends({ webId }: { webId: string }) {
-  const friendsTerms = useLDflexList(`[${webId}][${foaf.knows}]`);
+  const [friends] = useListQuery(webId, foaf.knows)
   return (
     <List>
       <ListItem>
@@ -86,8 +85,8 @@ function Friends({ webId }: { webId: string }) {
           Friends
         </Typography>
       </ListItem>
-      {friendsTerms && friendsTerms.map((friendTerm: any) => (
-        <Friend key={friendTerm.value} webId={friendTerm.value} />
+      {friends && friends.map((friend: any) => (
+        <Friend key={friend} webId={friend} />
       ))}
     </List>
   )
@@ -116,10 +115,9 @@ function FollowButton({ webId }: { webId: string }) {
 
 function PublicInfo({ webId }: { webId: string }) {
   const currentUserWebId = useWebId();
-  const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
-  const name = nameTerm && nameTerm.value
-  const photo = useLDflexValue(`[${webId}][${vcard.hasPhoto}]`);
-  const storage = useLDflexValue(`[${webId}][${space.storage}]`);
+  const [name] = useValueQuery(webId, vcard.fn);
+  const [photo] = useValueQuery(webId, vcard.hasPhoto);
+  const [storage] = useValueQuery(webId, space.storage);
   const conceptContainer = storage && conceptContainerUrl(storage)
   const publicPages = conceptContainer && publicPagesUrl(conceptContainer)
   const classes = useStyles()
@@ -183,8 +181,8 @@ export function EncodedWebIdPublicProfile() {
 
 export default function PublicProfile() {
   const { handle } = useParams();
-  const webId = useLDflexValue(`[https://handle.haus/handles/${handle}#Person][https://handle.haus/ontology#webId]`)
+  const [webId] = useValueQuery(handle && `https://handle.haus/handles/${handle}#Person`, "https://handle.haus/ontology#webId")
   return (
-    <WebIdPublicProfile webId={webId && webId.value} />
+    <WebIdPublicProfile webId={webId} />
   )
 }

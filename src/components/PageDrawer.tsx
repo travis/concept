@@ -1,6 +1,6 @@
 import React, { useContext, useState, useCallback, useRef } from 'react';
 import { useParams, Link } from "react-router-dom";
-import { LiveUpdate, useWebId, useLDflexValue } from "@solid/react";
+import { LiveUpdate, useWebId } from "@solid/react";
 import { vcard } from 'rdf-namespaces';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -22,7 +22,7 @@ import { useHistory } from "react-router-dom";
 
 import { useAuthContext } from "../context/auth"
 import WorkspaceContext from "../context/workspace";
-import { usePageListItems, usePageFromPageListItem } from '../hooks/data';
+import { useValueQuery, usePageListItems, usePageFromPageListItem } from '../hooks/data';
 import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
 import { conceptPagePath } from '../utils/urls';
 import { drawerWidth } from '../constants'
@@ -251,8 +251,8 @@ type PageDrawerProps = {
 
 export default ({ workspace }: PageDrawerProps) => {
   const webId = useWebId()
-  const nameTerm = useLDflexValue(`[${webId}][${vcard.fn}]`);
-  const photoTerm = useLDflexValue(`[${webId}][${vcard.hasPhoto}]`);
+  const [name] = useValueQuery(webId, vcard.fn)
+  const [photo] = useValueQuery(webId, vcard.hasPhoto)
   const classes = useStyles({})
   const history = useHistory();
   const [pageListItems, pageListItemsLoading] = usePageListItems(workspace)
@@ -280,9 +280,9 @@ export default ({ workspace }: PageDrawerProps) => {
       anchor="left"
     >
       <div className={`${classes.sidebarItem} ${classes.userSidebarItem}`}>
-        <AvatarMenu name={nameTerm && nameTerm.value} photo={photoTerm && photoTerm.value} />
+        <AvatarMenu name={name} photo={photo} />
         <ProfileLink webId={webId} color="inherit">
-          <Typography variant="subtitle2">{nameTerm && nameTerm.value}</Typography>
+          <Typography variant="subtitle2">{name}</Typography>
         </ProfileLink>
       </div>
       <div className={`${classes.sectionTitle} ${classes.sidebarItem}`}>
