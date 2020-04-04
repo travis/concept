@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useMemo } from 'react'
 
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
@@ -23,30 +23,39 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-function WorkspaceContent(){
-  const classes = useStyles()
+const WorkspaceRoute = ({children, ...props}) => {
   const {workspace} = useContext(WorkspaceContext);
   return (
-    <>
+    <Route {...props}>
       {workspace && (
         <LiveUpdate subscribe={[workspace.uri]}>
           <PageDrawer workspace={workspace} />
         </LiveUpdate>
       )}
+      {children}
+    </Route>
+  )
+}
+
+
+function WorkspaceContent(){
+  const classes = useStyles()
+  return (
+    <>
       <Box className={classes.content}>
         <Switch>
-          <Route path="/page/:selectedPage">
+          <WorkspaceRoute path="/page/:selectedPage">
             <Pages/>
-          </Route>
-          <Route path="/for/:handle">
+          </WorkspaceRoute>
+          <WorkspaceRoute path="/for/:handle">
             <PublicProfile/>
-          </Route>
-          <Route path="/webid/:encodedWebId">
+          </WorkspaceRoute>
+          <WorkspaceRoute path="/webid/:encodedWebId">
             <EncodedWebIdPublicProfile/>
-          </Route>
-          <Route path="/">
+          </WorkspaceRoute>
+          <WorkspaceRoute path="/">
             <Home/>
-          </Route>
+          </WorkspaceRoute>
         </Switch>
       </Box>
     </>

@@ -157,7 +157,6 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
   const classes = useStyles({ level })
   const pageUri = pageListItem.pageUri
   const encodedPage = pageUri && encodeURIComponent(pageUri)
-
   return (
     <>
       <ListItem dense={true} selected={selectedPage === encodedPage} className={`${classes.item} ${classes.sidebarItem}`}>
