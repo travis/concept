@@ -33,7 +33,7 @@ import { useDrag, useDrop } from 'react-dnd'
 
 import Loader from './Loader';
 import { useAclExists, useParentAcl } from '../hooks/acls';
-import { useValueQuery, useListQuery, useListValuesQuery } from '../hooks/data';
+import { useValueQuery, useListValuesQuery } from '../hooks/data';
 import { createDefaultAcl } from '../utils/acl';
 import { sharingUrl } from '../utils/urls';
 import { addPublicPage, removePublicPage, addPublicAccess, removePublicAccess } from '../utils/data';
