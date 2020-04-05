@@ -10,7 +10,7 @@ import CloseIcon from '@material-ui/icons/Close';
 
 import { schema } from 'rdf-namespaces';
 
-import { useLDflexValue } from '../hooks/ldflex';
+import { useValueQuery } from '../hooks/data';
 import Backups from './Backups';
 
 const useStyles = makeStyles(theme => ({
@@ -23,7 +23,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function BackupsDialog({page, open, handleClose}) {
-  const name = useLDflexValue(`[${page.uri}][${schema.name}]`);
+  const [name] = useValueQuery(page.uri, schema.name);
   const classes = useStyles();
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -35,7 +35,7 @@ export default function BackupsDialog({page, open, handleClose}) {
       </DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Backups of {name && name.toString()}
+          Backups of {name}
         </DialogContentText>
         <Backups page={page} handleClose={handleClose}/>
       </DialogContent>

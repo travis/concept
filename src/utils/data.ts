@@ -68,6 +68,11 @@ export const valueResolver: Resolver<any> = async query => {
   return term && term.value
 }
 
+export const dateResolver: Resolver<any> = async query => {
+  const term = await query
+  return term && new Date(term.value)
+}
+
 export const pageListItemResolver: Resolver<PageListItem> = async query => {
   const [uri, name, pageUri] = resolveValues(await Promise.all([
     query,

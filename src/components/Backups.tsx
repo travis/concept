@@ -23,7 +23,7 @@ import { ldp, schema, dct } from 'rdf-namespaces';
 
 import { Slate } from 'slate-react';
 
-import { useLDflexList, useLDflexValue } from '../hooks/ldflex';
+import { useListValuesQuery, useValueQuery, useDateQuery } from '../hooks/data';
 import { backupFolderForPage } from '../utils/backups'
 import { Page } from '../utils/model'
 import { createBackup } from '../hooks/backup'
@@ -60,7 +60,7 @@ type HandleClose = (opts?: CloseOpts) => void
 type RestoreDialogProps = { original: string, date: Date, restore: () => void, handleClose: HandleClose, open: boolean }
 
 function RestoreDialog({ original, date, restore, handleClose, open }: RestoreDialogProps) {
-  const originalName = useLDflexValue(`[${original}][${schema.name}]`)
+  const [originalName] = useValueQuery(original, schema.name)
   const [restoring, setRestoring] = useState(false)
   const handleConfirm = useCallback(async () => {
     setRestoring(true)
@@ -76,7 +76,7 @@ function RestoreDialog({ original, date, restore, handleClose, open }: RestoreDi
       aria-describedby="confirm-restore-dialog-description"
     >
       <DialogTitle id="confirm-restore-dialog-title">
-        Restore {date.toLocaleString()} version of {originalName && originalName.value}?
+        Restore {date.toLocaleString()} version of {originalName}?
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="confirm-restore-dialog-description">
@@ -100,36 +100,36 @@ function RestoreDialog({ original, date, restore, handleClose, open }: RestoreDi
 }
 
 function PreviewName({ original }: { original: string }) {
-  const name = useLDflexValue(`[${original}][${schema.name}]`)
-  return <>{name && name.value}</>
+  const [name] = useValueQuery(original, schema.name)
+  return <>{name}</>
 }
 
 type PreviewDialogProps = { backup: string, date: Date, open?: boolean, handleClose: HandleClose }
 
 function PreviewDialog({ backup, date, open = true, handleClose }: PreviewDialogProps) {
   const [showRestore, setShowRestore] = useState(false)
-  const original = useLDflexValue(`[${backup}][${concept.backupOf}]`)
-  const backupText = useLDflexValue(`[${backup}][${schema.text}]`)
+  const [original] = useValueQuery(backup, concept.backupOf)
+  const [backupText] = useValueQuery(backup, schema.text)
   const editor = useNewEditor()
   const classes = useStyles();
   const restore = useCallback(async () => {
     const currentText = data[original][schema.text]
-    await createBackup(original.value, "beforeLastRestore.ttl", (await currentText).value)
-    await currentText.set(backupText.value)
+    await createBackup(original, "beforeLastRestore.ttl", (await currentText).value)
+    await currentText.set(backupText)
     setShowRestore(false)
     handleClose({ closeAll: true })
   }, [original, backupText, handleClose])
   return (
     <Dialog open={open} onClose={() => handleClose()}>
       <DialogTitle>
-        {original && <PreviewName original={original.value} />}
+        {original && <PreviewName original={original} />}
         <IconButton aria-label="close" className={classes.previewCloseButton} onClick={() => handleClose()}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent>
         {backupText && (
-          <Slate editor={editor} value={JSON.parse(backupText.value)} onChange={() => { }}>
+          <Slate editor={editor} value={JSON.parse(backupText)} onChange={() => { }}>
             <Paper className={classes.editor}>
               <Editable readOnly editor={editor} />
             </Paper>
@@ -162,8 +162,7 @@ type BackupProps = {
 function Backup({ backupFolder, backup, handleClose }: PropsWithChildren<BackupProps>) {
   const [showPreview, setShowPreview] = useState(false)
   const meta = `${backupFolder}.meta`
-  const backupDateNode = useLDflexValue(`from([${meta}])[${backup}][${dct.modified}]`)
-  const backupDate = backupDateNode && new Date(backupDateNode.value)
+  const [backupDate] = useDateQuery(backup, dct.modified, { source: meta })
   const handleClosePreview = useCallback(({ closeAll } = { closeAll: false }) => {
     setShowPreview(false)
     if (closeAll) {
@@ -190,7 +189,7 @@ type BackupsProps = {
 
 export default function Backups({ page, handleClose }: BackupsProps) {
   const backupFolder = backupFolderForPage(page.uri)
-  const backups = useLDflexList(`[${backupFolder}][${ldp.contains}]`)
+  const [backups] = useListValuesQuery(backupFolder, ldp.contains)
   const classes = useStyles()
   return (
     <TableContainer component={Paper}>
@@ -204,9 +203,9 @@ export default function Backups({ page, handleClose }: BackupsProps) {
         </TableHead>
         <TableBody>
           {
-            backups && backups.map((backup: any) => (
-              <Backup key={backup.value} backupFolder={backupFolder} backup={backup.value} handleClose={handleClose}>
-                {backup.value}
+            backups && backups.map((backup: string) => (
+              <Backup key={backup} backupFolder={backupFolder} backup={backup} handleClose={handleClose}>
+                {backup}
               </Backup>
             ))
           }

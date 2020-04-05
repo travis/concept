@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useWebId, useLiveUpdate } from '@solid/react';
 import { space, schema } from 'rdf-namespaces';
 import { appContainerUrl } from '../utils/urls';
-import { Resolver, valueResolver, listResolver, listValuesResolver, pageListItemsResolver, pageResolver } from '../utils/data';
+import { Resolver, dateResolver, valueResolver, listResolver, listValuesResolver, pageListItemsResolver, pageResolver } from '../utils/data';
 import data from '@solid/query-ldflex';
 import { Page, PageContainer, PageListItem } from '../utils/model'
 
@@ -85,6 +85,10 @@ export function useListValuesQuery(subject: QueryTerm, predicate: QueryTerm, opt
 
 export function useValueQuery(subject: QueryTerm, predicate: QueryTerm, options: QueryOptions<any> = {}) {
   return useQuery(subject, predicate, { resolver: valueResolver, ...options })
+}
+
+export function useDateQuery(subject: QueryTerm, predicate: QueryTerm, options: QueryOptions<any> = {}) {
+  return useQuery(subject, predicate, { resolver: dateResolver, ...options })
 }
 
 
