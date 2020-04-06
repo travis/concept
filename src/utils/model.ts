@@ -6,25 +6,35 @@ import concept from '../ontology';
 import { pageResolver } from './data';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 
-export interface PageContainer {
+export interface Subject {
   uri: string,
   docUri: string,
-  containerUri: string,
+  containerUri: string
+}
+
+export interface PageContainer extends Subject {
   subpageContainerUri: string
+}
+
+export interface Document extends Subject {
+  id: string,
+  name: string,
+  text: string,
+  imageContainerUri: string,
+  metaUri: string
 }
 
 export interface Workspace extends PageContainer {
   publicPages: string
 }
 
-export interface Page extends PageContainer {
-  id: string,
-  name: string,
-  text: string,
+export interface Concept extends Document {
+
+}
+
+export interface Page extends PageContainer, Document {
   inListItem: string,
-  imageContainerUri: string,
   parent: string,
-  metaUri: string
 }
 
 export interface PageListItem {

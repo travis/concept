@@ -7,7 +7,7 @@ import { Node } from 'slate'
 import { resourceExists, createNonExistentDocument } from '../utils/ldflex-helper'
 import { backupFolderForPage } from '../utils/backups'
 import concept from '../ontology'
-import { Page } from '../utils/model'
+import { Document } from '../utils/model'
 
 const ns = solidNamespace()
 
@@ -47,7 +47,7 @@ export async function createBackup(pageUri: string, backupFile: string, value: s
   await data.from(metaFile)[backup][dct.modified].set(literal(new Date().toISOString(), ns.xsd("dateTime")))
 }
 
-function createBackupInterval(bodyRef: BodyRef, page: Page, backupFile: string, interval: number) {
+function createBackupInterval(bodyRef: BodyRef, page: Document, backupFile: string, interval: number) {
   return setInterval(async () => {
     if (bodyRef.current !== undefined) {
       await createBackup(page.uri, backupFile, JSON.stringify(bodyRef.current))
@@ -55,7 +55,7 @@ function createBackupInterval(bodyRef: BodyRef, page: Page, backupFile: string, 
   }, interval)
 }
 
-export function useBackups(page: Page, value: Node[] | undefined) {
+export function useBackups(page: Document, value: Node[] | undefined) {
   const bodyRef: BodyRef = useRef()
   bodyRef.current = value
   useEffect(() => {

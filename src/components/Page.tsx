@@ -30,7 +30,7 @@ import Loader from "./Loader";
 import WorkspaceContext from "../context/workspace";
 import PageContext from '../context/page'
 
-import PageTextEditor from './PageTextEditor'
+import DocumentTextEditor from './DocumentTextEditor'
 import { usePage } from "../hooks/data"
 import { useAccessInfo } from '../hooks/acls';
 import { drawerWidth } from '../constants'
@@ -58,7 +58,7 @@ type PageNameProps = {
 }
 
 function PageName({ page }: PageNameProps) {
-  const { updatePage } = useContext(WorkspaceContext);
+  const { updateName } = useContext(WorkspaceContext);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(page.name);
   useEffect(() => {
@@ -67,8 +67,8 @@ function PageName({ page }: PageNameProps) {
 
   const saveAndStopEditing = async () => {
     setEditing(false)
-    if (updatePage) {
-      await updatePage(page, schema.name, name)
+    if (updateName) {
+      await updateName(page, name)
     }
   }
 
@@ -216,7 +216,7 @@ export default function PageComponent({ pageUri }: PageProps) {
       {allowed && (
         <EditorErrorBoundary>
           <LiveUpdate subscribe={page.uri}>
-            <PageTextEditor page={page} readOnly={readOnly} />
+            <DocumentTextEditor document={page} readOnly={readOnly} />
           </LiveUpdate>
         </EditorErrorBoundary>
       )}

@@ -11,7 +11,8 @@ import * as m from "../utils/model"
 
 type AddPageType = (props: m.PageProps, pageListProps: m.PageListItemProps) => Promise<m.Page | null>
 type AddSubPageType = (props: m.PageProps, parentPageListItem: m.PageListItem) => Promise<m.Page | null>
-type UpdatePageType = (page: m.Page, predicate: string, value: any) => Promise<void>
+type UpdateTextType = (document: m.Document, value: any) => Promise<void>
+type UpdateNameType = (page: m.Page, value: any) => Promise<void>
 type DeletePageType = (page: m.Page) => Promise<void>
 
 export interface WorkspaceContextType {
@@ -20,7 +21,8 @@ export interface WorkspaceContextType {
   workspace?: m.Workspace,
   addPage?: AddPageType,
   addSubPage?: AddSubPageType,
-  updatePage?: UpdatePageType,
+  updateText?: UpdateTextType,
+  updateName?: UpdateNameType,
   deletePage?: DeletePageType
 }
 
@@ -64,16 +66,16 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
     return await m.addSubPage(parentPageListItem, { name }, { position: subPageList.length })
   }
 
-  const updatePage = useCallback(async (page: m.Page, predicate: string, value: string) => {
-    if (predicate === schema.name) {
-      await Promise.all([
-        data[page.uri][predicate].set(value),
-        data[page.inListItem][predicate].set(value),
-        data.from(page.metaUri)[page.uri][predicate].set(value)
-      ])
-    } else if (predicate === schema.text) {
-      await data[page.uri][predicate].set(value)
-    }
+  const updateName = useCallback(async (page: m.Page, value: string) => {
+    await Promise.all([
+      data[page.uri][schema.name].set(value),
+      data[page.inListItem][schema.name].set(value),
+      data.from(page.metaUri)[page.uri][schema.name].set(value)
+    ])
+  }, [])
+
+  const updateText = useCallback(async (doc: m.Document, value: string) => {
+    await data[doc.uri][schema.text].set(value)
   }, [])
 
   const deletePage = useCallback(async (page: m.Page) => {
@@ -81,7 +83,7 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   }, [])
 
   return (
-    <Provider value={{ workspace, addPage, addSubPage, updatePage, deletePage }
+    <Provider value={{ workspace, addPage, addSubPage, updateText, updateName, deletePage }
     }
       children={children} />
   )

@@ -3,7 +3,6 @@ import React, { useContext, useState, useRef, useCallback, useEffect } from 'rea
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import SaveIcon from '@material-ui/icons/Save'
-import { schema } from 'rdf-namespaces';
 import { useDebounce } from 'use-debounce';
 
 import { Slate } from 'slate-react';
@@ -11,7 +10,7 @@ import { Node } from 'slate';
 
 import { HoveringToolbar } from "./EditorToolbar";
 import Editable, { useNewEditor } from "./Editable";
-import { Page } from "../utils/model"
+import { Document } from "../utils/model"
 import WorkspaceContext from "../context/workspace";
 import { useBackups } from '../hooks/backup';
 
@@ -45,17 +44,17 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-interface PageTextEditorProps {
-  page: Page,
+interface DocumentTextEditorProps {
+  document: Document,
   readOnly: boolean
 }
 
-export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) {
-  const pageUri = page.uri
-  const { updatePage } = useContext(WorkspaceContext);
+export default function DocumentTextEditor({ document, readOnly }: DocumentTextEditorProps) {
+  const documentUri = document.uri
+  const { updateText } = useContext(WorkspaceContext);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
-  const pageText = page.text;
+  const documentText = document.text;
   const [editorValue, setEditorValue] = useState<Node[] | undefined>(undefined);
   const [saveNeeded, setSaveNeeded] = useState(false);
   const [debouncedValue] = useDebounce(editorValue, 1500);
@@ -69,13 +68,13 @@ export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) 
   const editor = useNewEditor()
 
   useEffect(() => {
-    // set editor text to null when the page changes so we won't save page text from another page to the current page
+    // set editor text to null when the document changes so we won't save document text from another document to the current document
     editor.children = undefined
     setEditorValue(undefined);
     savedVersionsRef.current = []
-  }, [editor, pageUri])
+  }, [editor, documentUri])
 
-  useBackups(page, editorValue)
+  useBackups(document, editorValue)
 
   const previouslySaved = useCallback(
     (text) => savedVersionsRef.current.some(previousVersion => previousVersion === text),
@@ -83,26 +82,26 @@ export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) 
   )
 
   useEffect(() => {
-    // once pageText loads, set editorValue
-    if ((pageText !== undefined) && (pageText !== null)) {
+    // once documentText loads, set editorValue
+    if ((documentText !== undefined) && (documentText !== null)) {
       setEditorValue(currentValue => {
-        if ((JSON.stringify(currentValue) === pageText) ||
-          previouslySaved(pageText)) {
+        if ((JSON.stringify(currentValue) === documentText) ||
+          previouslySaved(documentText)) {
           return currentValue
         } else {
-          return JSON.parse(pageText)
+          return JSON.parse(documentText)
         }
       })
     }
-  }, [pageText, previouslySaved, savedVersionsRef]);
+  }, [documentText, previouslySaved, savedVersionsRef]);
 
   useEffect(() => {
     const maybeSave = async () => {
       const saveableText = JSON.stringify(debouncedValue);
-      if (saveableText !== pageText) {
+      if (saveableText !== documentText) {
         setSaving(true);
-        if (updatePage) {
-          await updatePage(page, schema.text, saveableText);
+        if (updateText) {
+          await updateText(document, saveableText);
         }
         setSavedVersions(currentSavedVersions => [saveableText, ...currentSavedVersions].slice(0, 100))
         setSaving(false);
@@ -112,7 +111,7 @@ export default function PageTextEditor({ page, readOnly }: PageTextEditorProps) 
       setSaveNeeded(false);
       maybeSave();
     }
-  }, [saveNeeded, page, pageText, debouncedValue, updatePage, setSavedVersions])
+  }, [saveNeeded, document, documentText, debouncedValue, updateText, setSavedVersions])
 
   useEffect(() => {
     if (debouncedValue !== undefined) {
