@@ -20,7 +20,6 @@ import ShareIcon from '@material-ui/icons/Share'
 import BackupIcon from '@material-ui/icons/Backup'
 import MenuIcon from '@material-ui/icons/Menu'
 
-import { schema } from 'rdf-namespaces';
 import { useHistory } from "react-router-dom";
 
 import SharingModal from "./SharingModal";

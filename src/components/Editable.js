@@ -26,13 +26,12 @@ import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 
 import { withHistory } from 'slate-history';
-import copy from 'copy-to-clipboard';
 
 import {
   withImages, withLinks, withChecklists, withLists, toggleMark,
   makeBlock, insertBlock, withTables, withEmbeds,
   insertRow, insertColumn, removeRow, removeColumn,
-  setLinkUrl, insertionPoint
+  setLinkUrl, insertionPoint, removeLink
 } from '../utils/editor';
 
 import PageContext from '../context/page'
@@ -42,7 +41,7 @@ import EmbedPicker from './EmbedPicker'
 import IconButton from './IconButton';
 import ImageUploader, { ImageEditor } from './ImageUploader';
 import EmbedElement from './EmbedElement'
-import { removeLink } from '../utils/editor'
+import LinkElement from './editable/LinkElement'
 
 const useStyles = makeStyles(theme => ({
   image: {
@@ -67,13 +66,6 @@ const useStyles = makeStyles(theme => ({
   },
   unorderedList: {
     paddingLeft: theme.spacing(3)
-  },
-  aPopover: {
-    padding: theme.spacing(1)
-  },
-  linkPopupButton: {
-    padding: 0,
-    marginLeft: theme.spacing(1)
   },
   block: {
     position: "relative",
@@ -238,86 +230,6 @@ const ImageElement = ({ attributes, children, element }) => {
   )
 }
 
-const LinkPopover = ({element, editing, setEditing, onClose, ...props}) => {
-  const editor = useEditor()
-  const [selection, setSelection] = useState()
-  const [editValue, setEditValue] = useState(element.url)
-  const classes = useStyles()
-  const editLink = () => {
-    setSelection(editor.selection)
-    setEditing(true)
-  }
-  const saveLink = () => {
-    setLinkUrl(editor, element, editValue)
-    onClose()
-    setEditing(false)
-    Transforms.select(editor, selection)
-  }
-  return (
-    <Popover disableAutoFocus disableEnforceFocus
-             anchorOrigin={{
-               vertical: 'bottom',
-               horizontal: 'center',
-             }}
-             transformOrigin={{
-               vertical: 'top',
-               horizontal: 'center',
-             }}
-             PaperProps={{className: classes.aPopover}}
-             onClose={onClose}
-             {...props}>
-      {editing ? (
-        <TextField autoFocus value={editValue} onChange={e => setEditValue(e.target.value)}
-                   onKeyDown={event => {
-                     if (event.keyCode === 13){
-                       event.preventDefault()
-                       saveLink()
-                     }
-                   } }/>
-      ) : (
-        <Link href={element.url} target="_blank">{element.url}</Link>
-      )}
-      {editing ? (
-        <IconButton size="small" className={classes.linkPopupButton} title="edit link"
-                    onClick={saveLink}>
-          <SaveIcon></SaveIcon>
-        </IconButton>
-      ) : (
-        <IconButton size="small" className={classes.linkPopupButton} title="edit link"
-                    onClick={editLink}>
-          <EditIcon></EditIcon>
-        </IconButton>
-      )}
-      <IconButton size="small" className={classes.linkPopupButton} title="unlink"
-                  onClick={() => removeLink(editor)}>
-        <UnlinkIcon></UnlinkIcon>
-      </IconButton>
-      <IconButton size="small" className={classes.linkPopupButton} title="copy link"
-                  onClick={() => copy(element.url)}>
-        <CopyIcon></CopyIcon>
-      </IconButton>
-    </Popover>
-  )
-}
-
-const LinkElement = ({attributes, children, element}) => {
-  const aRef = useRef()
-  const [editingLink, setEditingLink] = useState(false)
-  const selected = useSelected()
-  const open = (editingLink || selected)
-  return (
-    <>
-      <Link {...attributes} href={element.url} ref={aRef}>
-        {children}
-      </Link>
-      <LinkPopover element={element} open={open} anchorEl={aRef.current}
-                   onClose={() => {
-                     setEditingLink(false)
-                   }}
-                   editing={editingLink} setEditing={setEditingLink} />
-    </>
-  )
-}
 
 const TurnIntoItem = forwardRef(({element, format, onClose, ...props}, ref) => {
   const editor = useEditor()
