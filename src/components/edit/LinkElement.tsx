@@ -1,4 +1,4 @@
-import React, { useState, useRef, FunctionComponent, ReactNode } from 'react'
+import React, { useState, useRef, FunctionComponent } from 'react'
 import { Transforms, Range, Element } from 'slate';
 import { useSelected, useEditor } from 'slate-react';
 
@@ -15,6 +15,7 @@ import CopyIcon from '@material-ui/icons/FileCopy';
 
 import IconButton from '../IconButton';
 import { setLinkUrl, removeLink } from '../../utils/editor';
+import { ElementProps } from "./"
 
 const useStyles = makeStyles(theme => ({
   aPopover: {
@@ -95,13 +96,7 @@ const LinkPopover: FunctionComponent<LinkPopoverProps> = ({ element, editing, se
   )
 }
 
-type LinkElementProps = {
-  attributes: { [key: string]: any },
-  element: Element,
-  children: ReactNode
-}
-
-const LinkElement: FunctionComponent<LinkElementProps> = ({ attributes, children, element }) => {
+const LinkElement: FunctionComponent<ElementProps> = ({ attributes, children, element }) => {
   const aRef = useRef(null)
   const [editingLink, setEditingLink] = useState(false)
   const selected = useSelected()
