@@ -24,7 +24,7 @@ import { useAuthContext } from "../context/auth"
 import WorkspaceContext from "../context/workspace";
 import { useValueQuery, usePageListItems, usePageFromPageListItem } from '../hooks/data';
 import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
-import { conceptPagePath } from '../utils/urls';
+import { pagePath } from '../utils/urls';
 import { drawerWidth } from '../constants'
 
 import IconButton from './IconButton';
@@ -171,7 +171,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
               <ArrowRight fontSize="small" />
             </IconButton>
           )}
-        <Link to={conceptPagePath(pageUri)}>
+        <Link to={pagePath(pageUri)}>
           <ListItemText primary={`${pageListItem.name || ""}`} />
         </Link>
         <IconButton title="add inner page" className={classes.sidebarItemHoverButton}
@@ -182,7 +182,7 @@ function PageListItem({ parent, pageListItem, level = 0 }: PageListItemProps) {
               const page = await addSubPage({}, pageListItem)
               setAdding(false)
               if (page) {
-                history.push(conceptPagePath(page.uri))
+                history.push(pagePath(page.uri))
               }
             }
           }}>
@@ -263,7 +263,7 @@ export default ({ workspace }: PageDrawerProps) => {
     if (addPage) {
       const page = await addPage({}, { position: pageListItems ? pageListItems.length : 0 })
       if (page) {
-        history.push(conceptPagePath(page.uri))
+        history.push(pagePath(page.uri))
       }
     }
     setAddingPage(false)

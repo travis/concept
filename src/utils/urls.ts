@@ -5,8 +5,11 @@ export const pagePath = (page: string) => `/page/${encodeURIComponent(page)}`
 export const sharingUrl = (page: string) => `https://useconcept.art${pagePath(page)}`
 export const webIdProfilePath = (webId: string) => `/webid/${encodeURIComponent(webId)}`
 export const handleProfilePath = (handle: string) => `/for/${handle}`
-export const conceptPagePath = (pageUri: string) => {
-  const encodedPage = pageUri && encodeURIComponent(pageUri)
-  return `/page/${encodedPage}`
-}
 export const handleHausUriForWebId = (webId: string) => `https://handle.haus/webids/${encodeURIComponent(webId)}#Person`
+export const conceptPath = (conceptUri: string) => `/concept/${encodeURIComponent(conceptUri)}`
+export const conceptUrl = (conceptUri: string) => {
+  const u = new URL(window.location.toString())
+  u.pathname = conceptPath(conceptUri)
+  return u.toString()
+}
+export const conceptUri = (container: string, name: string) => `${container}${encodeURIComponent(name)}/index.ttl#Concept`

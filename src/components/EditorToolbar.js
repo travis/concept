@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useSlate, useEditor } from 'slate-react';
-import { Range, Transforms } from 'slate'
+import { Range, Transforms, Node } from 'slate'
 
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 
 import Toolbar from '@material-ui/core/Toolbar';
 import TextField from '@material-ui/core/TextField';
+import Popover from '@material-ui/core/Popover';
+import Button from '@material-ui/core/Button';
 import FormatBold from '@material-ui/icons/FormatBold';
 import FormatItalic from '@material-ui/icons/FormatItalic';
 import FormatUnderlined from '@material-ui/icons/FormatUnderlined';
@@ -16,15 +18,16 @@ import FormatListNumbered from '@material-ui/icons/FormatListNumbered';
 import ImageIcon from '@material-ui/icons/ImageOutlined';
 import LinkIcon from '@material-ui/icons/Link';
 import CheckBox from '@material-ui/icons/CheckBoxOutlined';
-import Popover from '@material-ui/core/Popover';
-import Button from '@material-ui/core/Button';
+import ConceptIcon from '@material-ui/icons/Toll';
 
 import IconButton from './IconButton';
 
 import {
   isMarkActive, toggleMark, isBlockActive, toggleBlock, insertImage,
-  isLinkActive, insertLink
+  isLinkActive, insertLink, isConceptActive, insertConcept
 } from '../utils/editor'
+import { conceptUri } from '../utils/urls'
+import WorkspaceContext from '../context/workspace'
 
 const useStyles = makeStyles(theme => ({
   toolbarRoot: {
@@ -133,6 +136,82 @@ const MarkButton = ({ format, icon, ...props }) => {
   )
 }
 
+const selectedText = (editor) => {
+  if (editor && editor.selection) {
+    if (Range.isCollapsed(editor.selection)){
+      return ""
+    } else {
+      return Array.from(Node.texts(editor, {
+        from: Range.start(editor.selection).path,
+        to: Range.end(editor.selection).path
+      })).
+        map(([node]) => node.text).
+        join("")
+    }
+  } else {
+    return null
+  }
+}
+
+const ConceptButton = ({setSubMenuOpen}) => {
+  const {workspace} = useContext(WorkspaceContext)
+  const editor = useSlate()
+  const [conceptButtonOpen, setConceptButtonOpen] = useState(false)
+  const [name, setName] = useState(null)
+  const [selection, setSelection] = useState(undefined)
+  const ref = useRef()
+  const onClose = () => {
+    setConceptButtonOpen(false)
+    setSubMenuOpen(false)
+    if (selection){
+      Transforms.select(editor, selection)
+    }
+  }
+  return (
+    <>
+      <IconButton
+        ref={ref}
+        title="insert concept"
+        size="small"
+        active={isConceptActive(editor)}
+        onClick={() => {
+          setSubMenuOpen(true)
+          setSelection(editor.selection)
+          setName(selectedText(editor))
+          setConceptButtonOpen(!conceptButtonOpen)
+        }}
+      >
+        <ConceptIcon/ >
+      </IconButton>
+      <Popover
+        open={conceptButtonOpen}
+        onClose={onClose}
+        anchorEl={ref.current}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+      >
+        <TextField autoFocus placeholder="Paste your link here..."
+                   size="small" variant="outlined"
+                   value={name || ""}
+                   onChange={e => setName(e.target.value)}/>
+        <Button onClick={() => {
+          Transforms.select(editor, selection)
+          insertConcept(editor, name, conceptUri(workspace.conceptContainerUri, name))
+          onClose()
+        }}>
+          insert
+        </Button>
+      </Popover>
+    </>
+  )
+}
+
 const BlockButton = ({ format, icon, ...props }) => {
   const editor = useSlate()
   return (
@@ -204,6 +283,7 @@ export function HoveringToolbar() {
         <MarkButton title="Underline" format="underline" icon={<FormatUnderlined/>} />
         <MarkButton title="Code" format="code" icon={<Code/>} />
         <LinkButton setSubMenuOpen={setSubMenuOpen}/>
+        <ConceptButton setSubMenuOpen={setSubMenuOpen}/>
       </Popover>
     )
 }

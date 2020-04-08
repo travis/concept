@@ -253,6 +253,60 @@ export const setLinkUrl = (editor, link, url) => {
   Transforms.setNodes(editor, {url}, {at: path})
 }
 
+export const setConceptProps = (editor, concept, name, uri) => {
+  const path = ReactEditor.findPath(editor, concept)
+  Transforms.setNodes(editor, {name, uri}, {at: path})
+}
+
+const unwrapConcept = editor => {
+  Transforms.unwrapNodes(editor, { match: n => n.type === 'concept' })
+}
+
+const wrapConcept = (editor, name, uri) => {
+  if (isConceptActive(editor)) {
+    unwrapConcept(editor)
+  }
+
+  const { selection } = editor
+  const isCollapsed = selection && Range.isCollapsed(selection)
+  const concept = {
+    type: 'concept',
+    name,
+    uri,
+    children: isCollapsed ? [{ text: name }] : [],
+  }
+
+  if (isCollapsed) {
+    Transforms.insertNodes(editor, concept)
+  } else {
+    Transforms.wrapNodes(editor, concept, { split: true })
+    Transforms.collapse(editor, { edge: 'end' })
+  }
+}
+
+export const removeConcept = (editor) => {
+  unwrapConcept(editor)
+}
+
+export const isConceptActive = editor => {
+  const [concept] = Editor.nodes(editor, { match: n => n.type === 'concept' })
+  return !!concept
+}
+
+export const insertConcept = (editor, name, uri) => {
+  if (editor.selection) {
+    wrapConcept(editor, name, uri)
+  }
+}
+
+export const withConcepts = editor => {
+  const { isInline } = editor
+
+  editor.isInline = element => (element.type === 'concept') ? true : isInline(element)
+
+  return editor
+}
+
 export const withChecklists = editor => {
   const { deleteBackward } = editor
 

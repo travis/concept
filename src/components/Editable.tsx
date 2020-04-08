@@ -8,12 +8,13 @@ import { withHistory } from 'slate-history';
 
 import {
   withImages, withLinks, withChecklists, withLists, toggleMark,
-  withTables, withEmbeds
+  withTables, withEmbeds, withConcepts
 } from '../utils/editor';
 
 import ChecklistItemElement from './ChecklistItemElement'
 import EmbedElement from './EmbedElement'
 import LinkElement from './edit/LinkElement'
+import ConceptElement from './edit/ConceptElement'
 import ImageElement from './edit/ImageElement'
 import Block from './edit/Block'
 import Table from "./edit/Table"
@@ -122,6 +123,8 @@ const Element: FunctionComponent<ElementProps> = (props) => {
       return <Block element={element}><ImageElement {...props} /></Block>
     case 'link':
       return <LinkElement {...props} />
+    case 'concept':
+      return <ConceptElement {...props} />
     case 'check-list-item':
       return <Block element={element}><ChecklistItemElement {...props} /></Block>
     case 'table':
@@ -139,7 +142,7 @@ const Element: FunctionComponent<ElementProps> = (props) => {
   }
 }
 
-export const useNewEditor = () => useMemo(() => withEmbeds(withTables(withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor())))))))), [])
+export const useNewEditor = () => useMemo(() => withConcepts(withEmbeds(withTables(withLists(withChecklists(withLinks(withImages(withReact(withHistory(createEditor()))))))))), [])
 
 type EditableProps = {
   editor: Editor,
