@@ -9,7 +9,7 @@ import {Switch, Route} from 'react-router-dom'
 import WorkspaceContext, {WorkspaceProvider} from "../context/workspace";
 
 import WorkspaceDrawer from './WorkspaceDrawer';
-import Pages from "./Pages"
+import CurrentPage from "./CurrentPage"
 import Home from "./Home"
 import PublicProfile, {EncodedWebIdPublicProfile} from './PublicProfile';
 import { drawerWidth } from '../constants'
@@ -45,7 +45,7 @@ function WorkspaceContent(){
       <Box className={classes.content}>
         <Switch>
           <WorkspaceRoute path="/page/:selectedPage">
-            <Pages/>
+            <CurrentPage/>
           </WorkspaceRoute>
           <WorkspaceRoute path="/for/:handle">
             <PublicProfile/>
