@@ -74,7 +74,7 @@ const ConceptPopover: FunctionComponent<ConceptPopoverProps> = ({ element, editi
             }
           }} />
       ) : (
-          <Link to={conceptPath(element.uri)} target="_blank">{element.name}</Link>
+          <Link to={conceptPath(element.uri)}>{element.name}</Link>
         )}
       {editing ? (
         <IconButton size="small" className={classes.linkPopupButton} title="save"

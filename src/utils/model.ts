@@ -1,7 +1,7 @@
 import uuid from 'uuid/v1';
-import { schema, rdf, dc } from 'rdf-namespaces';
+import { schema, rdf, dc, dct } from 'rdf-namespaces';
 import data from '@solid/query-ldflex';
-import { createDocument, patchDocument } from './ldflex-helper';
+import { resourceExists, createDocument, patchDocument } from './ldflex-helper';
 import cpt from '../ontology';
 import { pageResolver } from './data';
 import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
@@ -77,7 +77,7 @@ export function newConcept(workspace: Workspace, name: string): Concept {
   })
 }
 
-export const addConcept = async (workspace: Workspace, name: string) => {
+export const addConcept = async (workspace: Workspace, name: string, referencedBy: string) => {
   const concept = newConcept(workspace, name)
   await createDocument(concept.docUri, `
 <${concept.uri}>
@@ -85,6 +85,7 @@ export const addConcept = async (workspace: Workspace, name: string) => {
   <${dc.identifier}> "${concept.id}" ;
   <${schema.text}> """${concept.text}""" ;
   <${schema.name}> """${concept.name}""" ;
+  <${dct.isReferencedBy}> <${referencedBy}> ;
   <${cpt.parent}> <${workspace.uri}> .
 `)
   return concept
@@ -139,16 +140,78 @@ export const addPage = async (parent: PageContainer, pageProps = {}, pageListIte
   const page = newPage(parent, pageProps)
   await createDocument(page.docUri, `
 <${page.uri}>
-<${rdf.type}> <${schema.DigitalDocument}> ;
-<${dc.identifier}> "${page.id}" ;
-<${schema.text}> """${page.text}""" ;
-<${schema.name}> """${page.name}""" ;
-<${cpt.parent}> <${parent.uri}> ;
-<${cpt.inListItem}> <${page.inListItem}> .
+  <${rdf.type}> <${schema.DigitalDocument}> ;
+  <${dc.identifier}> "${page.id}" ;
+  <${schema.text}> """${page.text}""" ;
+  <${schema.name}> """${page.name}""" ;
+  <${cpt.parent}> <${parent.uri}> ;
+  <${cpt.inListItem}> <${page.inListItem}> .
 `)
   await addPageMetadata(parent, page, pageListItemProps)
   return page
 }
+
+const conceptDocFromConceptUri = (conceptUri: string) =>
+  conceptUri.split("#").slice(0, -1).join("")
+
+const conceptNameFromConceptUri = (conceptUri: string) =>
+  decodeURIComponent(conceptUri.split("/").slice(-2)[0])
+
+const addConceptReferencedBy = async (workspace: Workspace, docUri: string, conceptUri: string) => {
+  const resourceUri = conceptDocFromConceptUri(conceptUri)
+  if (await resourceExists(resourceUri)) {
+    await patchDocument(resourceUri, `
+INSERT DATA {
+<${conceptUri}> <${dct.isReferencedBy}> <${docUri}>
+}
+`)
+  } else {
+    await addConcept(workspace, conceptNameFromConceptUri(conceptUri), docUri)
+  }
+}
+
+const addConceptReferencedBys = async (workspace: Workspace, docUri: string, conceptUris: string[]) => {
+  await Promise.all(conceptUris.map(
+    conceptUri => addConceptReferencedBy(workspace, docUri, conceptUri)
+  ))
+}
+
+const deleteConceptReferencedBy = async (docUri: string, conceptUri: string) => {
+  await patchDocument(conceptDocFromConceptUri(conceptUri), `
+DELETE DATA {
+<${conceptUri}> <${dct.isReferencedBy}> <${docUri}>
+}
+`)
+}
+
+const deleteConceptReferencedBys = async (docUri: string, conceptUris: string[]) => {
+  await Promise.all(conceptUris.map(
+    conceptUri => deleteConceptReferencedBy(docUri, conceptUri)
+  ))
+}
+
+const referenceDoubles = (references: string[]) =>
+  references.map(reference => `<${dct.references}> <${reference}> ;`)
+
+export const setDocumentText = async (workspace: Workspace, doc: Document, newText: string, referencesToAdd: string[], referencesToDelete: string[]) => {
+  await Promise.all([
+    patchDocument(doc.docUri, `
+DELETE DATA {
+<${doc.uri}>
+  ${referenceDoubles(referencesToDelete)}
+  <${schema.text}> """${doc.text}""" .
+} ;
+INSERT DATA {
+<${doc.uri}>
+  ${referenceDoubles(referencesToAdd)}
+  <${schema.text}> """${newText}""" .
+}
+`),
+    deleteConceptReferencedBys(doc.uri, referencesToDelete),
+    addConceptReferencedBys(workspace, doc.uri, referencesToAdd)
+  ])
+}
+
 
 export const addSubPage = async (pageListItem: PageListItem, pageProps = {}, pageListItemProps = {}) => {
   const parentPage = await pageResolver(data[pageListItem.pageUri])

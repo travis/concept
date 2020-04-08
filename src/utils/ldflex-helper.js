@@ -7,6 +7,7 @@ import ldflex from '@solid/query-ldflex';
 
 export const documentExists = async documentUri =>
   auth.fetch(documentUri, {
+    method: 'HEAD',
     headers: {
       'Content-Type': 'text/turtle'
     }
@@ -95,7 +96,7 @@ export const fetchLdflexDocument = async documentUri => {
 
 export const resourceExists = async resourcePath => {
   try {
-    const result = await auth.fetch(resourcePath);
+    const result = await auth.fetch(resourcePath, {method: 'HEAD'});
     return result.status === 403 || result.status === 200;
   } catch (e) {
     console.log("error: ", e)

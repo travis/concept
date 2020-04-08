@@ -1,5 +1,7 @@
 import React, { useContext, useState, useRef, useCallback, useEffect } from 'react'
 
+import { Editor } from 'slate';
+
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import SaveIcon from '@material-ui/icons/Save'
@@ -101,7 +103,10 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
       if (saveableText !== documentText) {
         setSaving(true);
         if (updateText) {
-          await updateText(document, saveableText);
+          const conceptUris = Array.from(Node.nodes(editor)).filter(([node]) => {
+            return (node.type === 'concept')
+          }).map(([concept]) => concept.uri)
+          await updateText(document, saveableText, conceptUris);
         }
         setSavedVersions(currentSavedVersions => [saveableText, ...currentSavedVersions].slice(0, 100))
         setSaving(false);
@@ -111,7 +116,7 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
       setSaveNeeded(false);
       maybeSave();
     }
-  }, [saveNeeded, document, documentText, debouncedValue, updateText, setSavedVersions])
+  }, [saveNeeded, document, documentText, debouncedValue, updateText, setSavedVersions, editor])
 
   useEffect(() => {
     if (debouncedValue !== undefined) {
