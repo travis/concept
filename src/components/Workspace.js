@@ -8,7 +8,7 @@ import {Switch, Route} from 'react-router-dom'
 
 import WorkspaceContext, {WorkspaceProvider} from "../context/workspace";
 
-import PageDrawer from './PageDrawer';
+import WorkspaceDrawer from './WorkspaceDrawer';
 import Pages from "./Pages"
 import Home from "./Home"
 import PublicProfile, {EncodedWebIdPublicProfile} from './PublicProfile';
@@ -29,7 +29,7 @@ const WorkspaceRoute = ({children, ...props}) => {
     <Route {...props}>
       {workspace && (
         <LiveUpdate subscribe={[workspace.uri]}>
-          <PageDrawer workspace={workspace} />
+          <WorkspaceDrawer workspace={workspace} />
         </LiveUpdate>
       )}
       {children}

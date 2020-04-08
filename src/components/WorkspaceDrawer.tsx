@@ -244,11 +244,11 @@ function AvatarMenu({ name, photo }: { name: string, photo: string }) {
 }
 
 
-type PageDrawerProps = {
+type WorkspaceDrawerProps = {
   workspace: Workspace
 }
 
-export default ({ workspace }: PageDrawerProps) => {
+const WorkspaceDrawer = ({ workspace }: WorkspaceDrawerProps) => {
   const webId = useWebId()
   const [name] = useValueQuery(webId, vcard.fn)
   const [photo] = useValueQuery(webId, vcard.hasPhoto)
@@ -308,3 +308,5 @@ export default ({ workspace }: PageDrawerProps) => {
 
   )
 }
+
+export default WorkspaceDrawer
