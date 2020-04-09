@@ -2,9 +2,12 @@ import { useEffect, useState, useMemo } from 'react';
 import { useWebId, useLiveUpdate } from '@solid/react';
 import { space, schema } from 'rdf-namespaces';
 import { appContainerUrl } from '../utils/urls';
-import { Resolver, dateResolver, valueResolver, listResolver, listValuesResolver, pageListItemsResolver, pageResolver } from '../utils/data';
+import {
+  Resolver, dateResolver, valueResolver, listResolver, listValuesResolver,
+  pageListItemsResolver, conceptListItemsResolver, pageResolver
+} from '../utils/data';
 import data from '@solid/query-ldflex';
-import { Page, PageContainer, PageListItem } from '../utils/model'
+import { Page, PageContainer, PageListItem, ConceptContainer, ConceptListItem } from '../utils/model'
 
 export function useAppContainer() {
   const webId = useWebId();
@@ -94,6 +97,10 @@ export function useDateQuery(subject: QueryTerm, predicate: QueryTerm, options: 
 
 export function usePageListItems(parent: PageContainer | undefined, options: QueryOptions<PageListItem[]> = {}) {
   return useQuery(parent && parent.pagesUri, schema.itemListElement, { resolver: pageListItemsResolver, ...options })
+}
+
+export function useConceptListItems(parent: ConceptContainer | undefined, options: QueryOptions<ConceptListItem[]> = {}) {
+  return useQuery(parent && parent.conceptsUri, schema.itemListElement, { resolver: conceptListItemsResolver, ...options })
 }
 
 export function usePageFromPageListItem(pageListItem: PageListItem, options: QueryOptions<Page> = {}) {

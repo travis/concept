@@ -22,9 +22,12 @@ import { useHistory } from "react-router-dom";
 
 import { useAuthContext } from "../context/auth"
 import WorkspaceContext from "../context/workspace";
-import { useValueQuery, usePageListItems, usePageFromPageListItem } from '../hooks/data';
-import { Workspace, PageListItem as PageListItemType, PageContainer } from '../utils/model'
-import { pagePath } from '../utils/urls';
+import { useValueQuery, usePageListItems, useConceptListItems, usePageFromPageListItem } from '../hooks/data';
+import {
+  Workspace, PageContainer, ConceptContainer,
+  PageListItem as PageListItemType, ConceptListItem as ConceptListItemType,
+} from '../utils/model'
+import { pagePath, conceptPath } from '../utils/urls';
 import { drawerWidth } from '../constants'
 
 import IconButton from './IconButton';
@@ -76,6 +79,9 @@ const useStyles = makeStyles(theme => ({
       visibility: "visible"
     }
   },
+  conceptListItem: {
+    paddingLeft: theme.spacing(3)
+  },
   sidebarItemHoverButton: {
     visibility: "hidden",
     opacity: 0.5,
@@ -87,12 +93,17 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(2)
   },
   sectionTitle: {
-    textAlign: "left",
-    paddingLeft: theme.spacing(2)
+    display: "flex",
+    justifyContent: "space-between",
+    paddingLeft: theme.spacing(1)
   },
   sectionTitleButton: {
     padding: 0,
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
     fontSize: "0.83em"
+  },
+  sectionTitleButtonLabel: {
   },
   sectionTitleRightButton: {
     float: "right",
@@ -201,10 +212,45 @@ const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: Pag
   const classes = useStyles()
   return (
     <List>
-      {pageListItems && pageListItems.map((pageListItem, index) => (
-        <LiveUpdate subscribe={pageListItem.pageUri} key={index}>
+      {pageListItems && pageListItems.map((pageListItem) => (
+        <LiveUpdate subscribe={pageListItem.pageUri} key={pageListItem.uri}>
           <PageListItem parent={workspace} pageListItem={pageListItem} />
         </LiveUpdate>
+      ))}
+
+      {adding && <ListItem className={classes.loaderListItem}><SidebarLoader /></ListItem>}
+    </List>
+  )
+}
+
+
+type ConceptListItemProps = {
+  parent: ConceptContainer,
+  conceptListItem: ConceptListItemType
+}
+
+function ConceptListItem({ parent, conceptListItem }: ConceptListItemProps) {
+  const { selectedConcept } = useParams();
+  const classes = useStyles()
+  const conceptUri = conceptListItem.conceptUri
+  const encodedConcept = conceptUri && encodeURIComponent(conceptUri)
+  return (
+    <>
+      <ListItem dense={true} selected={selectedConcept === encodedConcept} className={`${classes.item} ${classes.sidebarItem}`}>
+        <Link to={conceptPath(conceptUri)} className={classes.conceptListItem}>
+          <ListItemText primary={`${conceptListItem.name || ""}`} />
+        </Link>
+      </ListItem>
+    </>
+  )
+}
+
+const ConceptNameList = ({ conceptListItems, workspace, adding }: { conceptListItems: ConceptListItemType[], workspace: Workspace, adding?: boolean }) => {
+  const classes = useStyles()
+  return (
+    <List>
+      {conceptListItems && conceptListItems.map((conceptListItem) => (
+        <ConceptListItem parent={workspace} conceptListItem={conceptListItem} key={conceptListItem.uri} />
       ))}
 
       {adding && <ListItem className={classes.loaderListItem}><SidebarLoader /></ListItem>}
@@ -233,7 +279,7 @@ function AvatarMenu({ name, photo }: { name: string, photo: string }) {
         <MenuItem>
           <Link to="/what" className={classes.menuLink}>
             what is this?
-          </Link>
+            </Link>
         </MenuItem>
         <MenuItem onClick={() => logOut()}>
           log out
@@ -269,6 +315,21 @@ const WorkspaceDrawer = ({ workspace }: WorkspaceDrawerProps) => {
     setAddingPage(false)
   }, [addPage, history, pageListItems])
 
+  const [showConcepts, setShowConcepts] = useState(true)
+  const [addingConcept, setAddingConcept] = useState(false)
+  const [conceptListItems, conceptListItemsLoading] = useConceptListItems(workspace)
+  const addNewConcept = useCallback(async () => {
+    setAddingConcept(true)
+    /*
+    if (addPage) {
+    const page = await addPage({}, { position: pageListItems ? pageListItems.length : 0 })
+    if (page) {
+    history.push(pagePath(page.uri))
+    }
+    }
+    */
+    setAddingConcept(false)
+  }, [addPage, history, pageListItems])
   return (
     <Drawer
       className={classes.drawer}
@@ -298,13 +359,30 @@ const WorkspaceDrawer = ({ workspace }: WorkspaceDrawerProps) => {
         </IconButton>
       </div>
       {pageListItems && showPages && <PageNameList pageListItems={pageListItems} workspace={workspace} adding={addingPage} />}
-      {pageListItemsLoading && <SidebarLoader />}
-      {!pageListItemsLoading && pageListItems && (pageListItems.length === 0) && (
-        <>
-          <Button onClick={() => addNewPage()}>create your first page</Button>
-        </>
-      )}
-    </Drawer>
+      {!pageListItems && pageListItemsLoading && <SidebarLoader />}
+      {
+        !pageListItemsLoading && pageListItems && (pageListItems.length === 0) && (
+          <>
+            <Button onClick={() => addNewPage()}>create your first page</Button>
+          </>
+        )
+      }
+      <div className={`${classes.sectionTitle} ${classes.sidebarItem}`}>
+        <Tooltip title={showPages ? "hide concepts" : "show concepts"}>
+          <Button size="small" className={classes.sectionTitleButton}
+            onClick={() => setShowConcepts(!showConcepts)}>
+            concepts
+                </Button>
+        </Tooltip>
+        <IconButton title="add a concept"
+          className={`${classes.sidebarItemHoverButton} ${classes.sectionTitleRightButton}`}
+          onClick={() => addNewConcept()}>
+          <AddIcon fontSize="small" />
+        </IconButton>
+      </div>
+      {conceptListItems && showConcepts && <ConceptNameList conceptListItems={conceptListItems} workspace={workspace} adding={addingConcept} />}
+      {!conceptListItems && conceptListItemsLoading && <SidebarLoader />}
+    </Drawer >
 
   )
 }

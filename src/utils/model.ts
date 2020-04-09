@@ -48,6 +48,12 @@ export interface PageListItem {
   pageUri: string
 }
 
+export interface ConceptListItem {
+  uri: string,
+  name: string,
+  conceptUri: string
+}
+
 export interface PageProps {
   name?: string
 }
@@ -90,6 +96,7 @@ const addConceptMetadata = async (parent: ConceptContainer, concept: Concept) =>
 INSERT DATA {
 <${concept.inListItem}>
   <${rdf.type}> <${schema.ListItem}> ;
+  <${schema.name}> """${concept.name}""" ;
   <${schema.item}> <${concept.uri}> .
 
 <${parent.conceptsUri}> <${schema.itemListElement}> <${concept.inListItem}> .

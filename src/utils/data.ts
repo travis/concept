@@ -4,7 +4,7 @@ import { acl, schema, dc, foaf } from 'rdf-namespaces';
 import concept from '../ontology'
 import { pageUris } from './model'
 import { patchDocument } from '../utils/ldflex-helper'
-import { Page, PageListItem } from '../utils/model'
+import { Page, PageListItem, ConceptListItem } from '../utils/model'
 
 const aclNamespace: any = acl
 
@@ -85,6 +85,20 @@ export const pageListItemResolver: Resolver<PageListItem> = async query => {
 export const pageListItemsResolver: Resolver<PageListItem[]> = async query => {
   const itemQueries = await listResolver(query.sort(schema.position))
   return Promise.all(itemQueries.map(pageListItemResolver))
+}
+
+export const conceptListItemResolver: Resolver<ConceptListItem> = async query => {
+  const [uri, name, conceptUri] = resolveValues(await Promise.all([
+    query,
+    query[schema.name],
+    query[schema.item]
+  ]))
+  return { uri, name, conceptUri }
+}
+
+export const conceptListItemsResolver: Resolver<ConceptListItem[]> = async query => {
+  const itemQueries = await listResolver(query.sort(schema.name))
+  return Promise.all(itemQueries.map(conceptListItemResolver))
 }
 
 export const pageResolver: Resolver<Page> = async query => {
