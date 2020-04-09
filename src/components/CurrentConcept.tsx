@@ -16,16 +16,21 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+function ConceptInsideLiveUpdate() {
+  const [currentConcept] = useCurrentConcept()
+  return currentConcept ? (<Page document={currentConcept} />) : (<Loader />)
+
+}
+
 export default function CurrentConcept() {
   const classes = useStyles()
   const currentConceptUri = useCurrentConceptUri()
-  const [currentConcept] = useCurrentConcept()
   return (
     <Box className={classes.content}>
       {
-        currentConceptUri && currentConcept ? (
+        currentConceptUri ? (
           <LiveUpdate subscribe={currentConceptUri}>
-            <Page document={currentConcept} />
+            <ConceptInsideLiveUpdate />
           </LiveUpdate >
         ) : (
             <Loader />

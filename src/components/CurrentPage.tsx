@@ -16,16 +16,20 @@ const usePagesStyles = makeStyles(theme => ({
   },
 }));
 
+function PageInsideLiveUpdate() {
+  const [currentPage] = useCurrentPage()
+  return currentPage ? (<Page document={currentPage} />) : (<Loader />)
+}
+
 export default function CurrentPage() {
   const classes = usePagesStyles()
   const currentPageUri = useCurrentPageUri()
-  const [currentPage] = useCurrentPage()
   return (
     <Box className={classes.content}>
       {
-        currentPageUri && currentPage ? (
+        currentPageUri ? (
           <LiveUpdate subscribe={currentPageUri}>
-            <Page document={currentPage} />
+            <PageInsideLiveUpdate />
           </LiveUpdate >
         ) : (
             <Loader />
