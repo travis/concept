@@ -10,6 +10,7 @@ import WorkspaceContext, {WorkspaceProvider} from "../context/workspace";
 
 import WorkspaceDrawer from './WorkspaceDrawer';
 import CurrentPage from "./CurrentPage"
+import CurrentConcept from "./CurrentConcept"
 import Home from "./Home"
 import PublicProfile, {EncodedWebIdPublicProfile} from './PublicProfile';
 import { drawerWidth } from '../constants'
@@ -46,6 +47,9 @@ function WorkspaceContent(){
         <Switch>
           <WorkspaceRoute path="/page/:selectedPage">
             <CurrentPage/>
+          </WorkspaceRoute>
+          <WorkspaceRoute path="/concept/:selectedConcept">
+            <CurrentConcept/>
           </WorkspaceRoute>
           <WorkspaceRoute path="/for/:handle">
             <PublicProfile/>

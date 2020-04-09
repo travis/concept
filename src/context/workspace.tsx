@@ -10,20 +10,22 @@ import { useValueQuery } from '../hooks/data';
 import * as m from "../utils/model"
 
 type AddPageType = (props: m.PageProps, pageListProps: m.PageListItemProps) => Promise<m.Page | null>
+type AddConceptType = (props: m.ConceptProps) => Promise<m.Concept | null>
 type AddSubPageType = (props: m.PageProps, parentPageListItem: m.PageListItem) => Promise<m.Page | null>
 type UpdateTextType = (document: m.Document, value: string, conceptUris: string[]) => Promise<void>
 type UpdateNameType = (page: m.Page, value: any) => Promise<void>
-type DeletePageType = (page: m.Page) => Promise<void>
+type DeleteDocumentType = (document: m.Document) => Promise<void>
 
 export interface WorkspaceContextType {
   conceptContainer?: string,
   publicPages?: string,
   workspace?: m.Workspace,
   addPage?: AddPageType,
+  addConcept?: AddConceptType,
   addSubPage?: AddSubPageType,
   updateText?: UpdateTextType,
   updateName?: UpdateNameType,
-  deletePage?: DeletePageType
+  deleteDocument?: DeleteDocumentType
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType>({});
@@ -45,17 +47,26 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   useEffect(() => {
     if (workspace && workspace.docUri) {
       const createWorkspace = async () => {
-        await createNonExistentDocument(workspace.docUri);
+        Promise.all([
+          createNonExistentDocument(workspace.docUri),
+          createDefaultAcl(webId, workspace.containerUri)
+        ])
       }
       createWorkspace();
     }
-  }, [workspace])
+  }, [workspace, webId])
 
   const addPage: AddPageType = async ({ name = "Untitled" }, pageListItemProps) => {
     if (workspace !== undefined) {
-      const page = await m.addPage(workspace, { name }, pageListItemProps)
-      await createDefaultAcl(webId, page.containerUri)
-      return page
+      return await m.addPage(workspace, { name }, pageListItemProps)
+    } else {
+      return null
+    }
+  }
+
+  const addConcept: AddConceptType = async ({ name }) => {
+    if (workspace !== undefined) {
+      return await m.addConcept(workspace, name)
     } else {
       return null
     }
@@ -86,12 +97,12 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
 
   }, [workspace])
 
-  const deletePage = useCallback(async (page: m.Page) => {
-    await data[page.parentUri][schema.itemListElement].delete(namedNode(page.inListItem))
+  const deleteDocument = useCallback(async (document: m.Document) => {
+    await data[document.parentUri][schema.itemListElement].delete(namedNode(document.inListItem))
   }, [])
 
   return (
-    <Provider value={{ workspace, addPage, addSubPage, updateText, updateName, deletePage }
+    <Provider value={{ workspace, addPage, addConcept, addSubPage, updateText, updateName, deleteDocument }
     }
       children={children} />
   )

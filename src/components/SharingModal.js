@@ -297,7 +297,7 @@ function AclContent({page, aclUri}){
   )
 }
 
-export default function SharingModal({page, aclUri, open, onClose}) {
+export default function SharingModal({document, aclUri, open, onClose}) {
   const {exists, loading} = useAclExists(aclUri)
   const classes = useStyles();
   return (
@@ -314,9 +314,9 @@ export default function SharingModal({page, aclUri, open, onClose}) {
           <Loader/>
         ) : (
           exists ? (
-            <AclContent page={page.uri} aclUri={aclUri}/>
+            <AclContent page={document.uri} aclUri={aclUri}/>
           ) : (
-            <NoAclContent page={page.uri} aclUri={aclUri}/>
+            <NoAclContent page={document.uri} aclUri={aclUri}/>
           )
         )}
     </Dialog>

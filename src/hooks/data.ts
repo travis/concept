@@ -4,10 +4,10 @@ import { space, schema } from 'rdf-namespaces';
 import { appContainerUrl } from '../utils/urls';
 import {
   Resolver, dateResolver, valueResolver, listResolver, listValuesResolver,
-  pageListItemsResolver, conceptListItemsResolver, pageResolver
+  pageListItemsResolver, conceptListItemsResolver, pageResolver, conceptResolver
 } from '../utils/data';
 import data from '@solid/query-ldflex';
-import { Page, PageContainer, PageListItem, ConceptContainer, ConceptListItem } from '../utils/model'
+import { Concept, Page, PageContainer, PageListItem, ConceptContainer, ConceptListItem } from '../utils/model'
 
 export function useAppContainer() {
   const webId = useWebId();
@@ -105,6 +105,10 @@ export function useConceptListItems(parent: ConceptContainer | undefined, option
 
 export function usePageFromPageListItem(pageListItem: PageListItem, options: QueryOptions<Page> = {}) {
   return useQuery(pageListItem && pageListItem.pageUri, null, { resolver: pageResolver, ...options })
+}
+
+export function useConcept(conceptUri: string | undefined, options: QueryOptions<Concept> = {}) {
+  return useQuery(conceptUri, null, { resolver: conceptResolver, ...options })
 }
 
 export function usePage(pageUri: string | undefined, options: QueryOptions<Page> = {}) {

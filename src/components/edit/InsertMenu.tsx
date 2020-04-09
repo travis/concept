@@ -7,7 +7,7 @@ import Menu, { MenuProps } from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
 import { insertBlock, insertionPoint } from '../../utils/editor';
-import PageContext from '../../context/page'
+import DocumentContext from '../../context/document'
 
 import EmbedPicker from '../EmbedPicker'
 import ImageUploader from '../ImageUploader'
@@ -46,16 +46,16 @@ type InsertImageItemProps = PropsWithChildren<{
 
 const InsertImageItem: FunctionComponent<InsertImageItemProps> = forwardRef(({ element, onClose, ...props }, ref: Ref<HTMLLIElement>) => {
   const classes = useStyles()
-  const page = useContext(PageContext)
+  const document = useContext(DocumentContext)
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
   return (
     <>
       <MenuItem onClick={() => setImagePickerOpen(true)} ref={ref} {...props} />
-      {page && (
+      {document && (
         <ImageUploader element={element}
           onClose={onClose}
           open={imagePickerOpen}
-          uploadDirectory={page.imageContainerUri}
+          uploadDirectory={document.imageContainerUri}
           classes={{ paper: classes.imageUploadPopover }} />
       )}
     </>

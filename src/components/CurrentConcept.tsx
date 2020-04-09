@@ -4,11 +4,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
 import { LiveUpdate } from "@solid/react";
-import { useCurrentPageUri, useCurrentPage } from '../hooks/pages';
+import { useCurrentConceptUri, useCurrentConcept } from '../hooks/concepts';
 import Page from './Page'
 import Loader from './Loader'
 
-const usePagesStyles = makeStyles(theme => ({
+const useStyles = makeStyles(theme => ({
   content: {
     flexGrow: 1,
     position: "relative",
@@ -16,16 +16,16 @@ const usePagesStyles = makeStyles(theme => ({
   },
 }));
 
-export default function CurrentPage() {
-  const classes = usePagesStyles()
-  const currentPageUri = useCurrentPageUri()
-  const [currentPage] = useCurrentPage()
+export default function CurrentConcept() {
+  const classes = useStyles()
+  const currentConceptUri = useCurrentConceptUri()
+  const [currentConcept] = useCurrentConcept()
   return (
     <Box className={classes.content}>
       {
-        currentPageUri && currentPage ? (
-          <LiveUpdate subscribe={currentPageUri}>
-            <Page document={currentPage} />
+        currentConceptUri && currentConcept ? (
+          <LiveUpdate subscribe={currentConceptUri}>
+            <Page document={currentConcept} />
           </LiveUpdate >
         ) : (
             <Loader />

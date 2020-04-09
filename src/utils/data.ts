@@ -2,9 +2,9 @@ import data from '@solid/query-ldflex';
 import { namedNode } from '@rdfjs/data-model';
 import { acl, schema, dc, foaf } from 'rdf-namespaces';
 import concept from '../ontology'
-import { pageUris } from './model'
+import { pageUris, conceptUris } from './model'
 import { patchDocument } from '../utils/ldflex-helper'
-import { Page, PageListItem, ConceptListItem } from '../utils/model'
+import { Concept, Page, PageListItem, ConceptListItem } from '../utils/model'
 
 const aclNamespace: any = acl
 
@@ -47,6 +47,10 @@ DELETE DATA {
 
 export function pageUrisFromPageUri(pageUri: string) {
   return pageUris(`${pageUri.split("/").slice(0, -1).join("/")}/`)
+}
+
+export function conceptUrisFromConceptUri(pageUri: string) {
+  return conceptUris(`${pageUri.split("/").slice(0, -1).join("/")}/`)
 }
 
 export type Resolver<T> = (query: any) => Promise<T>
@@ -107,4 +111,12 @@ export const pageResolver: Resolver<Page> = async query => {
     query[concept.inListItem], query[concept.parent]
   ]))
   return { id, text, name, uri, parentUri, inListItem, ...pageUrisFromPageUri(uri) }
+}
+
+export const conceptResolver: Resolver<Concept> = async query => {
+  const [uri, id, text, name, inListItem, parentUri] = resolveValues(await Promise.all([
+    query, query[dc.identifier], query[schema.text], query[schema.name],
+    query[concept.inListItem], query[concept.parent]
+  ]))
+  return { id, text, name, uri, parentUri, inListItem, ...conceptUrisFromConceptUri(uri) }
 }

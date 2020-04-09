@@ -22,8 +22,8 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function BackupsDialog({page, open, handleClose}) {
-  const [name] = useValueQuery(page.uri, schema.name);
+export default function BackupsDialog({document, open, handleClose}) {
+  const [name] = useValueQuery(document.uri, schema.name);
   const classes = useStyles();
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -37,7 +37,7 @@ export default function BackupsDialog({page, open, handleClose}) {
         <DialogContentText>
           Backups of {name}
         </DialogContentText>
-        <Backups page={page} handleClose={handleClose}/>
+        <Backups document={document} handleClose={handleClose}/>
       </DialogContent>
     </Dialog>
   )

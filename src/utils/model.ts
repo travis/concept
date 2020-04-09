@@ -58,8 +58,16 @@ export interface PageProps {
   name?: string
 }
 
+export interface ConceptProps {
+  name: string
+}
+
 export interface PageListItemProps {
   position?: number
+}
+
+export function isPage(document: Document): document is Page {
+  return (document as Page).pagesUri !== undefined
 }
 
 const initialDocumentText = JSON.stringify([
@@ -105,7 +113,19 @@ INSERT DATA {
   return concept
 }
 
-export const addConcept = async (workspace: Workspace, name: string, referencedBy: string) => {
+type ConceptOptions = {
+  referencedBy?: string
+}
+
+const optionalConceptDoubles = ({ referencedBy }: ConceptOptions) => {
+  if (referencedBy) {
+    return `<${dct.isReferencedBy}> <${referencedBy}> ;`
+  } else {
+    return ""
+  }
+}
+
+export const addConcept = async (workspace: Workspace, name: string, options: ConceptOptions = {}) => {
   const concept = newConcept(workspace, name)
   await Promise.all([
     createDocument(concept.docUri, `
@@ -114,7 +134,7 @@ export const addConcept = async (workspace: Workspace, name: string, referencedB
   <${dc.identifier}> "${concept.id}" ;
   <${schema.text}> """${concept.text}""" ;
   <${schema.name}> """${concept.name}""" ;
-  <${dct.isReferencedBy}> <${referencedBy}> ;
+  ${optionalConceptDoubles(options)}
   <${cpt.parent}> <${workspace.conceptsUri}> .
 `),
     addConceptMetadata(workspace, concept)
@@ -198,7 +218,7 @@ INSERT DATA {
 }
 `)
   } else {
-    await addConcept(workspace, conceptNameFromConceptUri(conceptUri), docUri)
+    await addConcept(workspace, conceptNameFromConceptUri(conceptUri), { referencedBy: docUri })
   }
 }
 

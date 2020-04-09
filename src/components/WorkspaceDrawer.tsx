@@ -33,6 +33,7 @@ import { drawerWidth } from '../constants'
 import IconButton from './IconButton';
 import ProfileLink from './ProfileLink';
 import Loader from './Loader';
+import ConceptCreator from './ConceptCreator';
 
 type WithLevel = { level?: number }
 
@@ -320,16 +321,7 @@ const WorkspaceDrawer = ({ workspace }: WorkspaceDrawerProps) => {
   const [conceptListItems, conceptListItemsLoading] = useConceptListItems(workspace)
   const addNewConcept = useCallback(async () => {
     setAddingConcept(true)
-    /*
-    if (addPage) {
-    const page = await addPage({}, { position: pageListItems ? pageListItems.length : 0 })
-    if (page) {
-    history.push(pagePath(page.uri))
-    }
-    }
-    */
-    setAddingConcept(false)
-  }, [addPage, history, pageListItems])
+  }, [])
   return (
     <Drawer
       className={classes.drawer}
@@ -382,6 +374,7 @@ const WorkspaceDrawer = ({ workspace }: WorkspaceDrawerProps) => {
       </div>
       {conceptListItems && showConcepts && <ConceptNameList conceptListItems={conceptListItems} workspace={workspace} adding={addingConcept} />}
       {!conceptListItems && conceptListItemsLoading && <SidebarLoader />}
+      <ConceptCreator open={addingConcept} close={() => setAddingConcept(false)} />
     </Drawer >
 
   )

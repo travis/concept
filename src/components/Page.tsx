@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef, ReactNode } from 'react'
+import React, { useContext, useState, useEffect, useRef, ReactNode, FunctionComponent } from 'react'
 
 import { LiveUpdate } from "@solid/react";
 
@@ -27,13 +27,12 @@ import BackupsDialog from "./BackupsDialog";
 import Loader from "./Loader";
 
 import WorkspaceContext from "../context/workspace";
-import PageContext from '../context/page'
+import DocumentContext from '../context/document'
 
 import DocumentTextEditor from './DocumentTextEditor'
-import { usePage } from "../hooks/data"
 import { useAccessInfo } from '../hooks/acls';
 import { drawerWidth } from '../constants'
-import { Page } from '../utils/model'
+import { Page, Document, isPage } from '../utils/model'
 
 const useStyles = makeStyles(theme => ({
   appBar: {
@@ -81,6 +80,18 @@ function PageName({ page }: PageNameProps) {
       <Typography variant="h5" onClick={() => setEditing(true)} noWrap>{name}</Typography>
     );
 }
+
+type DocumentNameProps = {
+  document: Document
+}
+
+function DocumentName({ document }: DocumentNameProps) {
+  return (
+    <Typography variant="h5" noWrap>{document.name}</Typography>
+  );
+}
+
+
 type EditorErrorBoundaryProps = { children: ReactNode }
 type EditorErrorBoundaryState = { hasError: boolean }
 
@@ -108,14 +119,14 @@ class EditorErrorBoundary extends React.Component<EditorErrorBoundaryProps, Edit
 
 interface AppBarMenuProps extends MenuProps {
   open: boolean,
-  page: Page,
+  document: Document,
   onClose: () => void
 }
 
-function AppBarMenu({ page, onClose, ...props }: AppBarMenuProps) {
+function AppBarMenu({ document, onClose, ...props }: AppBarMenuProps) {
   const history = useHistory();
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
-  const { deletePage } = useContext(WorkspaceContext);
+  const { deleteDocument } = useContext(WorkspaceContext);
   const close = () => {
     setDeleteConfirmationOpen(false)
     onClose()
@@ -124,7 +135,7 @@ function AppBarMenu({ page, onClose, ...props }: AppBarMenuProps) {
     <>
       <Menu onClose={onClose} {...props}>
         <MenuItem>
-          <Link href={page.uri} target="_blank" rel="noopener noreferrer" color="inherit">
+          <Link href={document.uri} target="_blank" rel="noopener noreferrer" color="inherit">
             Source
             </Link>
         </MenuItem>
@@ -134,8 +145,8 @@ function AppBarMenu({ page, onClose, ...props }: AppBarMenuProps) {
         <DialogTitle>Are you sure you want to delete this page?</DialogTitle>
         <DialogActions>
           <Button color="primary" onClick={() => {
-            if (deletePage) {
-              deletePage(page)
+            if (deleteDocument) {
+              deleteDocument(document)
             }
             close()
             history.replace("/")
@@ -151,25 +162,28 @@ function AppBarMenu({ page, onClose, ...props }: AppBarMenuProps) {
   )
 }
 
-type PageProps = {
-  pageUri: string
+type DocumentProps = {
+  document: Document
 }
 
-export default function PageComponent({ pageUri }: PageProps) {
+const DocumentComponent: FunctionComponent<DocumentProps> = ({ document }) => {
   const { workspace } = useContext(WorkspaceContext)
-  const [page] = usePage(pageUri)
   const menuButton = useRef<HTMLButtonElement | null>(null);
   const classes = useStyles({ hasWorkspace: !!workspace });
   const [sharingModalOpen, setSharingModalOpen] = useState(false);
   const [backupsDialogOpen, setBackupsDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false)
-  const { aclUri, allowed } = useAccessInfo(pageUri)
+  const { aclUri, allowed } = useAccessInfo(document.uri)
   const readOnly = !(allowed && allowed.user.has("write"))
-  return (page === undefined) ? (<Loader />) : (
-    <PageContext.Provider value={page}>
+  return (document === undefined) ? (<Loader />) : (
+    <DocumentContext.Provider value={document}>
       <AppBar position="fixed" className={classes.appBar} color="transparent" elevation={0}>
         <Toolbar variant="dense">
-          <PageName page={page} />
+          {isPage(document) ? (
+            <PageName page={document} />
+          ) : (
+              <DocumentName document={document} />
+            )}
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
             {
@@ -194,7 +208,7 @@ export default function PageComponent({ pageUri }: PageProps) {
           </div>
         </Toolbar>
       </AppBar>
-      <AppBarMenu page={page}
+      <AppBarMenu document={document}
         open={menuOpen} anchorEl={menuButton.current}
         onClose={() => setMenuOpen(false)}
         keepMounted
@@ -208,17 +222,19 @@ export default function PageComponent({ pageUri }: PageProps) {
         }} />
       {workspace && aclUri && (
         <LiveUpdate subscribe={[aclUri, workspace.publicPages]}>
-          {page && (<SharingModal page={page} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)} />)}
+          {document && (<SharingModal document={document} aclUri={aclUri} open={sharingModalOpen} onClose={() => setSharingModalOpen(false)} />)}
         </LiveUpdate>
       )}
-      {backupsDialogOpen && <BackupsDialog page={page} open={backupsDialogOpen} handleClose={() => setBackupsDialogOpen(false)} />}
+      {backupsDialogOpen && <BackupsDialog document={document} open={backupsDialogOpen} handleClose={() => setBackupsDialogOpen(false)} />}
       {allowed && (
         <EditorErrorBoundary>
-          <LiveUpdate subscribe={page.uri}>
-            <DocumentTextEditor document={page} readOnly={readOnly} />
+          <LiveUpdate subscribe={document.uri}>
+            <DocumentTextEditor document={document} readOnly={readOnly} />
           </LiveUpdate>
         </EditorErrorBoundary>
       )}
-    </PageContext.Provider>
+    </DocumentContext.Provider>
   )
 }
+
+export default DocumentComponent;

@@ -25,7 +25,7 @@ import { Slate } from 'slate-react';
 
 import { useListValuesQuery, useValueQuery, useDateQuery } from '../hooks/data';
 import { backupFolderForPage } from '../utils/backups'
-import { Page } from '../utils/model'
+import { Document } from '../utils/model'
 import { createBackup } from '../hooks/backup'
 import concept from '../ontology'
 import Editable, { useNewEditor } from "./Editable";
@@ -183,12 +183,12 @@ function Backup({ backupFolder, backup, handleClose }: PropsWithChildren<BackupP
 }
 
 type BackupsProps = {
-  page: Page,
+  document: Document,
   handleClose: HandleClose
 }
 
-export default function Backups({ page, handleClose }: BackupsProps) {
-  const backupFolder = backupFolderForPage(page.uri)
+export default function Backups({ document, handleClose }: BackupsProps) {
+  const backupFolder = backupFolderForPage(document.uri)
   const [backups] = useListValuesQuery(backupFolder, ldp.contains)
   const classes = useStyles()
   return (

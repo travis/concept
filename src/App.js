@@ -14,6 +14,7 @@ import LandingPage from './components/LandingPage';
 import SignupPage from './components/SignupPage';
 import WhatPage from './components/WhatPage';
 import CurrentPage from "./components/CurrentPage"
+import CurrentConcept from "./components/CurrentConcept"
 import Loader from "./components/Loader"
 import PublicProfile, {EncodedWebIdPublicProfile} from './components/PublicProfile';
 
@@ -35,6 +36,7 @@ function App() {
             <Switch>
               <Route path="/signup" component={SignupPage}/>
               <Route path="/page/:selectedPage" component={CurrentPage}/>
+              <Route path="/concept/:selectedConcept" component={CurrentConcept}/>
               <Route path="/for/:handle" component={PublicProfile}/>
               <Route path="/webid/:encodedWebId" component={EncodedWebIdPublicProfile}/>
               <Route path="/" component={LandingPage}/>
