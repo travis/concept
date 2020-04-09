@@ -87,7 +87,7 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   }, [workspace])
 
   const deletePage = useCallback(async (page: m.Page) => {
-    await data[page.parent][schema.itemListElement].delete(namedNode(page.inListItem))
+    await data[page.parentUri][schema.itemListElement].delete(namedNode(page.inListItem))
   }, [])
 
   return (

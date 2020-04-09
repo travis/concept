@@ -13,7 +13,13 @@ export interface Subject {
 }
 
 export interface PageContainer extends Subject {
-  subpageContainerUri: string
+  subpageContainerUri: string,
+  pagesUri: string
+}
+
+export interface ConceptContainer extends Subject {
+  conceptContainerUri: string
+  conceptsUri: string,
 }
 
 export interface Document extends Subject {
@@ -21,21 +27,19 @@ export interface Document extends Subject {
   name: string,
   text: string,
   imageContainerUri: string,
-  metaUri: string
+  metaUri: string,
+  inListItem: string,
+  parentUri: string
 }
 
-export interface Workspace extends PageContainer {
+export interface Workspace extends PageContainer, ConceptContainer {
   publicPages: string,
-  conceptContainerUri: string
 }
 
 export interface Concept extends Document {
-
 }
 
 export interface Page extends PageContainer, Document {
-  inListItem: string,
-  parent: string,
 }
 
 export interface PageListItem {
@@ -69,25 +73,45 @@ export function conceptUris(containerUri: string) {
 
 export function newConcept(workspace: Workspace, name: string): Concept {
   const id = encodeURIComponent(name)
+  const inListItem = `${workspace.docUri}#${id}`
   return ({
     id,
     name,
+    parentUri: workspace.conceptsUri,
     text: initialDocumentText,
+    inListItem,
     ...conceptUris(`${workspace.conceptContainerUri}${id}/`)
   })
 }
 
+
+const addConceptMetadata = async (parent: ConceptContainer, concept: Concept) => {
+  await patchDocument(parent.docUri, `
+INSERT DATA {
+<${concept.inListItem}>
+  <${rdf.type}> <${schema.ListItem}> ;
+  <${schema.item}> <${concept.uri}> .
+
+<${parent.conceptsUri}> <${schema.itemListElement}> <${concept.inListItem}> .
+}
+`)
+  return concept
+}
+
 export const addConcept = async (workspace: Workspace, name: string, referencedBy: string) => {
   const concept = newConcept(workspace, name)
-  await createDocument(concept.docUri, `
+  await Promise.all([
+    createDocument(concept.docUri, `
 <${concept.uri}>
   <${rdf.type}> <${schema.DigitalDocument}> ;
   <${dc.identifier}> "${concept.id}" ;
   <${schema.text}> """${concept.text}""" ;
   <${schema.name}> """${concept.name}""" ;
   <${dct.isReferencedBy}> <${referencedBy}> ;
-  <${cpt.parent}> <${workspace.uri}> .
-`)
+  <${cpt.parent}> <${workspace.conceptsUri}> .
+`),
+    addConceptMetadata(workspace, concept)
+  ])
   return concept
 }
 
@@ -101,7 +125,8 @@ export function pageUris(containerUri: string) {
   const uri = `${docUri}#Page`
   const subpageContainerUri = `${containerUri}pages/`
   const imageContainerUri = `${containerUri}images/`
-  return ({ containerUri, docUri, uri, subpageContainerUri, imageContainerUri, metaUri })
+  const pagesUri = `${docUri}#Pages`
+  return ({ containerUri, docUri, uri, subpageContainerUri, imageContainerUri, metaUri, pagesUri })
 }
 
 export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page {
@@ -112,7 +137,7 @@ export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page
     name,
     text: initialDocumentText,
     inListItem,
-    parent: parent.uri,
+    parentUri: parent.pagesUri,
     ...pageUris(`${parent.subpageContainerUri}${id}/`)
   })
 }
@@ -126,7 +151,7 @@ INSERT DATA {
   <${schema.item}> <${page.uri}> ;
   <${schema.name}> """${page.name}""" ;
   <${schema.position}> "${props.position || 0}"^^<http://www.w3.org/2001/XMLSchema#int> .
-<${parent.uri}> <${schema.itemListElement}> <${page.inListItem}> .
+<${parent.pagesUri}> <${schema.itemListElement}> <${page.inListItem}> .
 }
 `),
     createDocument(page.metaUri, `
@@ -144,7 +169,7 @@ export const addPage = async (parent: PageContainer, pageProps = {}, pageListIte
   <${dc.identifier}> "${page.id}" ;
   <${schema.text}> """${page.text}""" ;
   <${schema.name}> """${page.name}""" ;
-  <${cpt.parent}> <${parent.uri}> ;
+  <${cpt.parent}> <${parent.pagesUri}> ;
   <${cpt.inListItem}> <${page.inListItem}> .
 `)
   await addPageMetadata(parent, page, pageListItemProps)
@@ -223,10 +248,15 @@ export function workspaceFromStorage(storage: string): Workspace {
   const publicPages = publicPagesUrl(conceptContainer)
   const workspaceContainer = `${conceptContainer}workspace/`
   const workspaceDoc = `${workspaceContainer}index.ttl`
+  const uri = `${workspaceDoc}#Workspace`
+  const pagesUri = `${uri}#Pages`
+  const conceptsUri = `${uri}#Concepts`
   return ({
     containerUri: workspaceContainer,
+    uri,
+    pagesUri,
+    conceptsUri,
     docUri: workspaceDoc,
-    uri: `${workspaceDoc}#Workspace`,
     subpageContainerUri: `${workspaceContainer}pages/`,
     conceptContainerUri: `${workspaceContainer}concepts/`,
     publicPages

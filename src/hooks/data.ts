@@ -93,7 +93,7 @@ export function useDateQuery(subject: QueryTerm, predicate: QueryTerm, options: 
 
 
 export function usePageListItems(parent: PageContainer | undefined, options: QueryOptions<PageListItem[]> = {}) {
-  return useQuery(parent && parent.uri, schema.itemListElement, { resolver: pageListItemsResolver, ...options })
+  return useQuery(parent && parent.pagesUri, schema.itemListElement, { resolver: pageListItemsResolver, ...options })
 }
 
 export function usePageFromPageListItem(pageListItem: PageListItem, options: QueryOptions<Page> = {}) {

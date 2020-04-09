@@ -1,4 +1,4 @@
-export const conceptContainerUrl = (storage: string) => `${storage}private/concept/v5.0/`
+export const conceptContainerUrl = (storage: string) => `${storage}private/concept/v5.1/`
 export const appContainerUrl = conceptContainerUrl
 export const publicPagesUrl = (conceptContainer: string) => `${conceptContainer}publicPages.ttl`
 export const pagePath = (page: string) => `/page/${encodeURIComponent(page)}`
