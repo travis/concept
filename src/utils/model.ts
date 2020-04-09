@@ -276,8 +276,8 @@ export function workspaceFromStorage(storage: string): Workspace {
   const workspaceContainer = `${conceptContainer}workspace/`
   const workspaceDoc = `${workspaceContainer}index.ttl`
   const uri = `${workspaceDoc}#Workspace`
-  const pagesUri = `${uri}#Pages`
-  const conceptsUri = `${uri}#Concepts`
+  const pagesUri = `${workspaceDoc}#Pages`
+  const conceptsUri = `${workspaceDoc}#Concepts`
   return ({
     containerUri: workspaceContainer,
     uri,
