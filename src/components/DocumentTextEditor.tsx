@@ -95,7 +95,8 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
         }
       })
     }
-  }, [documentText, previouslySaved, savedVersionsRef]);
+    // include documentUri here so that we run this after setting editorValue to undefined above
+  }, [documentUri, documentText, previouslySaved, savedVersionsRef]);
 
   useEffect(() => {
     const maybeSave = async () => {
@@ -123,7 +124,6 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
       setSaveNeeded(true);
     }
   }, [debouncedValue])
-
   return (
     <Paper className={classes.editor}>
       {saving && <SaveIcon className={classes.saving} />}

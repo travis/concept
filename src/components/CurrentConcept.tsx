@@ -19,7 +19,6 @@ const useStyles = makeStyles(theme => ({
 function ConceptInsideLiveUpdate() {
   const [currentConcept] = useCurrentConcept()
   return currentConcept ? (<Page document={currentConcept} />) : (<Loader />)
-
 }
 
 export default function CurrentConcept() {
