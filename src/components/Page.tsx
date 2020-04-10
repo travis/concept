@@ -236,7 +236,7 @@ const DocumentComponent: FunctionComponent<DocumentProps> = ({ document }) => {
         <Box display="flex" flexDirection="column" height="100%">
           <Box flexGrow={1}>
             <EditorErrorBoundary>
-              <LiveUpdate subscribe={document.uri}>
+              <LiveUpdate subscribe={[document.uri]}>
                 <DocumentTextEditor document={document} readOnly={readOnly} />
               </LiveUpdate>
             </EditorErrorBoundary>

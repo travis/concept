@@ -28,7 +28,7 @@ export default function CurrentConcept() {
     <Box className={classes.content}>
       {
         currentConceptUri ? (
-          <LiveUpdate subscribe={currentConceptUri}>
+          <LiveUpdate subscribe={[currentConceptUri]}>
             <ConceptInsideLiveUpdate />
           </LiveUpdate >
         ) : (

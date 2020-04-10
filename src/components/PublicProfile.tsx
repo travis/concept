@@ -133,7 +133,7 @@ function PublicInfo({ webId }: { webId: string }) {
           </Typography>
         </Grid>
         <Grid item xs={3}>
-          <LiveUpdate subscribe={currentUserWebId}>
+          <LiveUpdate subscribe={[currentUserWebId]}>
             {webId && currentUserWebId && (webId !== currentUserWebId) && (
               <FollowButton webId={webId} />
             )}

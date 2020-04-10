@@ -143,7 +143,7 @@ function SubPageListItems({ pageListItem, level }: SubPageListItemsProps) {
     } else {
       return <>
         {subPageListItems.map((subPageListItem, index) => (
-          <LiveUpdate subscribe={subPageListItem.pageUri} key={index}>
+          <LiveUpdate subscribe={[subPageListItem.pageUri]} key={index}>
             <PageListItem parent={page} pageListItem={subPageListItem} key={index} level={level} />
           </LiveUpdate>
         ))}
@@ -214,7 +214,7 @@ const PageNameList = ({ pageListItems, workspace, adding }: { pageListItems: Pag
   return (
     <List>
       {pageListItems && pageListItems.map((pageListItem) => (
-        <LiveUpdate subscribe={pageListItem.pageUri} key={pageListItem.uri}>
+        <LiveUpdate subscribe={[pageListItem.pageUri]} key={pageListItem.uri}>
           <PageListItem parent={workspace} pageListItem={pageListItem} />
         </LiveUpdate>
       ))}

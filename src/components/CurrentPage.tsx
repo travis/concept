@@ -28,7 +28,7 @@ export default function CurrentPage() {
     <Box className={classes.content}>
       {
         currentPageUri ? (
-          <LiveUpdate subscribe={currentPageUri}>
+          <LiveUpdate subscribe={[currentPageUri]}>
             <PageInsideLiveUpdate />
           </LiveUpdate >
         ) : (

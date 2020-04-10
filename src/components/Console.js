@@ -21,7 +21,7 @@ function Workspace({workspace}){
 export default function Console(){
   const workspace = useWorkspace()
   return (
-    <LiveUpdate subscribe={workspace && workspace.docUri}>
+    <LiveUpdate subscribe={[workspace && workspace.docUri]}>
       <Workspace workspace={workspace}/>
     </LiveUpdate>
   )
