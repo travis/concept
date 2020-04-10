@@ -27,7 +27,7 @@ export const useStyles = makeStyles(theme => ({
     paddingLeft: theme.spacing(7),
     borderBottomWidth: theme.spacing(0.5),
     borderBottomStyle: "solid",
-    borderBottomColor: "white"
+    borderBottomColor: "transparent"
   },
   blockHoverButtons: {
     visibility: ({ menuOpen }: { menuOpen?: boolean }) => menuOpen ? "visible" : "hidden",
@@ -36,7 +36,7 @@ export const useStyles = makeStyles(theme => ({
   blockContent: {
     borderBottomWidth: theme.spacing(0.5),
     borderBottomStyle: "solid",
-    borderBottomColor: ({ isOver }: { isOver?: boolean }) => isOver ? theme.palette.info.light : theme.palette.background.paper
+    borderBottomColor: ({ isOver }: { isOver?: boolean }) => isOver ? theme.palette.info.light : "transparent"
   },
   blockButtons: {
     position: "absolute",

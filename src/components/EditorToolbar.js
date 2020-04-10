@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useSlate, useEditor } from 'slate-react';
-import { Editor, Range, Transforms, Node } from 'slate'
+import { Editor, Range, Transforms } from 'slate'
 
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 

@@ -1,7 +1,5 @@
 import React, { useContext, useState, useRef, useCallback, useEffect } from 'react'
 
-import { Editor } from 'slate';
-
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import SaveIcon from '@material-ui/icons/Save'

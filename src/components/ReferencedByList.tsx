@@ -5,7 +5,9 @@ import { Slate } from 'slate-react';
 import { Ancestor, Node } from 'slate';
 import { schema } from 'rdf-namespaces';
 
+import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
@@ -19,19 +21,30 @@ import Editable, { useNewEditor } from "./Editable";
 import { Concept, metaForPageUri } from '../utils/model'
 import { useValueQuery, usePage } from '../hooks/data'
 import { documentPath } from '../utils/urls'
-import { getConceptNodes } from '../utils/slate'
+import { getConceptNodesMatchingName } from '../utils/slate'
 
+const useStyles = makeStyles(theme => ({
+  excerpt: {
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.grey[50],
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1)
+  }
+}));
 
 type RBE = FunctionComponent<{
   node: Ancestor
 }>
 
 const ReferencedByExcerpt: RBE = ({ node }) => {
+  const classes = useStyles()
   const editor = useNewEditor()
   return (
-    <Slate editor={editor} value={[node]} onChange={() => { }}>
-      <Editable readOnly editor={editor} />
-    </Slate>
+    <Paper className={classes.excerpt} elevation={0}>
+      <Slate editor={editor} value={[node]} onChange={() => { }}>
+        <Editable readOnly editor={editor} />
+      </Slate>
+    </Paper>
   )
 }
 
@@ -48,10 +61,10 @@ const ReferencedByItemDetails: RBID = ({ concept, referencedBy }) => {
   useEffect(() => {
     if (pageText) {
       const rootNode = { children: JSON.parse(pageText) }
-      const paths = getConceptNodes(rootNode).map(([, path]) => path)
+      const paths = getConceptNodesMatchingName(rootNode, concept.name).map(([, path]) => path)
       setExcerptNodes(paths.map(path => Node.parent(rootNode, path)))
     }
-  }, [pageText, conceptUri])
+  }, [pageText, conceptUri, concept.name])
   return (
     <div>
       {excerptNodes.map((node, i) => <ReferencedByExcerpt node={node} key={i} />)}
