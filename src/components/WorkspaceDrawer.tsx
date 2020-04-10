@@ -81,7 +81,7 @@ const useStyles = makeStyles(theme => ({
     }
   },
   conceptListItem: {
-    paddingLeft: theme.spacing(3)
+    paddingLeft: theme.spacing(2.5)
   },
   sidebarItemHoverButton: {
     visibility: "hidden",

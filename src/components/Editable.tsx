@@ -3,6 +3,7 @@ import { createEditor, Text, Editor } from 'slate';
 import { Editable as SlateEditable, withReact } from 'slate-react';
 import isHotkey from 'is-hotkey';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 
 import { withHistory } from 'slate-history';
 
@@ -152,11 +153,12 @@ type EditableProps = {
 const Editable: FunctionComponent<EditableProps> = ({ editor, ...props }) => {
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])
   const renderElement = useCallback(props => <Element {...props} />, [])
+  const { t } = useTranslation()
   return <SlateEditable
     renderLeaf={renderLeaf}
     renderElement={renderElement}
     spellCheck
-    placeholder="What's your favorite concept..."
+    placeholder={t("editable.placeholder")}
     onKeyDown={(event) => {
       for (const hotkey in HOTKEYS) {
         if (isHotkey(hotkey, event.nativeEvent)) {
