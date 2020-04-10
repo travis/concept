@@ -4,7 +4,7 @@ import data from '@solid/query-ldflex';
 import { resourceExists, createDocument, patchDocument } from './ldflex-helper';
 import cpt from '../ontology';
 import { pageResolver } from './data';
-import { conceptContainerUrl, publicPagesUrl } from '../utils/urls';
+import { conceptNameToUrlSafeId, urlSafeIdToConceptName, conceptContainerUrl, publicPagesUrl } from '../utils/urls';
 
 export interface Subject {
   uri: string,
@@ -92,7 +92,9 @@ type ConceptOptions = {
 }
 
 export function newConcept(workspace: Workspace, name: string, options: ConceptOptions = {}): Concept {
-  const id = encodeURIComponent(name)
+  // ok this looks insane but we want to support arbitrary characters in names and there are
+  // some issues with % chars in path segments in browsers: https://github.com/ReactTraining/history/issues/505
+  const id = conceptNameToUrlSafeId(name)
   const inListItem = `${workspace.docUri}#${id}`
   const referencedBy = options.referencedBy ? [options.referencedBy] : []
   return ({
@@ -222,7 +224,7 @@ const conceptDocFromConceptUri = (conceptUri: string) =>
   conceptUri.split("#").slice(0, -1).join("")
 
 const conceptNameFromConceptUri = (conceptUri: string) =>
-  decodeURIComponent(conceptUri.split("/").slice(-2)[0])
+  urlSafeIdToConceptName(conceptUri.split("/").slice(-2)[0])
 
 const addConceptReferencedBy = async (workspace: Workspace, docUri: string, conceptUri: string) => {
   const resourceUri = conceptDocFromConceptUri(conceptUri)

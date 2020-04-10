@@ -1,5 +1,5 @@
 import React, { useContext, useState, useCallback, useRef } from 'react';
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { LiveUpdate, useWebId } from "@solid/react";
 import { vcard } from 'rdf-namespaces';
 
@@ -34,6 +34,7 @@ import IconButton from './IconButton';
 import ProfileLink from './ProfileLink';
 import Loader from './Loader';
 import ConceptCreator from './ConceptCreator';
+import Link from "./Link"
 
 type WithLevel = { level?: number }
 
