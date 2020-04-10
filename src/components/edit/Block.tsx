@@ -1,6 +1,6 @@
 import React, { FunctionComponent, ReactNode, useRef, useState } from 'react'
 import { Element, Transforms } from 'slate';
-import { useEditor, ReactEditor } from 'slate-react';
+import { useEditor, useReadOnly, ReactEditor } from 'slate-react';
 import { useDrag, useDrop } from 'react-dnd'
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -104,6 +104,7 @@ type BlockProps = {
 
 const Block: FunctionComponent<BlockProps> = ({ children, element }) => {
   const editor = useEditor()
+  const readOnly = useReadOnly()
   const buttonsRef = useRef(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const insertRef = useRef(null)
@@ -138,29 +139,33 @@ const Block: FunctionComponent<BlockProps> = ({ children, element }) => {
 
   return (
     <div className={classes.block} ref={drop}>
-      <BlockMenu element={element} anchorEl={buttonsRef.current}
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)} />
-      <InsertMenu element={element} anchorEl={insertRef.current}
-        open={insertMenuOpen}
-        onClose={() => {
-          setInsertMenuOpen(false)
-        }}
-        onExiting={() => {
-          ReactEditor.focus(editor)
-        }} />
-      <div contentEditable={false} className={`${classes.blockButtons} ${classes.blockHoverButtons}`} ref={buttonsRef}>
-        <IconButton ref={insertRef}
-          size="small" onClick={() => setInsertMenuOpen(!insertMenuOpen)}
-          title="insert">
-          <AddIcon></AddIcon>
-        </IconButton>
-        <IconButton ref={drag}
-          size="small" onClick={() => setMenuOpen(!menuOpen)} className={classes.dragButton}
-          title="">
-          <DragIcon></DragIcon>
-        </IconButton>
-      </div>
+      {!readOnly && (
+        <>
+          <BlockMenu element={element} anchorEl={buttonsRef.current}
+            open={menuOpen}
+            onClose={() => setMenuOpen(false)} />
+          <InsertMenu element={element} anchorEl={insertRef.current}
+            open={insertMenuOpen}
+            onClose={() => {
+              setInsertMenuOpen(false)
+            }}
+            onExiting={() => {
+              ReactEditor.focus(editor)
+            }} />
+          <div contentEditable={false} className={`${classes.blockButtons} ${classes.blockHoverButtons}`} ref={buttonsRef}>
+            <IconButton ref={insertRef}
+              size="small" onClick={() => setInsertMenuOpen(!insertMenuOpen)}
+              title="insert">
+              <AddIcon></AddIcon>
+            </IconButton>
+            <IconButton ref={drag}
+              size="small" onClick={() => setMenuOpen(!menuOpen)} className={classes.dragButton}
+              title="">
+              <DragIcon></DragIcon>
+            </IconButton>
+          </div>
+        </>
+      )}
       <div ref={preview} className={classes.blockContent}>
         {children}
       </div>

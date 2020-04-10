@@ -13,6 +13,7 @@ import { Node } from 'slate';
 import { HoveringToolbar } from "./EditorToolbar";
 import Editable, { useNewEditor } from "./Editable";
 import { Document } from "../utils/model"
+import { getConceptNodes } from "../utils/slate"
 import WorkspaceContext from "../context/workspace";
 import { useBackups } from '../hooks/backup';
 
@@ -25,24 +26,18 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.primary.light
   },
   editor: {
-    position: "relative",
     height: "100%",
     overflow: "scroll"
   },
   editable: {
-    marginTop: "48px",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    marginTop: theme.spacing(6),
     textAlign: "left",
     padding: theme.spacing(1),
     paddingLeft: theme.spacing(8),
     paddingRight: theme.spacing(8),
     paddingTop: 0,
     background: "white",
-    position: "absolute"
-
+    height: "100%",
   }
 }));
 
@@ -104,9 +99,7 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
       if (saveableText !== documentText) {
         setSaving(true);
         if (updateText) {
-          const conceptUris = Array.from(Node.nodes(editor)).filter(([node]) => {
-            return (node.type === 'concept')
-          }).map(([concept]) => concept.uri)
+          const conceptUris = getConceptNodes(editor).map(([concept]) => concept.uri)
           await updateText(document, saveableText, conceptUris);
         }
         setSavedVersions(currentSavedVersions => [saveableText, ...currentSavedVersions].slice(0, 100))

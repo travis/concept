@@ -14,7 +14,8 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
-import Link from '@material-ui/core/Link';
+import Box from '@material-ui/core/Box';
+import Paper from '@material-ui/core/Paper';
 
 import ShareIcon from '@material-ui/icons/Share'
 import BackupIcon from '@material-ui/icons/Backup'
@@ -22,6 +23,7 @@ import MenuIcon from '@material-ui/icons/Menu'
 
 import { useHistory } from "react-router-dom";
 
+import Link from './Link';
 import SharingModal from "./SharingModal";
 import BackupsDialog from "./BackupsDialog";
 import Loader from "./Loader";
@@ -30,9 +32,10 @@ import WorkspaceContext from "../context/workspace";
 import DocumentContext from '../context/document'
 
 import DocumentTextEditor from './DocumentTextEditor'
+import ReferencedByList from './ReferencedByList'
 import { useAccessInfo } from '../hooks/acls';
 import { drawerWidth } from '../constants'
-import { Page, Document, isPage } from '../utils/model'
+import { Page, Document, isConcept, isPage } from '../utils/model'
 
 const useStyles = makeStyles(theme => ({
   appBar: {
@@ -49,6 +52,9 @@ const useStyles = makeStyles(theme => ({
   sectionDesktop: {
     display: 'flex',
   },
+  referencedBy: {
+    flexGrow: 2
+  }
 }));
 
 type PageNameProps = {
@@ -137,7 +143,7 @@ function AppBarMenu({ document, onClose, ...props }: AppBarMenuProps) {
         <MenuItem>
           <Link href={document.uri} target="_blank" rel="noopener noreferrer" color="inherit">
             Source
-            </Link>
+          </Link>
         </MenuItem>
         <MenuItem onClick={() => setDeleteConfirmationOpen(true)}>Delete</MenuItem>
       </Menu>
@@ -226,12 +232,23 @@ const DocumentComponent: FunctionComponent<DocumentProps> = ({ document }) => {
         </LiveUpdate>
       )}
       {backupsDialogOpen && <BackupsDialog document={document} open={backupsDialogOpen} handleClose={() => setBackupsDialogOpen(false)} />}
-      {allowed && (
-        <EditorErrorBoundary>
-          <LiveUpdate subscribe={document.uri}>
-            <DocumentTextEditor document={document} readOnly={readOnly} />
-          </LiveUpdate>
-        </EditorErrorBoundary>
+      {allowed && allowed.user.has("read") && (
+        <Box display="flex" flexDirection="column" height="100%">
+          <Box flexGrow={1}>
+            <EditorErrorBoundary>
+              <LiveUpdate subscribe={document.uri}>
+                <DocumentTextEditor document={document} readOnly={readOnly} />
+              </LiveUpdate>
+            </EditorErrorBoundary>
+          </Box>
+          {isConcept(document) && (
+            <Box flexGrow={5}>
+              <Paper>
+                <ReferencedByList concept={document} />
+              </Paper>
+            </Box>
+          )}
+        </Box>
       )}
     </DocumentContext.Provider>
   )

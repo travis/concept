@@ -37,6 +37,7 @@ export interface Workspace extends PageContainer, ConceptContainer {
 }
 
 export interface Concept extends Document {
+  referencedBy: string[]
 }
 
 export interface Page extends PageContainer, Document {
@@ -70,6 +71,10 @@ export function isPage(document: Document): document is Page {
   return (document as Page).pagesUri !== undefined
 }
 
+export function isConcept(document: Document): document is Concept {
+  return (document as Concept).referencedBy !== undefined
+}
+
 const initialDocumentText = JSON.stringify([
   {
     type: 'paragraph',
@@ -77,30 +82,34 @@ const initialDocumentText = JSON.stringify([
   }
 ])
 
-export function conceptUris(containerUri: string) {
-  const docUri = `${containerUri}index.ttl`
-  const metaUri = `${containerUri}.meta`
-  const uri = `${docUri}#Concept`
-  const imageContainerUri = `${containerUri}images/`
+export function conceptUris(uri: string) {
+  const { containerUri, docUri, metaUri, imageContainerUri } = documentUris(uri)
   return ({ containerUri, docUri, uri, imageContainerUri, metaUri })
 }
 
-export function newConcept(workspace: Workspace, name: string): Concept {
+type ConceptOptions = {
+  referencedBy?: string
+}
+
+export function newConcept(workspace: Workspace, name: string, options: ConceptOptions = {}): Concept {
   const id = encodeURIComponent(name)
   const inListItem = `${workspace.docUri}#${id}`
+  const referencedBy = options.referencedBy ? [options.referencedBy] : []
   return ({
     id,
     name,
     parentUri: workspace.conceptsUri,
     text: initialDocumentText,
     inListItem,
-    ...conceptUris(`${workspace.conceptContainerUri}${id}/`)
+    referencedBy,
+    ...conceptUris(`${workspace.conceptContainerUri}${id}/index.ttl#Concept`)
   })
 }
 
 
 const addConceptMetadata = async (parent: ConceptContainer, concept: Concept) => {
-  await patchDocument(parent.docUri, `
+  await Promise.all([
+    patchDocument(parent.docUri, `
 INSERT DATA {
 <${concept.inListItem}>
   <${rdf.type}> <${schema.ListItem}> ;
@@ -109,13 +118,14 @@ INSERT DATA {
 
 <${parent.conceptsUri}> <${schema.itemListElement}> <${concept.inListItem}> .
 }
+`),
+    createDocument(concept.metaUri, `
+<${concept.uri}> <${schema.name}> """${concept.name}""" .
 `)
+  ])
   return concept
 }
 
-type ConceptOptions = {
-  referencedBy?: string
-}
 
 const optionalConceptDoubles = ({ referencedBy }: ConceptOptions) => {
   if (referencedBy) {
@@ -126,7 +136,7 @@ const optionalConceptDoubles = ({ referencedBy }: ConceptOptions) => {
 }
 
 export const addConcept = async (workspace: Workspace, name: string, options: ConceptOptions = {}) => {
-  const concept = newConcept(workspace, name)
+  const concept = newConcept(workspace, name, options)
   await Promise.all([
     createDocument(concept.docUri, `
 <${concept.uri}>
@@ -146,12 +156,17 @@ export function metaForPageUri(pageUri: string) {
   return `${pageUri.split("/").slice(0, -1).join("/")}/.meta`
 }
 
-export function pageUris(containerUri: string) {
+export function documentUris(uri: string) {
+  const containerUri = `${uri.split("/").slice(0, -1).join("/")}/`
   const docUri = `${containerUri}index.ttl`
   const metaUri = `${containerUri}.meta`
-  const uri = `${docUri}#Page`
-  const subpageContainerUri = `${containerUri}pages/`
   const imageContainerUri = `${containerUri}images/`
+  return { containerUri, docUri, metaUri, imageContainerUri }
+}
+
+export function pageUris(uri: string) {
+  const { containerUri, docUri, metaUri, imageContainerUri } = documentUris(uri)
+  const subpageContainerUri = `${containerUri}pages/`
   const pagesUri = `${docUri}#Pages`
   return ({ containerUri, docUri, uri, subpageContainerUri, imageContainerUri, metaUri, pagesUri })
 }
@@ -165,7 +180,7 @@ export function newPage(parent: PageContainer, { name = "Untitled" } = {}): Page
     text: initialDocumentText,
     inListItem,
     parentUri: parent.pagesUri,
-    ...pageUris(`${parent.subpageContainerUri}${id}/`)
+    ...pageUris(`${parent.subpageContainerUri}${id}/index.ttl#Page`)
   })
 }
 

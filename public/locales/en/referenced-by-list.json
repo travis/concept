@@ -1,0 +1,4 @@
+{
+  "title": "{{count}} reference to {{name}}",
+  "title_plural": "{{count}} references to {{name}}"
+}
