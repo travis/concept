@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useSlate, useEditor } from 'slate-react';
-import { Range, Transforms, Node } from 'slate'
+import { Editor, Range, Transforms, Node } from 'slate'
 
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 
@@ -141,12 +141,7 @@ const selectedText = (editor) => {
     if (Range.isCollapsed(editor.selection)){
       return ""
     } else {
-      return Array.from(Node.texts(editor, {
-        from: Range.start(editor.selection).path,
-        to: Range.end(editor.selection).path
-      })).
-        map(([node]) => node.text).
-        join("")
+      return Editor.string(editor, editor.selection)
     }
   } else {
     return null
