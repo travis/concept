@@ -260,7 +260,7 @@ const deleteConceptReferencedBys = async (docUri: string, conceptUris: string[])
 }
 
 const referenceDoubles = (references: string[]) =>
-  references.map(reference => `<${dct.references}> <${reference}> ;`)
+  references.map(reference => `<${dct.references}> <${reference}> ;`).join("")
 
 export const setDocumentText = async (workspace: Workspace, doc: Document, newText: string, referencesToAdd: string[], referencesToDelete: string[]) => {
   await Promise.all([
