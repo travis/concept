@@ -54,6 +54,9 @@ const useStyles = makeStyles(theme => ({
   },
   referencedBy: {
     flexGrow: 2
+  },
+  error: {
+    marginTop: theme.spacing(6)
   }
 }));
 
@@ -97,19 +100,29 @@ function DocumentName({ document }: DocumentNameProps) {
   );
 }
 
+type PE = FunctionComponent<{
+  error: any
+}>
+
+const PageError: PE = ({ error }) => {
+  const classes = useStyles()
+  console.log("showing error ui for ", error)
+  return (<div className={classes.error}>Sorry, something went wrong.</div>)
+
+}
 
 type EditorErrorBoundaryProps = { children: ReactNode }
-type EditorErrorBoundaryState = { hasError: boolean }
+type EditorErrorBoundaryState = { hasError: boolean, error: any }
 
 class EditorErrorBoundary extends React.Component<EditorErrorBoundaryProps, EditorErrorBoundaryState> {
   constructor(props: EditorErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: any) {
     // Update state so the next render will show the fallback UI.
-    return { hasError: true };
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: any, errorInfo: any) {
@@ -118,8 +131,11 @@ class EditorErrorBoundary extends React.Component<EditorErrorBoundaryProps, Edit
   }
 
   render() {
-    // just render the children - react will recreate from scratch
-    return this.props.children;
+    if (this.state.hasError) {
+      return (<PageError error={this.state.error} />)
+    } else {
+      return this.props.children;
+    }
   }
 }
 
