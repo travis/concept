@@ -5,7 +5,7 @@ import Box from '@material-ui/core/Box';
 
 import { LiveUpdate } from "@solid/react";
 import { useCurrentConceptUri, useCurrentConcept } from '../hooks/concepts';
-import Page from './Page'
+import Page from './Document'
 import Loader from './Loader'
 
 const useStyles = makeStyles(theme => ({

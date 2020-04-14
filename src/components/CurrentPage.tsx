@@ -5,7 +5,7 @@ import Box from '@material-ui/core/Box';
 
 import { LiveUpdate } from "@solid/react";
 import { useCurrentPageUri, useCurrentPage } from '../hooks/pages';
-import Page from './Page'
+import Page from './Document'
 import Loader from './Loader'
 
 const usePagesStyles = makeStyles(theme => ({
