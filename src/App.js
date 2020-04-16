@@ -7,6 +7,7 @@ import {useLoggedIn} from '@solid/react';
 
 import './App.css';
 import {AuthProvider} from './context/auth'
+import {PreferencesProvider} from './context/preferences'
 
 import Workspace from './components/Workspace';
 import Console from './components/Console';
@@ -55,7 +56,9 @@ function AppContainer() {
         <DndProvider backend={DndBackend}>
           <Router>
             <AuthProvider>
-              <App/>
+              <PreferencesProvider>
+                <App/>
+              </PreferencesProvider>
             </AuthProvider>
           </Router>
         </DndProvider>

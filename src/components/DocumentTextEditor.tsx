@@ -2,6 +2,7 @@ import React, { useContext, useState, useRef, useCallback, useEffect } from 'rea
 
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
+import Box from '@material-ui/core/Box';
 import SaveIcon from '@material-ui/icons/Save'
 import { useDebounce } from 'use-debounce';
 
@@ -14,6 +15,7 @@ import { Document } from "../utils/model"
 import { getConceptNodes } from "../utils/slate"
 import WorkspaceContext from "../context/workspace";
 import { useBackups } from '../hooks/backup';
+import { usePreferences } from '../context/preferences'
 
 const useStyles = makeStyles(theme => ({
   saving: {
@@ -36,6 +38,12 @@ const useStyles = makeStyles(theme => ({
     paddingTop: 0,
     background: "white",
     height: "100%",
+    flexGrow: 2
+  },
+  devConsole: {
+    flexGrow: 1,
+    fontSize: "0.66em",
+    textAlign: "left"
   }
 }));
 
@@ -115,6 +123,7 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
       setSaveNeeded(true);
     }
   }, [debouncedValue])
+  const { devMode } = usePreferences()
   return (
     <Paper className={classes.editor}>
       {saving && <SaveIcon className={classes.saving} />}
@@ -129,9 +138,17 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
                 <HoveringToolbar />
               </>
             )}
-
-            <Editable autoFocus readOnly={readOnly} editor={editor}
-              className={classes.editable} />
+            <Box display="flex" flexDirection="column" height="100%">
+              <Editable autoFocus readOnly={readOnly} editor={editor}
+                className={classes.editable} />
+              {devMode && (
+                <Paper className={classes.devConsole}>
+                  <code>
+                    {JSON.stringify(editorValue, null, 2)}
+                  </code>
+                </Paper>
+              )}
+            </Box>
           </Slate>
         )}
     </Paper>

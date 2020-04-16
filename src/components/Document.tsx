@@ -20,6 +20,7 @@ import Paper from '@material-ui/core/Paper';
 import ShareIcon from '@material-ui/icons/Share'
 import BackupIcon from '@material-ui/icons/Backup'
 import MenuIcon from '@material-ui/icons/Menu'
+import DeveloperModeIcon from '@material-ui/icons/DeveloperMode'
 
 import { useHistory } from "react-router-dom";
 
@@ -36,6 +37,7 @@ import ReferencedByList from './ReferencedByList'
 import { useAccessInfo } from '../hooks/acls';
 import { drawerWidth } from '../constants'
 import { Page, Document, isConcept, isPage } from '../utils/model'
+import { usePreferences } from '../context/preferences'
 
 const useStyles = makeStyles(theme => ({
   appBar: {
@@ -197,6 +199,7 @@ const DocumentComponent: FunctionComponent<DocumentProps> = ({ document }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const { aclUri, allowed } = useAccessInfo(document.uri)
   const readOnly = !(allowed && allowed.user.has("write"))
+  const { devMode, setDevMode } = usePreferences()
   return (document === undefined) ? (<Loader />) : (
     <DocumentContext.Provider value={document}>
       <AppBar position="fixed" className={classes.appBar} color="transparent" elevation={0}>
@@ -212,6 +215,10 @@ const DocumentComponent: FunctionComponent<DocumentProps> = ({ document }) => {
 
               allowed && allowed.user.has("control") && (
                 <>
+                  <IconButton title="DEV MODE" active={devMode}
+                              onClick={() => setDevMode(!devMode)}>
+                    <DeveloperModeIcon />
+                  </IconButton>
                   <IconButton title="share"
                     onClick={() => setSharingModalOpen(!sharingModalOpen)}>
                     <ShareIcon />
