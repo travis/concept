@@ -6,7 +6,7 @@ import Box from '@material-ui/core/Box';
 import SaveIcon from '@material-ui/icons/Save'
 import { useDebounce } from 'use-debounce';
 
-import { Slate } from 'slate-react';
+import { Slate, useSlate } from 'slate-react';
 import { Node } from 'slate';
 
 import { HoveringToolbar } from "./EditorToolbar";
@@ -141,16 +141,27 @@ export default function DocumentTextEditor({ document, readOnly }: DocumentTextE
             <Box display="flex" flexDirection="column" height="100%">
               <Editable autoFocus readOnly={readOnly} editor={editor}
                 className={classes.editable} />
-              {devMode && (
-                <Paper className={classes.devConsole}>
-                  <code>
-                    {JSON.stringify(editorValue, null, 2)}
-                  </code>
-                </Paper>
-              )}
+              {devMode && (<DevConsole />)}
             </Box>
           </Slate>
         )}
     </Paper>
   );
+}
+
+const DevConsole = () => {
+  const editor = useSlate()
+  const classes = useStyles()
+  return (
+    <Paper className={classes.devConsole} >
+      <Box display="flex">
+        <pre>
+          {JSON.stringify(editor.children, null, 2)}
+        </pre>
+        <pre>
+          {JSON.stringify(editor.selection, null, 2)}
+        </pre>
+      </Box>
+    </Paper>
+  )
 }
