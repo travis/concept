@@ -1,4 +1,4 @@
-import { Editor, Transforms, Range, Point } from 'slate';
+import { Editor, Transforms, Range, Point, Element, Text, Path } from 'slate';
 import { ReactEditor} from 'slate-react';
 
 import imageExtensions from 'image-extensions'
@@ -210,8 +210,27 @@ const wrapLink = (editor, url) => {
   }
 }
 
+const disallowEmpty = (type, editor) => {
+  const { normalizeNode } = editor
+
+  editor.normalizeNode = entry => {
+    const [node, path] = entry
+    if (Element.isElement(node) && (node.type === type) &&
+        (node.children.length === 1) && Text.isText(node.children[0]) &&
+        (node.children[0].text === "")) {
+      const currentlySelected = Path.isCommon(path, editor.selection.anchor.path)
+      Transforms.removeNodes(editor, {at: path})
+      if (currentlySelected) {
+        Transforms.select(editor, path)
+        Transforms.collapse(editor)
+      }
+    }
+    normalizeNode(entry)
+  }
+}
+
 export const withLinks = editor => {
-  const { insertData, insertText, isInline } = editor
+  const { insertData, insertText, insertBreak, isInline, normalizeNode } = editor
 
   editor.isInline = element => {
     return element.type === 'link' ? true : isInline(element)
@@ -234,6 +253,8 @@ export const withLinks = editor => {
       insertData(data)
     }
   }
+
+  disallowEmpty("link", editor)
 
   return editor
 }
@@ -303,6 +324,7 @@ export const withConcepts = editor => {
   const { isInline } = editor
 
   editor.isInline = element => (element.type === 'concept') ? true : isInline(element)
+  disallowEmpty("concept", editor)
 
   return editor
 }
