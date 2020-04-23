@@ -1,6 +1,6 @@
 {
   "name": "concept",
-  "version": "0.1.0",
+  "version": "0.1.0-dev.0",
   "private": true,
   "dependencies": {
     "@inrupt/solid-react-components": "^0.5.1-dev.19",
@@ -8,6 +8,7 @@
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.45",
     "@rdfjs/data-model": "^1.1.2",
+    "@sentry/browser": "^5.15.5",
     "@solid/query-ldflex": "^2.9.0",
     "@solid/react": "^1.8.0",
     "@testing-library/jest-dom": "^4.2.4",
@@ -68,5 +69,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@sentry/webpack-plugin": "^1.11.1"
   }
 }

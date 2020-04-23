@@ -4,6 +4,13 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import './i18n'
+import * as Sentry from '@sentry/browser';
+
+Sentry.init({
+  dsn: "https://2837c0eb80034804b6315f25c0a0e519@o382054.ingest.sentry.io/5211463",
+  environment: process.env.NODE_ENV,
+  release: `concept@${process.env.REACT_APP_VERSION}`
+});
 
 ReactDOM.render(<App />, document.getElementById('root'));
 
