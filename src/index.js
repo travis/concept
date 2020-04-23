@@ -9,7 +9,14 @@ import * as Sentry from '@sentry/browser';
 Sentry.init({
   dsn: "https://2837c0eb80034804b6315f25c0a0e519@o382054.ingest.sentry.io/5211463",
   environment: process.env.NODE_ENV,
-  release: `concept@${process.env.REACT_APP_VERSION}`
+  release: `concept@${process.env.REACT_APP_VERSION}`,
+  beforeSend(event, hint) {
+    // Check if it is an exception, and if so, show the report dialog
+    if (event.exception) {
+      Sentry.showReportDialog({ eventId: event.event_id });
+    }
+    return event;
+  }
 });
 
 ReactDOM.render(<App />, document.getElementById('root'));

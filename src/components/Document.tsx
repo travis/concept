@@ -211,6 +211,7 @@ const DocumentComponent: FunctionComponent<DocumentProps> = ({ document }) => {
             )}
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
+            <Button onClick={() => { throw new Error("TEST ERROR") }}>error</Button>
             {
               allowed && allowed.user.has("control") && (
                 <>
