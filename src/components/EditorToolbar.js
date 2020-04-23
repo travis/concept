@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { useSlate, useEditor } from 'slate-react';
+import { ReactEditor, useSlate, useEditor } from 'slate-react';
 import { Editor, Range, Transforms } from 'slate'
 
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -62,18 +62,20 @@ const InsertImageButton = () => {
   )
 }
 
-const LinkButton = ({setSubMenuOpen}) => {
+const LinkButton = ({onOpen, onClose}) => {
   const editor = useSlate()
   const [linkButtonOpen, setLinkButtonOpen] = useState(false)
   const [url, setUrl] = useState(null)
   const [selection, setSelection] = useState(undefined)
   const ref = useRef()
-  const onClose = () => {
+  const onClosePopover = () => {
     setLinkButtonOpen(false)
-    setSubMenuOpen(false)
-    if (selection){
-      Transforms.select(editor, selection)
-    }
+    onClose()
+  }
+  const insertAndClose = () => {
+    Transforms.select(editor, selection)
+    insertLink(editor, url)
+    onClosePopover()
   }
   return (
     <>
@@ -83,7 +85,7 @@ const LinkButton = ({setSubMenuOpen}) => {
         size="small"
         active={isLinkActive(editor)}
         onClick={() => {
-          setSubMenuOpen(true)
+          onOpen()
           setSelection(editor.selection)
           setLinkButtonOpen(!linkButtonOpen)
         }}
@@ -92,7 +94,7 @@ const LinkButton = ({setSubMenuOpen}) => {
       </IconButton>
       <Popover
         open={linkButtonOpen}
-        onClose={onClose}
+        onClose={onClosePopover}
         anchorEl={ref.current}
         anchorOrigin={{
           vertical: 'bottom',
@@ -106,12 +108,18 @@ const LinkButton = ({setSubMenuOpen}) => {
         <TextField autoFocus placeholder="Paste your link here..."
                    size="small" variant="outlined"
                    value={url || ""}
-                   onChange={e => setUrl(e.target.value)}/>
+                   onKeyDown={e => {
+                     if (e.keyCode === 13) {
+                       e.preventDefault()
+                       insertAndClose()
+                     }
+                   }}
+                   onChange={e => {
+                     setUrl(e.target.value)
+                   }}/>
         <Button onClick={() => {
-                  Transforms.select(editor, selection)
-                  insertLink(editor, url)
-                  onClose()
-                }}>
+          insertAndClose()
+        }}>
           Link
         </Button>
       </Popover>
@@ -148,19 +156,21 @@ const selectedText = (editor) => {
   }
 }
 
-const ConceptButton = ({setSubMenuOpen}) => {
+const ConceptButton = ({onOpen, onClose}) => {
   const {workspace} = useContext(WorkspaceContext)
   const editor = useSlate()
   const [conceptButtonOpen, setConceptButtonOpen] = useState(false)
   const [name, setName] = useState(null)
   const [selection, setSelection] = useState(undefined)
   const ref = useRef()
-  const onClose = () => {
+  const onClosePopover = () => {
     setConceptButtonOpen(false)
-    setSubMenuOpen(false)
-    if (selection){
-      Transforms.select(editor, selection)
-    }
+    onClose()
+  }
+  const insertAndClose = () => {
+    Transforms.select(editor, selection)
+    insertConcept(editor, name, conceptUri(workspace.conceptContainerUri, name))
+    onClosePopover()
   }
   return (
     <>
@@ -170,7 +180,7 @@ const ConceptButton = ({setSubMenuOpen}) => {
         size="small"
         active={isConceptActive(editor)}
         onClick={() => {
-          setSubMenuOpen(true)
+          onOpen()
           setSelection(editor.selection)
           setName(selectedText(editor))
           setConceptButtonOpen(!conceptButtonOpen)
@@ -180,7 +190,7 @@ const ConceptButton = ({setSubMenuOpen}) => {
       </IconButton>
       <Popover
         open={conceptButtonOpen}
-        onClose={onClose}
+        onClose={onClosePopover}
         anchorEl={ref.current}
         anchorOrigin={{
           vertical: 'bottom',
@@ -194,11 +204,15 @@ const ConceptButton = ({setSubMenuOpen}) => {
         <TextField autoFocus placeholder="Paste your link here..."
                    size="small" variant="outlined"
                    value={name || ""}
+                   onKeyDown={e => {
+                     if (e.keyCode === 13) {
+                       e.preventDefault()
+                       insertAndClose()
+                     }
+                   }}
                    onChange={e => setName(e.target.value)}/>
         <Button onClick={() => {
-          Transforms.select(editor, selection)
-          insertConcept(editor, name, conceptUri(workspace.conceptContainerUri, name))
-          onClose()
+          insertAndClose()
         }}>
           insert
         </Button>
@@ -239,13 +253,30 @@ export default function EditorToolbar(props){
 }
 
 export function HoveringToolbar() {
-  const [subMenuOpen, setSubMenuOpen] = useState(false)
+  const [submenuOpen, setSubmenuOpen] = useState(false)
   const editor = useSlate()
-  const open = subMenuOpen || !!(editor.selection && !Range.isCollapsed(editor.selection))
+  const open = submenuOpen || !!(editor.selection && !Range.isCollapsed(editor.selection))
   const theme = useTheme()
   const classes = useStyles()
 
   const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0})
+  const onOpenSubmenu = () => {
+    setSubmenuOpen(true)
+  }
+  const onCloseSubmenu = () => {
+    setSubmenuOpen(false)
+    setTimeout(() => {
+      ReactEditor.focus(editor)
+      const selection = editor.selection
+      // manual focus seems to trigger a process that resets the selection, so reset it
+      setTimeout(() => {
+        Transforms.select(editor, selection)
+        // this 200 second timeout here is wonky but seems to work
+        // TODO: test on other platforms, figure out a better way to do this
+        // this will probably be fixed by https://github.com/ianstormtaylor/slate/issues/3412
+      }, 150)
+    }, 0)
+  }
   useEffect(() => {
     if (editor.selection){
       const domSelection = window.getSelection()
@@ -277,8 +308,8 @@ export function HoveringToolbar() {
         <MarkButton title="Italic" format="italic" icon={<FormatItalic/>} />
         <MarkButton title="Underline" format="underline" icon={<FormatUnderlined/>} />
         <MarkButton title="Code" format="code" icon={<Code/>} />
-        <LinkButton setSubMenuOpen={setSubMenuOpen}/>
-        <ConceptButton setSubMenuOpen={setSubMenuOpen}/>
+        <LinkButton onOpen={onOpenSubmenu} onClose={onCloseSubmenu} />
+        <ConceptButton onOpen={onOpenSubmenu} onClose={onCloseSubmenu} />
       </Popover>
     )
 }

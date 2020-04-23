@@ -100,17 +100,19 @@ const LinkElement: FunctionComponent<ElementProps> = ({ attributes, children, el
   const aRef = useRef(null)
   const [editingLink, setEditingLink] = useState(false)
   const selected = useSelected()
-  const open = (editingLink || selected)
+  const open = (!!aRef.current) && (editingLink || selected)
   return (
     <>
       <Link {...attributes} href={element.url} ref={aRef}>
         {children}
       </Link>
-      <LinkPopover element={element} open={open} anchorEl={aRef.current}
-        onClose={() => {
-          setEditingLink(false)
-        }}
-        editing={editingLink} setEditing={setEditingLink} />
+      {open && (
+        <LinkPopover element={element} open={open} anchorEl={aRef.current}
+          onClose={() => {
+            setEditingLink(false)
+          }}
+          editing={editingLink} setEditing={setEditingLink} />
+      )}
     </>
   )
 }

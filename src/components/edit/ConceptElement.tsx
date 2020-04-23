@@ -103,17 +103,19 @@ const ConceptElement: FunctionComponent<ElementProps> = ({ attributes, children,
   const aRef = useRef(null)
   const [editingLink, setEditingLink] = useState(false)
   const selected = useSelected()
-  const open = (editingLink || selected)
+  const open = (!!aRef.current) && (editingLink || selected)
   return (
     <>
       <Link {...attributes} href={conceptPath(element.uri)} ref={aRef}>
         {children}
       </Link>
-      <ConceptPopover element={element} open={open} anchorEl={aRef.current}
-        onClose={() => {
-          setEditingLink(false)
-        }}
-        editing={editingLink} setEditing={setEditingLink} />
+      {open && (
+        <ConceptPopover element={element} open={open} anchorEl={aRef.current}
+          onClose={() => {
+            setEditingLink(false)
+          }}
+          editing={editingLink} setEditing={setEditingLink} />
+      )}
     </>
   )
 }
