@@ -230,7 +230,7 @@ const disallowEmpty = (type, editor) => {
 }
 
 export const withLinks = editor => {
-  const { insertData, insertText, insertBreak, isInline, normalizeNode } = editor
+  const { insertData, insertText, isInline } = editor
 
   editor.isInline = element => {
     return element.type === 'link' ? true : isInline(element)

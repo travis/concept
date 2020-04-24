@@ -4,6 +4,8 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { DndProvider } from 'react-dnd'
 import DndBackend from 'react-dnd-html5-backend'
 import {useLoggedIn} from '@solid/react';
+import {SnackbarProvider} from 'notistack';
+import { ThemeProvider } from '@material-ui/core/styles';
 
 import './App.css';
 import {AuthProvider} from './context/auth'
@@ -18,6 +20,8 @@ import CurrentPage from "./components/CurrentPage"
 import CurrentConcept from "./components/CurrentConcept"
 import Loader from "./components/Loader"
 import PublicProfile, {EncodedWebIdPublicProfile} from './components/PublicProfile';
+import AppErrorBoundary from "./AppErrorBoundary";
+import theme from './theme'
 
 function App() {
   const loggedIn = useLoggedIn()
@@ -48,21 +52,24 @@ function App() {
   )
 }
 
-
 function AppContainer() {
   return (
-    <>
-      <CssBaseline/>
-        <DndProvider backend={DndBackend}>
-          <Router>
-            <AuthProvider>
-              <PreferencesProvider>
-                <App/>
-              </PreferencesProvider>
-            </AuthProvider>
-          </Router>
-        </DndProvider>
-    </>
+    <ThemeProvider theme={theme}>
+      <SnackbarProvider maxSnack={3}>
+        <AppErrorBoundary>
+          <CssBaseline/>
+          <DndProvider backend={DndBackend}>
+            <Router>
+              <AuthProvider>
+                <PreferencesProvider>
+                  <App/>
+                </PreferencesProvider>
+              </AuthProvider>
+            </Router>
+          </DndProvider>
+        </AppErrorBoundary>
+      </SnackbarProvider>
+    </ThemeProvider>
   );
 }
 
