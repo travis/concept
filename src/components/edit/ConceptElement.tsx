@@ -100,10 +100,12 @@ const ConceptPopover: FunctionComponent<ConceptPopoverProps> = ({ element, editi
 }
 
 const ConceptElement: FunctionComponent<ElementProps> = ({ attributes, children, element }) => {
+  const selected = useSelected()
+  const editor = useEditor()
+  const selectionCollapsed = !!(editor.selection && Range.isCollapsed(editor.selection))
   const aRef = useRef(null)
   const [editingLink, setEditingLink] = useState(false)
-  const selected = useSelected()
-  const open = (!!aRef.current) && (editingLink || selected)
+  const open = (!!aRef.current) && (editingLink || (selected && selectionCollapsed))
   return (
     <>
       <Link {...attributes} href={conceptPath(element.uri)} ref={aRef}>
