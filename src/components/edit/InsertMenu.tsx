@@ -112,7 +112,7 @@ const InsertMenu: FunctionComponent<InsertMenuProps> = ({ element, onClose, ...p
       }}
       onClose={onClose}
       {...props}>
-      <InsertItem element={element} format="p" onClose={onClose}>
+      <InsertItem element={element} format="paragraph" onClose={onClose}>
         text
       </InsertItem>
       <InsertItem element={element} format="heading-one" onClose={onClose}>

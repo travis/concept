@@ -57,7 +57,7 @@ const TurnIntoMenu: FunctionComponent<TurnIntoMenuProps> = ({ element, onClose, 
       }}
       onClose={onClose}
       {...props}>
-      <TurnIntoItem element={element} format="p" onClose={onClose}>
+      <TurnIntoItem element={element} format="paragraph" onClose={onClose}>
         text
         </TurnIntoItem>
       <TurnIntoItem element={element} format="heading-one" onClose={onClose}>
