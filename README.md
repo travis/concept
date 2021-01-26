@@ -1,3 +1,13 @@
+Thanks for your interest in Concept! Unfortunately it is currently
+unsupported and I have no plans to continue developing it. Happily, it
+has been repurposed and reconfigured and reborn as
+[itme.online](https://itme.online), a Grant for the Web Flagship
+Project. Follow that repository or subscribe to [our
+blog](http://itme.press/) or [newsletter](https://tinyletter.com/itme)
+to learn more about cutting edge Solid web development.
+
+~ tfv 1/25/21
+
 # Concept
 
 All (well, some)-in-one workspace built on [Solid](https://solidproject.org/).
