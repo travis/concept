@@ -27,7 +27,7 @@
     "is-hotkey": "^0.1.6",
     "is-url": "^1.2.4",
     "notistack": "^0.9.11",
-    "parse-link-header": "^1.0.1",
+    "parse-link-header": "^2.0.0",
     "rdf-namespaces": "^1.8.0",
     "react": "^16.12.0",
     "react-cropper": "^1.3.0",
